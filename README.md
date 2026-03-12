@@ -1,5 +1,5 @@
 # SoPra RESTful Service Template FS26
-# deployment check
+# Testing SOnarQube Server
 ## Getting started with Spring Boot
 -   Documentation: https://docs.spring.io/spring-boot/docs/current/reference/html/index.html
 -   Guides: http://spring.io/guides
