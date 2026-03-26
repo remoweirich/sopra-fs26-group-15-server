@@ -1,5 +1,8 @@
 package ch.uzh.ifi.hase.soprafs26.entity;
 
+import jakarta.persistence.Embeddable;
+
+@Embeddable
 public class UserScoreboard {
 
     private Integer totalPoints;

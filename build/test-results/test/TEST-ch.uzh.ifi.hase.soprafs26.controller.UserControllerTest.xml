@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="ch.uzh.ifi.hase.soprafs26.controller.UserControllerTest" tests="2" skipped="0" failures="1" errors="0" timestamp="2026-03-26T09:46:08.321Z" hostname="DESKTOP-NGV1E6I" time="0.652">
+<testsuite name="ch.uzh.ifi.hase.soprafs26.controller.UserControllerTest" tests="2" skipped="0" failures="1" errors="0" timestamp="2026-03-26T12:44:37.168Z" hostname="DESKTOP-NGV1E6I" time="1.288">
   <properties/>
-  <testcase name="givenUsers_whenGetUsers_thenReturnJsonArray()" classname="ch.uzh.ifi.hase.soprafs26.controller.UserControllerTest" time="0.528"/>
-  <testcase name="createUser_validInput_userCreated()" classname="ch.uzh.ifi.hase.soprafs26.controller.UserControllerTest" time="0.119">
+  <testcase name="givenUsers_whenGetUsers_thenReturnJsonArray()" classname="ch.uzh.ifi.hase.soprafs26.controller.UserControllerTest" time="0.95"/>
+  <testcase name="createUser_validInput_userCreated()" classname="ch.uzh.ifi.hase.soprafs26.controller.UserControllerTest" time="0.326">
     <failure message="java.lang.AssertionError: No value at JSON path &quot;$.id&quot;" type="java.lang.AssertionError">java.lang.AssertionError: No value at JSON path &quot;$.id&quot;
 	at org.springframework.test.util.JsonPathExpectationsHelper.evaluateJsonPath(JsonPathExpectationsHelper.java:350)
 	at org.springframework.test.util.JsonPathExpectationsHelper.assertValue(JsonPathExpectationsHelper.java:106)
@@ -12,8 +12,8 @@
 Caused by: com.jayway.jsonpath.PathNotFoundException: No results for path: $['id']
 </failure>
   </testcase>
-  <system-out><![CDATA[2026-03-26T10:46:06.038+01:00  INFO 6438 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [ch.uzh.ifi.hase.soprafs26.controller.UserControllerTest]: UserControllerTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-03-26T10:46:06.097+01:00  INFO 6438 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration ch.uzh.ifi.hase.soprafs26.Application for test class ch.uzh.ifi.hase.soprafs26.controller.UserControllerTest
+  <system-out><![CDATA[2026-03-26T13:44:34.258+01:00  INFO 17126 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [ch.uzh.ifi.hase.soprafs26.controller.UserControllerTest]: UserControllerTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-03-26T13:44:34.314+01:00  INFO 17126 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration ch.uzh.ifi.hase.soprafs26.Application for test class ch.uzh.ifi.hase.soprafs26.controller.UserControllerTest
 
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
@@ -24,12 +24,12 @@ Caused by: com.jayway.jsonpath.PathNotFoundException: No results for path: $['id
 
  :: Spring Boot ::                (v4.0.0)
 
-2026-03-26T10:46:06.178+01:00  INFO 6438 --- [    Test worker] c.u.i.h.s.controller.UserControllerTest  : Starting UserControllerTest using Java 17.0.13 with PID 6438 (started by dorian in /home/dorian/sopra/guessbb/server/sopra-fs26-group-15-server)
-2026-03-26T10:46:06.179+01:00  INFO 6438 --- [    Test worker] c.u.i.h.s.controller.UserControllerTest  : No active profile set, falling back to 1 default profile: "default"
-2026-03-26T10:46:08.234+01:00  INFO 6438 --- [    Test worker] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
-2026-03-26T10:46:08.235+01:00  INFO 6438 --- [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
-2026-03-26T10:46:08.240+01:00  INFO 6438 --- [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 4 ms
-2026-03-26T10:46:08.303+01:00  INFO 6438 --- [    Test worker] c.u.i.h.s.controller.UserControllerTest  : Started UserControllerTest in 2.187 seconds (process running for 8.433)
+2026-03-26T13:44:34.392+01:00  INFO 17126 --- [    Test worker] c.u.i.h.s.controller.UserControllerTest  : Starting UserControllerTest using Java 17.0.13 with PID 17126 (started by dorian in /home/dorian/sopra/guessbb/server/sopra-fs26-group-15-server)
+2026-03-26T13:44:34.392+01:00  INFO 17126 --- [    Test worker] c.u.i.h.s.controller.UserControllerTest  : No active profile set, falling back to 1 default profile: "default"
+2026-03-26T13:44:37.057+01:00  INFO 17126 --- [    Test worker] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-03-26T13:44:37.058+01:00  INFO 17126 --- [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-03-26T13:44:37.063+01:00  INFO 17126 --- [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 3 ms
+2026-03-26T13:44:37.148+01:00  INFO 17126 --- [    Test worker] c.u.i.h.s.controller.UserControllerTest  : Started UserControllerTest in 2.816 seconds (process running for 13.64)
 
 MockHttpServletRequest:
       HTTP Method = POST

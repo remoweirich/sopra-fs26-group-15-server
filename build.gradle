@@ -61,10 +61,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-cache")
     //implementation("com.google.transit:gtfs-realtime-bindings:0.0.10")
-    //implementation "io.mobilitydata:gtfs-realtime-bindings:0.0.11"
+    implementation("org.mobilitydata:gtfs-realtime-bindings:0.0.8")
     implementation("com.opencsv:opencsv:5.9")
 
-    implementation group: 'org.mobilitydata', name: 'gtfs-realtime-bindings', version: '0.0.8'
+    //implementation group: 'org.mobilitydata', name: 'gtfs-realtime-bindings', version: '0.0.8'
 }
 
 bootJar {
