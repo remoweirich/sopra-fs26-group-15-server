@@ -5,8 +5,8 @@ runtime: java17
 instance_class: F2
 
 gtfs:
-  api-token: YOUR_TOKEN_HERE
-  static-url: https://data.opentransportdata.swiss/dataset/timetable-2026-gtfs2020
+  #api-token: YOUR_TOKEN_HERE
+  static-url: https://data.opentransportdata.swiss/dataset/3d2c18f9-9ef1-463f-a249-5c67604efd74/resource/44c51fe4-5441-4359-9438-48869ee658f1/download/gtfs_fp2026_20260325.zip
   rt-url: https://api.opentransportdata.swiss/la/gtfs-rt
   # Where to cache the downloaded ZIP on disk
   local-zip-path: /var/data/gtfs/gtfs_static.zip

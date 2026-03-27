@@ -1,13 +1,21 @@
 package ch.uzh.ifi.hase.soprafs26.entity;
 
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Column;
+
+@Embeddable
 public class UserScoreboard {
 
+    @Column(nullable = true)
     private Integer totalPoints;
 
+    @Column(nullable = true)
     private Integer gamesPlayed;
 
+    @Column(nullable = true)
     private Integer gamesWon;
 
+    @Column(nullable = true)
     private Float guessingPrecision;
 
 

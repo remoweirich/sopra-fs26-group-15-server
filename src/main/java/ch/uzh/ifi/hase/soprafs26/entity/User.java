@@ -28,7 +28,7 @@ public class User implements Serializable {
 	@GeneratedValue
 	private Long userId;
 
-    @Column(nullable = true)
+    @Embedded
     private UserScoreboard userScoreboard;
 
 	@Column(nullable = false, unique = true)
