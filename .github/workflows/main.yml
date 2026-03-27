@@ -9,7 +9,7 @@ on:
 
 jobs:
   test:
-    name: Test and Sonarqube
+    name: Test and SonarQube
     runs-on: ubuntu-latest
 
     steps:
