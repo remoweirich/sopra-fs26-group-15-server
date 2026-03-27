@@ -44,3 +44,6 @@ local.properties
 .xcode*
 
 /bin
+
+# ignore node_modules
+node_modules/

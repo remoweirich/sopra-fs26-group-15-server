@@ -1,0 +1,20 @@
+{
+  "name": "sopra-fs26-group-15-server-release-tooling",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Release automation (semantic-release) for a Java/Gradle repository",
+  "engines": {
+    "node": ">=18 <19"
+  },
+  "scripts": {
+    "release": "semantic-release"
+  },
+  "devDependencies": {
+    "semantic-release": "^22.0.0",
+    "@semantic-release/changelog": "^6.0.0",
+    "@semantic-release/commit-analyzer": "^11.0.0",
+    "@semantic-release/git": "^10.0.0",
+    "@semantic-release/github": "^9.0.0",
+    "@semantic-release/release-notes-generator": "^12.0.0"
+  }
+}
