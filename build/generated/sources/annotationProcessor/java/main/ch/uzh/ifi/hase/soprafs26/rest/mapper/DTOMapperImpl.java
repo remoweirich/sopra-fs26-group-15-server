@@ -7,6 +7,8 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.LobbyAccessDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.LobbyCodePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.LobbyDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.MyLobbyDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.RegisterPostDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserAuthDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
 import java.util.ArrayList;
@@ -15,10 +17,42 @@ import javax.annotation.processing.Generated;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-03-26T13:44:21+0100",
-    comments = "version: 1.5.5.Final, compiler: IncrementalProcessingEnvironment from gradle-language-java-9.2.1.jar, environment: Java 17.0.13 (N/A)"
+    date = "2026-03-27T23:11:51+0100",
+    comments = "version: 1.5.5.Final, compiler: IncrementalProcessingEnvironment from gradle-language-java-9.2.1.jar, environment: Java 17.0.18 (Ubuntu)"
 )
 public class DTOMapperImpl implements DTOMapper {
+
+    @Override
+    public User convertRegisterPostDTOtoUser(RegisterPostDTO registerPostDTO) {
+        if ( registerPostDTO == null ) {
+            return null;
+        }
+
+        User user = new User();
+
+        user.setUsername( registerPostDTO.getUsername() );
+        user.setEmail( registerPostDTO.getEmail() );
+        user.setPassword( registerPostDTO.getPassword() );
+        user.setUserBio( registerPostDTO.getUserBio() );
+
+        return user;
+    }
+
+    @Override
+    public UserAuthDTO convertUsertoUserAuthDTO(User user) {
+        if ( user == null ) {
+            return null;
+        }
+
+        UserAuthDTO userAuthDTO = new UserAuthDTO();
+
+        if ( user.getUserId() != null ) {
+            userAuthDTO.setUserId( String.valueOf( user.getUserId() ) );
+        }
+        userAuthDTO.setToken( user.getToken() );
+
+        return userAuthDTO;
+    }
 
     @Override
     public User convertUserPostDTOtoEntity(UserPostDTO userPostDTO) {

@@ -3,9 +3,6 @@ package ch.uzh.ifi.hase.soprafs26.rest.mapper;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-import ch.uzh.ifi.hase.soprafs26.entity.User;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
 
@@ -24,6 +21,9 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
 public interface DTOMapper {
 
 	DTOMapper INSTANCE = Mappers.getMapper(DTOMapper.class);
+
+	User convertRegisterPostDTOtoUser(RegisterPostDTO registerPostDTO);
+	UserAuthDTO convertUsertoUserAuthDTO(User user);
 
 	@Mapping(source = "username", target = "username")
 	User convertUserPostDTOtoEntity(UserPostDTO userPostDTO);

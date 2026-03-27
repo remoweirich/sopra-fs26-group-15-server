@@ -1,12 +1,17 @@
 package ch.uzh.ifi.hase.soprafs26.entity;
 
 import jakarta.persistence.*;
-
+import jakarta.persistence.criteria.CriteriaBuilder.In;
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+/**
+ * HELLöOOOOOOOOOOOOOO
+ */
 
 /**
  * Internal User Representation
@@ -43,18 +48,25 @@ public class User implements Serializable {
     @Column(nullable = true)
     private String userBio;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Date creationDate;
 
 	@Column(nullable = true, unique = true)
 	private String token;
 
-	@Column(nullable = false)
+	@Column(nullable = true)
 	private UserStatus status;
 
-    @Column(nullable = true)
-    private List<User> friends;
-
+	// @Column for friends was replaced by manyToMany table below
+	@ManyToMany(fetch=FetchType.LAZY)
+	@JoinTable(
+    	name = "userFriends",
+    	joinColumns = @JoinColumn(name = "userId"),
+    	inverseJoinColumns = @JoinColumn(name = "friendId")
+	)
+	
+	private List<User> friends = new ArrayList<>();
+ 
 
 
 	public Long getUserId() {
@@ -104,6 +116,14 @@ public class User implements Serializable {
 		this.status = status;
 	}
 
-    public List<User> getFriends() {return friends;}
-    public void setFriends(List<User> friends) {this.friends = friends;}
+    public List<User> getFriends() { return friends; }
+	public void setFriends(List<User> friends) { this.friends = friends; }
+
+
+
+
+
+
+
 }
+

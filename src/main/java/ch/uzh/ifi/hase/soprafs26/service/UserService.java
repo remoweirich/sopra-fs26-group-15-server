@@ -2,7 +2,6 @@ package ch.uzh.ifi.hase.soprafs26.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,10 +9,17 @@ import org.springframework.web.server.ResponseStatusException;
 
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.entity.UserScoreboard;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.Date;
+
+
+/**
+ * HELLLLÖOOOOOOOOO
+ */
 
 /**
  * User Service
@@ -30,20 +36,38 @@ public class UserService {
 
 	private final UserRepository userRepository;
 
-	public UserService(@Qualifier("userRepository") UserRepository userRepository) {
+	public UserService(UserRepository userRepository) {
 		this.userRepository = userRepository;
 	}
 
 	public List<User> getUsers() {
-		return this.userRepository.findAll();
+	return this.userRepository.findAll();
 	}
 
-	public User createUser(User newUser) {
-		newUser.setToken(UUID.randomUUID().toString());
+	public User registerUser(User newUser) {
+
+		UserScoreboard userScoreboard = new UserScoreboard();
+		userScoreboard.setTotalPoints(0);
+		userScoreboard.setGamesPlayed(0);
+		userScoreboard.setGamesWon(0);
+		userScoreboard.setGuessingPrecision(0f);
+
+		newUser.setUserScoreboard(userScoreboard);
+
+		String newUserToken;
+
+		do {
+			newUserToken = UUID.randomUUID().toString();
+		} while (userRepository.findByToken(newUserToken) != null);
+
+		newUser.setToken(newUserToken);
+
 		newUser.setStatus(UserStatus.OFFLINE);
+
+		newUser.setCreationDate(new Date());
+
 		checkIfUserExists(newUser);
-		// saves the given entity but data is only persisted in the database once
-		// flush() is called
+
 		newUser = userRepository.save(newUser);
 		userRepository.flush();
 
@@ -52,12 +76,12 @@ public class UserService {
 	}
 
 	public User getUserById(String id) {
-		Long longId = Long.parseLong(id);
-		User user = userRepository.findById(longId).orElse(null);
-		if (user == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This user could not be found");
-		}
-		return user;
+	Long longId = Long.parseLong(id);
+	User user = userRepository.findById(longId).orElse(null);
+	if (user == null) {
+	throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This user could not be found");
+	}
+	return user;
 	}
 
 	/**
@@ -72,13 +96,19 @@ public class UserService {
 	 */
 	private void checkIfUserExists(User userToBeCreated) {
 		User userByUsername = userRepository.findByUsername(userToBeCreated.getUsername());
+		User userByEmail = userRepository.findByEmail(userToBeCreated.getEmail());
 
 		String baseErrorMessage = "The %s provided %s not unique. Therefore, the user could not be created!";
-		if (userByUsername != null) {
+
+		if (userByUsername != null && userByEmail != null) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-					String.format(baseErrorMessage, "username and the name", "are"));
+					String.format(baseErrorMessage, "username and the email", "are"));
 		} else if (userByUsername != null) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "username", "is"));
-		} 
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					String.format(baseErrorMessage, "username", "is"));
+		} else if (userByEmail != null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					String.format(baseErrorMessage, "email", "is"));
+		}
 	}
 }
