@@ -10,6 +10,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.LoginPostDTO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +28,7 @@ import java.util.List;
  */
 
 @RestController
-public class UserController{
+public class UserController {
 
 	private final UserService userService;
 
@@ -40,7 +41,7 @@ public class UserController{
 	@PostMapping("/register")
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
-	public UserAuthDTO registerUser(@RequestBody RegisterPostDTO registerPostDTO){
+	public UserAuthDTO registerUser(@RequestBody RegisterPostDTO registerPostDTO) {
 
 		User userInput = DTOMapper.INSTANCE.convertRegisterPostDTOtoUser(registerPostDTO);
 
@@ -49,48 +50,54 @@ public class UserController{
 		return DTOMapper.INSTANCE.convertUsertoUserAuthDTO(registeredUser);
 
 	}
+
+	@PostMapping("/login")
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public UserAuthDTO loginUser(@RequestBody LoginPostDTO loginPostDTO) {
+
+		User user = userService.loginUser(
+				loginPostDTO.getUsername(),
+				loginPostDTO.getPassword());
+		return DTOMapper.INSTANCE.convertUsertoUserAuthDTO(user);
+	}
+
 }
-
-
-
-
-
-
 
 // @RestController
 // public class UserController {
 
-// 	private final UserService userService;
+// private final UserService userService;
 
-// 	UserController(UserService userService) {
-// 		this.userService = userService;
-// 	}
+// UserController(UserService userService) {
+// this.userService = userService;
+// }
 
-// 	@GetMapping("/users")
-// 	@ResponseStatus(HttpStatus.OK)
-// 	@ResponseBody
-// 	public List<UserGetDTO> getAllUsers() {
-// 		// fetch all users in the internal representation
-// 		List<User> users = userService.getUsers();
-// 		List<UserGetDTO> userGetDTOs = new ArrayList<>();
+// @GetMapping("/users")
+// @ResponseStatus(HttpStatus.OK)
+// @ResponseBody
+// public List<UserGetDTO> getAllUsers() {
+// // fetch all users in the internal representation
+// List<User> users = userService.getUsers();
+// List<UserGetDTO> userGetDTOs = new ArrayList<>();
 
-// 		// convert each user to the API representation
-// 		for (User user : users) {
-// 			userGetDTOs.add(DTOMapper.INSTANCE.convertEntityToUserGetDTO(user));
-// 		}
-// 		return userGetDTOs;
-// 	}
+// // convert each user to the API representation
+// for (User user : users) {
+// userGetDTOs.add(DTOMapper.INSTANCE.convertEntityToUserGetDTO(user));
+// }
+// return userGetDTOs;
+// }
 
-// 	@PostMapping("/users")
-// 	@ResponseStatus(HttpStatus.CREATED)
-// 	@ResponseBody
-// 	public UserGetDTO createUser(@RequestBody UserPostDTO userPostDTO) {
-// 		// convert API user to internal representation
-// 		User userInput = DTOMapper.INSTANCE.convertUserPostDTOtoEntity(userPostDTO);
+// @PostMapping("/users")
+// @ResponseStatus(HttpStatus.CREATED)
+// @ResponseBody
+// public UserGetDTO createUser(@RequestBody UserPostDTO userPostDTO) {
+// // convert API user to internal representation
+// User userInput = DTOMapper.INSTANCE.convertUserPostDTOtoEntity(userPostDTO);
 
-// 		// create user
-// 		User createdUser = userService.createUser(userInput);
-// 		// convert internal representation of user back to API
-// 		return DTOMapper.INSTANCE.convertEntityToUserGetDTO(createdUser);
-// 	}
+// // create user
+// User createdUser = userService.createUser(userInput);
+// // convert internal representation of user back to API
+// return DTOMapper.INSTANCE.convertEntityToUserGetDTO(createdUser);
+// }
 // }

@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.Date;
 
-
 /**
  * HELLLLÖOOOOOOOOO
  */
@@ -41,7 +40,7 @@ public class UserService {
 	}
 
 	public List<User> getUsers() {
-	return this.userRepository.findAll();
+		return this.userRepository.findAll();
 	}
 
 	public User registerUser(User newUser) {
@@ -54,13 +53,13 @@ public class UserService {
 
 		newUser.setUserScoreboard(userScoreboard);
 
-		String newUserToken;
+		// String newUserToken;
 
-		do {
-			newUserToken = UUID.randomUUID().toString();
-		} while (userRepository.findByToken(newUserToken) != null);
+		// do {
+		// newUserToken = UUID.randomUUID().toString();
+		// } while (userRepository.findByToken(newUserToken) != null);
 
-		newUser.setToken(newUserToken);
+		// newUser.setToken(newUserToken);
 
 		newUser.setStatus(UserStatus.OFFLINE);
 
@@ -75,13 +74,39 @@ public class UserService {
 		return newUser;
 	}
 
-	public User getUserById(String id) {
-	Long longId = Long.parseLong(id);
-	User user = userRepository.findById(longId).orElse(null);
-	if (user == null) {
-	throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This user could not be found");
+	public User loginUser(String username, String password) {
+		User loggedInUser = userRepository.findByUsername(username);
+
+		if (loggedInUser == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This user could not be found");
+		}
+		if (!loggedInUser.getPassword().equals(password)) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The credentials are wrong");
+		}
+
+		// token erhalten und auf online setzen
+		String newToken;
+
+		do {
+			newToken = UUID.randomUUID().toString();
+		} while (userRepository.findByToken(newToken) != null);
+
+		loggedInUser.setToken(newToken);
+		loggedInUser.setStatus(UserStatus.ONLINE);
+
+		loggedInUser = userRepository.save(loggedInUser);
+		userRepository.flush();
+
+		return loggedInUser;
 	}
-	return user;
+
+	public User getUserById(String id) {
+		Long longId = Long.parseLong(id);
+		User user = userRepository.findById(longId).orElse(null);
+		if (user == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This user could not be found");
+		}
+		return user;
 	}
 
 	/**
