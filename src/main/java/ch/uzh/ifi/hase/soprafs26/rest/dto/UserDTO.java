@@ -13,26 +13,50 @@ public class UserDTO {
 
     private String userBio;
 
-    private UserScoreboard scoreboard;
+    private UserScoreboard userScoreboard;
 
     private List<User> friends;
 
     private Date creationDate;
 
+    public String getUsername() {
+        return username;
+    }
 
-    public String getUsername() {return username;}
-    public void setUsername(String username) {this.username = username;}
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
-    public String getUserBio() {return userBio;}
-    public void setUserBio(String userBio) {this.userBio = userBio;}
+    public String getUserBio() {
+        return userBio;
+    }
 
-    public UserScoreboard getScoreboard() {return scoreboard;}
-    public void setScoreboard(UserScoreboard scoreboard) {this.scoreboard = scoreboard;}
+    public void setUserBio(String userBio) {
+        this.userBio = userBio;
+    }
 
-    public List<User> getFriends() {return friends;}
-    public void setFriends(List<User> friends) {this.friends = friends;}
+    public UserScoreboard getUserScoreboard() {
+        return userScoreboard;
+    }
 
-    public Date getCreationDate() {return creationDate;}
-    public void setCreationDate(Date creationDate) {this.creationDate = creationDate;}
+    public void setUserScoreboard(UserScoreboard userScoreboard) {
+        this.userScoreboard = userScoreboard;
+    }
+
+    public List<User> getFriends() {
+        return friends;
+    }
+
+    public void setFriends(List<User> friends) {
+        this.friends = friends;
+    }
+
+    public Date getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(Date creationDate) {
+        this.creationDate = creationDate;
+    }
 
 }

@@ -1,12 +1,17 @@
 package ch.uzh.ifi.hase.soprafs26.entity;
 
 import jakarta.persistence.*;
-
+import jakarta.persistence.criteria.CriteriaBuilder.In;
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+/**
+ * HELLöOOOOOOOOOOOOOO
+ */
 
 /**
  * Internal User Representation
@@ -29,70 +34,95 @@ public class User implements Serializable {
 	private Long userId;
 
 	@Embedded
-    private UserScoreboard userScoreboard;
+	private UserScoreboard userScoreboard;
 
 	@Column(nullable = false, unique = true)
 	private String username;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+	@Column(nullable = false, unique = true)
+	private String email;
 
-    @Column(nullable = false)
-    private String password;
+	@Column(nullable = false)
+	private String password;
 
-    @Column(nullable = true)
-    private String userBio;
+	@Column(nullable = true)
+	private String userBio;
 
-    @Column(nullable = false)
-    private Date creationDate;
+	@Column(nullable = true)
+	private Date creationDate;
 
 	@Column(nullable = true, unique = true)
 	private String token;
 
-	@Column(nullable = false)
+	@Column(nullable = true)
 	private UserStatus status;
 
-    @Column(nullable = true)
-    private List<User> friends;
+	// @Column for friends was replaced by manyToMany table below
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(name = "friends", joinColumns = @JoinColumn(name = "userId"), inverseJoinColumns = @JoinColumn(name = "friendId"))
 
-
+	private List<User> friends = new ArrayList<>();
 
 	public Long getUserId() {
 		return userId;
 	}
+
 	public void setUserId(Long userId) {
 		this.userId = userId;
 	}
 
-    public UserScoreboard getUserScoreboard() {return userScoreboard;}
-    public void setUserScoreboard(UserScoreboard userScoreboard) {this.userScoreboard = userScoreboard;}
+	public UserScoreboard getUserScoreboard() {
+		return userScoreboard;
+	}
+
+	public void setUserScoreboard(UserScoreboard userScoreboard) {
+		this.userScoreboard = userScoreboard;
+	}
 
 	public String getUsername() {
 		return username;
 	}
+
 	public void setUsername(String username) {
 		this.username = username;
 	}
 
-    public String getEmail() {return email;}
-    public void setEmail(String email) {this.email = email;}
+	public String getEmail() {
+		return email;
+	}
 
-    public String getPassword() {return password;}
-    public void setPassword(String password) {this.password = password;}
+	public void setEmail(String email) {
+		this.email = email;
+	}
 
-    public String getUserBio() {
-        return userBio;
-    }
-    public void setUserBio(String userBio) {
-        this.userBio = userBio;
-    }
+	public String getPassword() {
+		return password;
+	}
 
-    public Date getCreationDate() {return creationDate;}
-    public void setCreationDate(Date creationDate) {this.creationDate = creationDate;}
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getUserBio() {
+		return userBio;
+	}
+
+	public void setUserBio(String userBio) {
+		this.userBio = userBio;
+	}
+
+	public Date getCreationDate() {
+		return creationDate;
+	}
+
+	public void setCreationDate(Date creationDate) {
+		this.creationDate = creationDate;
+	}
 
 	public String getToken() {
 		return token;
 	}
+
 	public void setToken(String token) {
 		this.token = token;
 	}
@@ -100,10 +130,17 @@ public class User implements Serializable {
 	public UserStatus getStatus() {
 		return status;
 	}
+
 	public void setStatus(UserStatus status) {
 		this.status = status;
 	}
 
-    public List<User> getFriends() {return friends;}
-    public void setFriends(List<User> friends) {this.friends = friends;}
+	public List<User> getFriends() {
+		return friends;
+	}
+
+	public void setFriends(List<User> friends) {
+		this.friends = friends;
+	}
+
 }
