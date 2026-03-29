@@ -65,23 +65,19 @@ public class UserController {
 
 	@GetMapping("/users/{userId}")
 	@ResponseStatus(HttpStatus.OK)
-	public MyUserDTO getUser(@RequestHeader("token") String token, @PathVariable("userId") String userId) {
+	@ResponseBody
+	public Object getUser(@PathVariable("userId") String userId,
+			@RequestHeader(value = "token", required = false) String token) {
 
 		AuthHeader authHeader = new AuthHeader(userId, token);
+		boolean isAuthenticated = authService.authUser(authHeader);
+		User user = userService.getUserById(userId);
 
-		if (!authService.authUser(authHeader)) {
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+		if (isAuthenticated) {
+			return DTOMapper.INSTANCE.convertUserToMyUserDTO(user);
+		} else {
+			return DTOMapper.INSTANCE.convertUserToUserDTO(user);
 		}
-
-		User user = userService.getUserById(userId);
-		return DTOMapper.INSTANCE.convertUserToMyUserDTO(user);
-	}
-
-	@GetMapping("/users/{userId}")
-	@ResponseStatus(HttpStatus.OK)
-	public UserDTO getUser(@PathVariable("userId") String userId) {
-		User user = userService.getUserById(userId);
-		return DTOMapper.INSTANCE.convertUserToUserDTO(user);
 	}
 
 	// @PostMapping("/users/{userId}/logout")
