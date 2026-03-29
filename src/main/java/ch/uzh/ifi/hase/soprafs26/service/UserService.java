@@ -100,8 +100,8 @@ public class UserService {
 		return loggedInUser;
 	}
 
-	public User getUserById(String id) {
-		Long longId = Long.parseLong(id);
+	public User getUserById(String userId) {
+		Long longId = Long.parseLong(userId);
 		User user = userRepository.findById(longId).orElse(null);
 		if (user == null) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This user could not be found");
