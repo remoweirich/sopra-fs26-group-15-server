@@ -39,6 +39,13 @@ public interface DTOMapper {
 	@Mapping(source = "friends", target = "friends")
 	MyUserDTO convertUserToMyUserDTO(User user);
 
+	@Mapping(source = "userScoreboard", target = "userScoreboard")
+	@Mapping(source = "username", target = "username")
+	@Mapping(source = "userBio", target = "userBio")
+	@Mapping(source = "creationDate", target = "creationDate")
+	@Mapping(source = "friends", target = "friends")
+	UserDTO convertUserToUserDTO(User user);
+
 	@Mapping(source = "userId", target = "userId")
 	@Mapping(source = "username", target = "username")
 	@Mapping(source = "status", target = "status")

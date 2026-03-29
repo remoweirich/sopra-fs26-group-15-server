@@ -4,17 +4,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import ch.uzh.ifi.hase.soprafs26.entity.User;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.RegisterPostDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.UserAuthDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.LoginPostDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.MyUserDTO;
 import ch.uzh.ifi.hase.soprafs26.security.AuthService;
 import ch.uzh.ifi.hase.soprafs26.security.AuthHeader;
 import org.springframework.web.server.ResponseStatusException;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,12 +77,12 @@ public class UserController {
 		return DTOMapper.INSTANCE.convertUserToMyUserDTO(user);
 	}
 
-	// @GetMapping("/users/{userId}")
-	// @ResponseStatus(HttpStatus.OK)
-	// public MyUserDTO getUser(@PathVariable("userId") String userId) {
-	// User user = userService.getUserById(userId);
-	// return DTOMapper.INSTANCE.convertUserToMyUserDTO(user);
-	// }
+	@GetMapping("/users/{userId}")
+	@ResponseStatus(HttpStatus.OK)
+	public UserDTO getUser(@PathVariable("userId") String userId) {
+		User user = userService.getUserById(userId);
+		return DTOMapper.INSTANCE.convertUserToUserDTO(user);
+	}
 
 	// @PostMapping("/users/{userId}/logout")
 	// @ResponseStatus(HttpStatus.OK)

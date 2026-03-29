@@ -13,8 +13,7 @@ import ch.uzh.ifi.hase.soprafs26.constant.LobbyState;
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.*;
 
-
-import ch.uzh.ifi.hase.soprafs26.service.AuthService;
+import ch.uzh.ifi.hase.soprafs26.security.AuthService;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
 
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
@@ -52,26 +51,28 @@ public class LobbyService {
 
     public Lobby joinLobby(String userId, String lobbyId, String lobbyCode) {
         Lobby lobby = getLobbyById(lobbyId);
-        
+
         User user = userService.getUserById(userId);
 
-        //Check whether the lobby code is correct (only for private lobbies)
+        // Check whether the lobby code is correct (only for private lobbies)
         if (!lobby.getLobbyCode().equals(lobbyCode) && lobby.getVisibility() == LobbyVisibility.PRIVATE) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Incorrect lobby code");
         }
         // Check whether the lobby is full
         if (lobby.getUsers().size() >= lobby.getSize()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Lobby is full");}
-        //add user to lobby
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Lobby is full");
+        }
+        // add user to lobby
         lobby.addUser(user);
 
-        //if Lobby is now full: if game is public, start game, else wait for admin to start the game
+        // if Lobby is now full: if game is public, start game, else wait for admin to
+        // start the game
         if (lobby.getUsers().size() >= lobby.getSize() && lobby.getVisibility() == LobbyVisibility.PUBLIC) {
             lobby.setLobbyState(LobbyState.IN_GAME);
             startGame(lobby.getLobbyId());
         }
 
-        //send broadcast message to lobby that user has joined
+        // send broadcast message to lobby that user has joined
         MyLobbyDTO myLobbyDTO = DTOMapper.INSTANCE.convertEntityToMyLobbyDTO(lobby);
         Message message = new Message(MessageType.LOBBY_STATE, myLobbyDTO);
         messagingTemplate.convertAndSend("/topic/lobby/" + lobby.getLobbyId(), message);
@@ -79,7 +80,8 @@ public class LobbyService {
         return lobby;
     }
 
-    public void startGame(String lobbyId) {}
+    public void startGame(String lobbyId) {
+    }
 
     private Lobby getLobbyById(String lobbyId) {
         for (Lobby lobby : activeLobbies) {
@@ -89,7 +91,7 @@ public class LobbyService {
         }
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Lobby not found");
     }
-    
+
     private Lobby getLobbyByCode(String lobbyCode) {
         for (Lobby lobby : activeLobbies) {
             if (lobby.getLobbyCode().equals(lobbyCode)) {
@@ -99,4 +101,3 @@ public class LobbyService {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Lobby not found");
     }
 }
-
