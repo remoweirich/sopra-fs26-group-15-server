@@ -62,6 +62,13 @@ public class UserController {
 		return DTOMapper.INSTANCE.convertUsertoUserAuthDTO(user);
 	}
 
+	// @PostMapping("/logout")
+	// @ResponseStatus(HttpStatus.OK)
+	// public void logoutUser(@RequestHeader("Authorization") String token,
+	// @RequestHeader("Username") String username) {
+	// userService.logoutUser();
+	// }
+
 }
 
 // @RestController

@@ -6,13 +6,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class AuthService {
-    
+
     public AuthService() {
         // Constructor for AuthService
     }
 
     public void authUser(String token, String userId) {
         // Implement your authentication logic here
-        // For example, you can check if the token is valid and return true or false accordingly
+        // For example, you can check if the token is valid and return true or false
+        // accordingly
     }
 }
