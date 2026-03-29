@@ -67,7 +67,7 @@ public class UserController {
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	public Object getUser(@PathVariable("userId") String userId,
-			@RequestHeader(value = "token", required = false) String token) {
+			@RequestHeader(value = "token", required = false, defaultValue = "") String token) {
 
 		AuthHeader authHeader = new AuthHeader(userId, token);
 		boolean isAuthenticated = authService.authUser(authHeader);
