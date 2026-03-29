@@ -11,6 +11,10 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.LoginPostDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.MyUserDTO;
+import ch.uzh.ifi.hase.soprafs26.security.AuthService;
+import ch.uzh.ifi.hase.soprafs26.security.AuthHeader;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,9 +35,11 @@ import java.util.List;
 public class UserController {
 
 	private final UserService userService;
+	private final AuthService authService;
 
-	UserController(UserService userService) {
+	UserController(UserService userService, AuthService authService) {
 		this.userService = userService;
+		this.authService = authService;
 	}
 
 	// ENPOINTS
@@ -62,11 +68,32 @@ public class UserController {
 		return DTOMapper.INSTANCE.convertUsertoUserAuthDTO(user);
 	}
 
-	// @PostMapping("/logout")
+	@GetMapping("/users/{userId}")
+	@ResponseStatus(HttpStatus.OK)
+	public MyUserDTO getUser(@RequestHeader("token") String token, @PathVariable("userId") String userId) {
+
+		AuthHeader authHeader = new AuthHeader(userId, token);
+
+		if (!authService.authUser(authHeader)) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+		}
+
+		User user = userService.getUserById(userId);
+		return DTOMapper.INSTANCE.convertUserToMyUserDTO(user);
+	}
+
+	// @GetMapping("/users/{userId}")
 	// @ResponseStatus(HttpStatus.OK)
-	// public void logoutUser(@RequestHeader("Authorization") String token,
-	// @RequestHeader("Username") String username) {
-	// userService.logoutUser();
+	// public MyUserDTO getUser(@PathVariable("userId") String userId) {
+	// User user = userService.getUserById(userId);
+	// return DTOMapper.INSTANCE.convertUserToMyUserDTO(user);
+	// }
+
+	// @PostMapping("/users/{userId}/logout")
+	// @ResponseStatus(HttpStatus.OK)
+	// public void logoutUser(@RequestHeader("token") String token,
+	// @PathVariable("userId") String userId) {
+	// userService.logoutUser(userId, token);
 	// }
 
 }

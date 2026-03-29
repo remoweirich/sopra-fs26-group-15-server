@@ -5,6 +5,8 @@ import org.mapstruct.factory.Mappers;
 
 import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
+import ch.uzh.ifi.hase.soprafs26.security.AuthHeader;
+import ch.uzh.ifi.hase.soprafs26.security.AuthService;
 
 /**
  * DTOMapper
@@ -23,10 +25,19 @@ public interface DTOMapper {
 	DTOMapper INSTANCE = Mappers.getMapper(DTOMapper.class);
 
 	User convertRegisterPostDTOtoUser(RegisterPostDTO registerPostDTO);
+
 	UserAuthDTO convertUsertoUserAuthDTO(User user);
 
 	@Mapping(source = "username", target = "username")
 	User convertUserPostDTOtoEntity(UserPostDTO userPostDTO);
+
+	@Mapping(source = "userScoreboard", target = "userScoreboard")
+	@Mapping(source = "username", target = "username")
+	@Mapping(source = "email", target = "email")
+	@Mapping(source = "userBio", target = "userBio")
+	@Mapping(source = "creationDate", target = "creationDate")
+	@Mapping(source = "friends", target = "friends")
+	MyUserDTO convertUserToMyUserDTO(User user);
 
 	@Mapping(source = "userId", target = "userId")
 	@Mapping(source = "username", target = "username")
@@ -41,7 +52,7 @@ public interface DTOMapper {
 	@Mapping(source = "lobbyCode", target = "lobbyCode")
 	@Mapping(source = "lobbyId", target = "lobbyId")
 
-	LobbyDTO convertEntityToLobbyDTO(Lobby lobby);	
+	LobbyDTO convertEntityToLobbyDTO(Lobby lobby);
 
 	@Mapping(source = "lobbyId", target = "lobbyId")
 	@Mapping(source = "lobbyCode", target = "lobbyCode")
@@ -61,10 +72,9 @@ public interface DTOMapper {
 	@Mapping(source = "lobbyCode", target = "lobbyCode")
 
 	LobbyAccessDTO convertEntityToLobbyAccessDTO(Lobby lobby);
-	
+
 	@Mapping(source = "lobbyCode", target = "lobbyCode")
 
 	Lobby convertLobbyCodePostDTOtoEntity(LobbyCodePostDTO lobbyCodePostDTO);
 
-	
 }
