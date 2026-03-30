@@ -337,6 +337,82 @@ public class TrainPositionFetcher {
     }
 
     // -------------------------------------------------------------------------
+    // Interpolating current train position from enriched Train object
+    // -------------------------------------------------------------------------
+
+    public void interpolatePosition(Train train) {
+        Station lastStation = train.getLastLeavingStation();
+        Station nextStation = train.getNextPendingStation();
+        LineString lineString = train.getLineString();
+
+        long departureTime = lastStation.getDepartureTime();
+        long arrivalTime = nextStation.getArrivalTime();
+        long currentTime = train.getTimestamp();
+
+        // Clamp current time to the valid range
+        currentTime = Math.max(departureTime, Math.min(currentTime, arrivalTime));
+
+        // Total travel time and elapsed time
+        double totalTime = arrivalTime - departureTime;
+        double elapsedTime = currentTime - departureTime;
+
+        // Overall progress ratio [0.0, 1.0]
+        double progressRatio = (totalTime == 0) ? 1.0 : elapsedTime / totalTime;
+
+        List<LineString.Point> points = lineString.getPoints();
+
+        if (points == null || points.isEmpty()) {
+            train.setCurrentX(lastStation.getXCoordinate());
+            train.setCurrentY(lastStation.getYCoordinate());
+            return;
+        }
+
+        // Calculate total path length
+        double totalLength = 0.0;
+        double[] segmentLengths = new double[points.size() - 1];
+        for (int i = 0; i < points.size() - 1; i++) {
+            segmentLengths[i] = distance(points.get(i), points.get(i + 1));
+            totalLength += segmentLengths[i];
+        }
+
+        // Target distance along the path
+        double targetDistance = progressRatio * totalLength;
+
+        // Walk along segments to find the interpolated point
+        double accumulated = 0.0;
+        for (int i = 0; i < segmentLengths.length; i++) {
+            double segLen = segmentLengths[i];
+            if (accumulated + segLen >= targetDistance || i == segmentLengths.length - 1) {
+                // The position lies within this segment
+                double segmentProgress = (segLen == 0) ? 0.0 : (targetDistance - accumulated) / segLen;
+                segmentProgress = Math.max(0.0, Math.min(1.0, segmentProgress));
+
+                LineString.Point p1 = points.get(i);
+                LineString.Point p2 = points.get(i + 1);
+
+                long interpolatedX = Math.round(p1.getX() + segmentProgress * (p2.getX() - p1.getX()));
+                long interpolatedY = Math.round(p1.getY() + segmentProgress * (p2.getY() - p1.getY()));
+
+                train.setCurrentX(interpolatedX);
+                train.setCurrentY(interpolatedY);
+                return;
+            }
+            accumulated += segLen;
+        }
+
+        // Fallback: snap to the last point
+        LineString.Point last = points.get(points.size() - 1);
+        train.setCurrentX(last.getX());
+        train.setCurrentY(last.getY());
+    }
+
+    private double distance(LineString.Point a, LineString.Point b) {
+        double dx = b.getX() - a.getX();
+        double dy = b.getY() - a.getY();
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    // -------------------------------------------------------------------------
     // Shared parsing helpers
     // -------------------------------------------------------------------------
 
@@ -425,6 +501,8 @@ public class TrainPositionFetcher {
             y = coord.get(1).asLong();
         }
         long departureTime = node.path("departureTime").asLong(0);
-        return new Station(name, x, y, departureTime);
+        long arrivalTime = node.path("arrivalTime").asLong(0);
+
+        return new Station(name, x, y, departureTime, arrivalTime);
     }
 }

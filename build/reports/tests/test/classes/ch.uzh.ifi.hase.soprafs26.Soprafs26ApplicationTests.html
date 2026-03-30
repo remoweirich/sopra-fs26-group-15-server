@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.006s</div>
+<div class="counter">0.541s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,7 +79,7 @@
 </thead>
 <tr>
 <td class="success">contextLoads()</td>
-<td class="success">0.006s</td>
+<td class="success">0.541s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -87,8 +87,8 @@
 <div class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre id="class-stdout">2026-03-30T07:56:10.761+02:00  INFO 3917 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [ch.uzh.ifi.hase.soprafs26.Soprafs26ApplicationTests]: Soprafs26ApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-03-30T07:56:10.771+02:00  INFO 3917 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration ch.uzh.ifi.hase.soprafs26.Application for test class ch.uzh.ifi.hase.soprafs26.Soprafs26ApplicationTests
+<pre id="class-stdout">11:25:33.049 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [ch.uzh.ifi.hase.soprafs26.Soprafs26ApplicationTests]: Soprafs26ApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+11:25:33.354 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration ch.uzh.ifi.hase.soprafs26.Application for test class ch.uzh.ifi.hase.soprafs26.Soprafs26ApplicationTests
 
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
@@ -99,17 +99,18 @@
 
  :: Spring Boot ::                (v4.0.0)
 
-2026-03-30T07:56:10.809+02:00  INFO 3917 --- [    Test worker] c.u.i.h.s.Soprafs26ApplicationTests      : Starting Soprafs26ApplicationTests using Java 17.0.13 with PID 3917 (started by dorian in /home/dorian/sopra/guessbb/server/sopra-fs26-group-15-server)
-2026-03-30T07:56:10.810+02:00  INFO 3917 --- [    Test worker] c.u.i.h.s.Soprafs26ApplicationTests      : No active profile set, falling back to 1 default profile: &quot;default&quot;
-2026-03-30T07:56:11.006+02:00  INFO 3917 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-03-30T07:56:11.020+02:00  INFO 3917 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 11 ms. Found 1 JPA repository interface.
-2026-03-30T07:56:11.167+02:00  INFO 3917 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Starting...
-2026-03-30T07:56:11.169+02:00  INFO 3917 --- [    Test worker] com.zaxxer.hikari.pool.HikariPool        : HikariPool-2 - Added connection conn17: url=jdbc:h2:mem:testdb user=SA
-2026-03-30T07:56:11.169+02:00  INFO 3917 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Start completed.
-2026-03-30T07:56:11.171+02:00  INFO 3917 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2026-03-30T07:56:11.195+02:00  INFO 3917 --- [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-03-30T07:56:11.197+02:00  WARN 3917 --- [    Test worker] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2026-03-30T07:56:11.198+02:00  INFO 3917 --- [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+2026-03-30T11:25:34.565+02:00  INFO 13356 --- [    Test worker] c.u.i.h.s.Soprafs26ApplicationTests      : Starting Soprafs26ApplicationTests using Java 17.0.15 with PID 13356 (started by dorian in /home/dorian/sopra/guessbb/server/sopra-fs26-group-15-server)
+2026-03-30T11:25:34.573+02:00  INFO 13356 --- [    Test worker] c.u.i.h.s.Soprafs26ApplicationTests      : No active profile set, falling back to 1 default profile: &quot;default&quot;
+2026-03-30T11:25:36.306+02:00  INFO 13356 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-03-30T11:25:36.658+02:00  INFO 13356 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 331 ms. Found 1 JPA repository interface.
+2026-03-30T11:25:37.582+02:00  INFO 13356 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-03-30T11:25:38.171+02:00  INFO 13356 --- [    Test worker] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:testdb user=SA
+2026-03-30T11:25:38.175+02:00  INFO 13356 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-03-30T11:25:38.270+02:00  INFO 13356 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-03-30T11:25:38.395+02:00  INFO 13356 --- [    Test worker] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 7.1.8.Final
+2026-03-30T11:25:39.503+02:00  INFO 13356 --- [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-03-30T11:25:39.696+02:00  WARN 13356 --- [    Test worker] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-03-30T11:25:39.743+02:00  INFO 13356 --- [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
 	Database JDBC URL [jdbc:h2:mem:testdb]
 	Database driver: H2 JDBC Driver
 	Database dialect: H2Dialect
@@ -121,17 +122,18 @@
 	Pool: DatasourceConnectionProviderImpl
 	Minimum pool size: undefined/unknown
 	Maximum pool size: undefined/unknown
-2026-03-30T07:56:11.257+02:00  INFO 3917 --- [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-03-30T07:56:11.273+02:00  INFO 3917 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-03-30T07:56:11.410+02:00  WARN 3917 --- [    Test worker] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2026-03-30T07:56:11.562+02:00  INFO 3917 --- [    Test worker] o.s.b.h.a.H2ConsoleAutoConfiguration     : H2 console available at '/h2-console'. Database available at 'jdbc:h2:mem:testdb'
-2026-03-30T07:56:11.597+02:00  INFO 3917 --- [    Test worker] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
-2026-03-30T07:56:11.598+02:00  INFO 3917 --- [    Test worker] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@31fd7fe1]]
-2026-03-30T07:56:11.598+02:00  INFO 3917 --- [    Test worker] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
-2026-03-30T07:56:11.603+02:00  INFO 3917 --- [    Test worker] c.u.i.h.s.Soprafs26ApplicationTests      : Started Soprafs26ApplicationTests in 0.827 seconds (process running for 16.59)
-2026-03-30T07:56:11.615+02:00  INFO 3917 --- [    Test worker] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
-2026-03-30T07:56:11.617+02:00  INFO 3917 --- [    Test worker] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@31fd7fe1]]
-2026-03-30T07:56:11.617+02:00  INFO 3917 --- [    Test worker] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-03-30T11:25:42.208+02:00  INFO 13356 --- [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-03-30T11:25:42.286+02:00  INFO 13356 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-03-30T11:25:42.466+02:00  INFO 13356 --- [    Test worker] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-03-30T11:25:43.217+02:00  WARN 13356 --- [    Test worker] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-03-30T11:25:43.831+02:00  INFO 13356 --- [    Test worker] o.s.b.h.a.H2ConsoleAutoConfiguration     : H2 console available at '/h2-console'. Database available at 'jdbc:h2:mem:testdb'
+2026-03-30T11:25:44.051+02:00  INFO 13356 --- [    Test worker] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
+2026-03-30T11:25:44.053+02:00  INFO 13356 --- [    Test worker] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@6999e04d]]
+2026-03-30T11:25:44.054+02:00  INFO 13356 --- [    Test worker] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
+2026-03-30T11:25:44.070+02:00  INFO 13356 --- [    Test worker] c.u.i.h.s.Soprafs26ApplicationTests      : Started Soprafs26ApplicationTests in 10.251 seconds (process running for 13.968)
+2026-03-30T11:25:44.646+02:00  INFO 13356 --- [    Test worker] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-03-30T11:25:44.646+02:00  INFO 13356 --- [    Test worker] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@6999e04d]]
+2026-03-30T11:25:44.646+02:00  INFO 13356 --- [    Test worker] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
 </pre>
 <button class="clipboard-copy-btn" aria-label="Copy to clipboard" data-copy-element-id="class-stdout">Copy</button>
 </span>
@@ -144,7 +146,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="https://www.gradle.org">Gradle 9.2.1</a> at Mar 30, 2026, 7:56:11 AM</p>
+<a href="https://www.gradle.org">Gradle 9.2.1</a> at Mar 30, 2026, 11:25:53 AM</p>
 </div>
 </div>
 </body>

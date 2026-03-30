@@ -1,4 +1,4 @@
-package test.java.ch.uzh.ifi.hase.soprafs26.trains;
+package ch.uzh.ifi.hase.soprafs26.trains;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Station;
 import ch.uzh.ifi.hase.soprafs26.entity.Train;
@@ -47,6 +47,9 @@ public class TrainPositionFetcherTest {
             System.out.println("No trains returned. Check your API key and network connection.");
             return;
         }
+        for (Train t : trains) {
+            fetcher.interpolatePosition(t);
+        }
 
         for (int i = 0; i < trains.size(); i++) {
             Train t = trains.get(i);
@@ -58,6 +61,7 @@ public class TrainPositionFetcherTest {
             System.out.println("    Timestamp  : " + (t.getTimestamp() != 0 ? new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss z").format(new java.util.Date(t.getTimestamp())) : "N/A"));
             System.out.printf("  Origin     : %s%n", nvl(t.getLineOrigin()));
             System.out.printf("  Destination: %s%n", nvl(t.getLineDestination()));
+            System.out.printf("  Current Position: X=%d, Y=%d%n", t.getCurrentX(), t.getCurrentY());
             
             //System.out.println("LineString (if available): " + (t.getLineString() != null ? printLineString(t.getLineString()) : "N/A"));
             printLineString(t.getLineString());
@@ -100,6 +104,8 @@ public class TrainPositionFetcherTest {
         System.out.printf("     Name         : %s%n", nvl(s.getStationName()));
         System.out.printf("     X (EPSG:3857): %d%n", s.getXCoordinate());
         System.out.printf("     Y (EPSG:3857): %d%n", s.getYCoordinate());
+                System.out.printf("     Arrival    : %s (epoch ms: %d)%n",
+                formatEpoch(s.getArrivalTime()), s.getArrivalTime());
         System.out.printf("     Departure    : %s (epoch ms: %d)%n",
                 formatEpoch(s.getDepartureTime()), s.getDepartureTime());
     }
