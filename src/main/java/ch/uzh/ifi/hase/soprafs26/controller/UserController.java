@@ -66,7 +66,7 @@ public class UserController {
 	@GetMapping("/users/{userId}")
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public Object getUser(@PathVariable("userId") String userId,
+	public Object getUser(@PathVariable("userId") Long userId,
 			@RequestHeader(value = "token", required = false, defaultValue = "") String token) {
 
 		AuthHeader authHeader = new AuthHeader(userId, token);
@@ -82,7 +82,7 @@ public class UserController {
 
 	@PostMapping("/users/{userId}/logout")
 	@ResponseStatus(HttpStatus.OK)
-	public void logoutUser(@RequestHeader("token") String token, @PathVariable("userId") String userId) {
+	public void logoutUser(@RequestHeader("token") String token, @PathVariable("userId") Long userId) {
 
 		AuthHeader authHeader = new AuthHeader(userId, token);
 		if (!authService.authUser(authHeader)) {

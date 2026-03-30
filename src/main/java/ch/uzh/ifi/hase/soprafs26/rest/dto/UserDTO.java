@@ -1,6 +1,5 @@
 package ch.uzh.ifi.hase.soprafs26.rest.dto;
 
-import ch.uzh.ifi.hase.soprafs26.entity.Train;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.entity.UserScoreboard;
 

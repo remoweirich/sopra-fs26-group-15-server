@@ -1,11 +1,11 @@
-package ch.uzh.ifi.hase.soprafs26.entity;
+package ch.uzh.ifi.hase.soprafs26.objects;
 
 import java.util.List;
 
 public class Game {
 
     //randomized??
-    private String gameID;
+    private Long gameID;
 
     private List<Round> rounds;
 

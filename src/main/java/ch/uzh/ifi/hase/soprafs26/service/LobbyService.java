@@ -1,26 +1,20 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.constant.LobbyVisibility;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
+import ch.uzh.ifi.hase.soprafs26.objects.Lobby;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import ch.uzh.ifi.hase.soprafs26.constant.LobbyState;
 
-import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.*;
 
 import ch.uzh.ifi.hase.soprafs26.security.AuthService;
-import ch.uzh.ifi.hase.soprafs26.service.UserService;
 
-import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.MyLobbyDTO;
 
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
 
 import ch.uzh.ifi.hase.soprafs26.constant.*;
 import websocket.Message;
@@ -28,7 +22,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.UUID;
 
 @Service
 @Transactional
@@ -49,7 +42,7 @@ public class LobbyService {
         return activeLobbies;
     }
 
-    public Lobby joinLobby(String userId, String lobbyId, String lobbyCode) {
+    public Lobby joinLobby(Long userId, Long lobbyId, String lobbyCode) {
         Lobby lobby = getLobbyById(lobbyId);
 
         User user = userService.getUserById(userId);
@@ -80,10 +73,10 @@ public class LobbyService {
         return lobby;
     }
 
-    public void startGame(String lobbyId) {
+    public void startGame(Long lobbyId) {
     }
 
-    private Lobby getLobbyById(String lobbyId) {
+    private Lobby getLobbyById(Long lobbyId) {
         for (Lobby lobby : activeLobbies) {
             if (lobby.getLobbyId().equals(lobbyId)) {
                 return lobby;

@@ -2,14 +2,14 @@ package ch.uzh.ifi.hase.soprafs26.rest.dto;
 
 import ch.uzh.ifi.hase.soprafs26.constant.LobbyState;
 import ch.uzh.ifi.hase.soprafs26.constant.LobbyVisibility;
-import ch.uzh.ifi.hase.soprafs26.entity.Admin;
-import ch.uzh.ifi.hase.soprafs26.entity.Score;
+import ch.uzh.ifi.hase.soprafs26.objects.Admin;
+import ch.uzh.ifi.hase.soprafs26.objects.Score;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 
 import java.util.List;
 
 public class MyLobbyDTO {
-    private String lobbyId;
+    private Long lobbyId;
 
     private String lobbyName;
 
@@ -32,8 +32,8 @@ public class MyLobbyDTO {
     private LobbyState lobbyState;
 
 
-    public String getLobbyId() {return lobbyId;}
-    public void setLobbyId(String lobbyId) {this.lobbyId = lobbyId;}
+    public Long getLobbyId() {return lobbyId;}
+    public void setLobbyId(Long lobbyId) {this.lobbyId = lobbyId;}
 
     public String getLobbyName() {return lobbyName;}
     public void setLobbyName(String lobbyName) {this.lobbyName = lobbyName;}

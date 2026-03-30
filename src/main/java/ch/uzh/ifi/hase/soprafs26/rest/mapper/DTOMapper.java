@@ -1,12 +1,11 @@
 package ch.uzh.ifi.hase.soprafs26.rest.mapper;
 
+import ch.uzh.ifi.hase.soprafs26.objects.Lobby;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
 import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
-import ch.uzh.ifi.hase.soprafs26.security.AuthHeader;
-import ch.uzh.ifi.hase.soprafs26.security.AuthService;
 
 /**
  * DTOMapper

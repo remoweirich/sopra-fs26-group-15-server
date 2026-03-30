@@ -1,8 +1,8 @@
-package ch.uzh.ifi.hase.soprafs26.entity;
+package ch.uzh.ifi.hase.soprafs26.objects;
 
 public class GuessMessage {
 
-    private String lobbyId;
+    private Long lobbyId;
 
     private String userId;
 
@@ -11,8 +11,8 @@ public class GuessMessage {
     private String longitude;
 
 
-    public String getLobbyId() {return lobbyId;}
-    public void setLobbyId(String lobbyId) {this.lobbyId = lobbyId;}
+    public Long getLobbyId() {return lobbyId;}
+    public void setLobbyId(Long lobbyId) {this.lobbyId = lobbyId;}
 
     public String getUserId() {return userId;}
     public void setUserId(String userId) {this.userId = userId;}

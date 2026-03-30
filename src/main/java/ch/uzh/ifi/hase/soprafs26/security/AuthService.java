@@ -18,7 +18,7 @@ public class AuthService {
     }
 
     public Boolean authUser(AuthHeader authHeader) {
-        User user = userRepository.findById(Long.parseLong(authHeader.getUserId())).orElse(null);
+        User user = userRepository.findById(authHeader.getUserId()).orElse(null);
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This user could not be found");
         }

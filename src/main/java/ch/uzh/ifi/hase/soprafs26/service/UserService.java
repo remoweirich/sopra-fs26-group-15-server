@@ -101,9 +101,9 @@ public class UserService {
 		return loggedInUser;
 	}
 
-	public User getUserById(String userId) {
-		Long longId = Long.parseLong(userId);
-		User user = userRepository.findById(longId).orElse(null);
+	public User getUserById(Long userId) {
+
+		User user = userRepository.findById(userId).orElse(null);
 		if (user == null) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This user could not be found");
 		}
@@ -111,7 +111,7 @@ public class UserService {
 	}
 
 	public void logoutUser(AuthHeader authHeader) {
-		User user = userRepository.findById(Long.parseLong(authHeader.getUserId())).orElse(null);
+		User user = userRepository.findById(authHeader.getUserId()).orElse(null);
 		user.setToken(null);
 		user.setStatus(UserStatus.OFFLINE);
 		userRepository.save(user);

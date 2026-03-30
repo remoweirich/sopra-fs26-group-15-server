@@ -1,14 +1,14 @@
-package ch.uzh.ifi.hase.soprafs26.entity;
+package ch.uzh.ifi.hase.soprafs26.objects;
 
 public class UserGameStatus {
 
-    private String userId;
+    private Long userId;
 
     private Boolean isReady;
 
 
-    public String getUserId() {return userId;}
-    public void setUserId(String userId) {this.userId = userId;}
+    public Long getUserId() {return userId;}
+    public void setUserId(Long userId) {this.userId = userId;}
 
     public Boolean getIsReady() {return isReady;}
     public void setIsReady(Boolean isReady) {this.isReady = isReady;}

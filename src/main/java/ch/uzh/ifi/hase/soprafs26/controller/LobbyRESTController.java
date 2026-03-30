@@ -9,12 +9,11 @@ import ch.uzh.ifi.hase.soprafs26.security.AuthHeader;
 import ch.uzh.ifi.hase.soprafs26.security.AuthService;
 
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
-import ch.uzh.ifi.hase.soprafs26.entity.Lobby;
+import ch.uzh.ifi.hase.soprafs26.objects.Lobby;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.LobbyCodePostDTO;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,8 +50,8 @@ public class LobbyRESTController {
     @PostMapping("/lobbies/{id}")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public LobbyAccessDTO joinLobby(@PathVariable("id") String lobbyId, @RequestHeader("Token") String token,
-            @RequestHeader("UserId") String userId,
+    public LobbyAccessDTO joinLobby(@PathVariable("id") Long lobbyId, @RequestHeader("Token") String token,
+            @RequestHeader("UserId") Long userId,
             @RequestBody LobbyCodePostDTO lobbyCodePostDTO) {
         // in this version: lobbyCodePostDTO contains userID, modify based on
         // implementation of authService

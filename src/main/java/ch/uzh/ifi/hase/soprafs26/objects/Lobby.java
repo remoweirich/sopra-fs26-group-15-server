@@ -1,16 +1,15 @@
-package ch.uzh.ifi.hase.soprafs26.entity;
+package ch.uzh.ifi.hase.soprafs26.objects;
 
 import ch.uzh.ifi.hase.soprafs26.constant.LobbyState;
 import ch.uzh.ifi.hase.soprafs26.constant.LobbyVisibility;
-import edu.umd.cs.findbugs.annotations.CleanupObligation;
-import jakarta.persistence.Column;
+import ch.uzh.ifi.hase.soprafs26.entity.User;
 
 import java.util.List;
 
 public class Lobby {
 
     //randomized??
-    private String lobbyId;
+    private Long lobbyId;
 
     private String lobbyName;
 
@@ -36,8 +35,8 @@ public class Lobby {
     private Game game;
 
 
-    public String getLobbyId() {return lobbyId;}
-    public void setLobbyId(String lobbyId) {this.lobbyId = lobbyId;}
+    public Long getLobbyId() {return lobbyId;}
+    public void setLobbyId(Long lobbyId) {this.lobbyId = lobbyId;}
 
     public String getLobbyName() {return lobbyName;}
     public void setLobbyName(String lobbyName) {this.lobbyName = lobbyName;}
