@@ -15,7 +15,7 @@ import javax.annotation.processing.Generated;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-03-26T13:44:21+0100",
+    date = "2026-03-29T17:20:54+0200",
     comments = "version: 1.5.5.Final, compiler: IncrementalProcessingEnvironment from gradle-language-java-9.2.1.jar, environment: Java 17.0.13 (N/A)"
 )
 public class DTOMapperImpl implements DTOMapper {

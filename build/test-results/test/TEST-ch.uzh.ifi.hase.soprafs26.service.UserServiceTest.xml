@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="ch.uzh.ifi.hase.soprafs26.service.UserServiceTest" tests="3" skipped="0" failures="1" errors="0" timestamp="2026-03-26T12:44:40.497Z" hostname="DESKTOP-NGV1E6I" time="0.418">
+<testsuite name="ch.uzh.ifi.hase.soprafs26.service.UserServiceTest" tests="3" skipped="0" failures="1" errors="0" timestamp="2026-03-30T05:56:10.451Z" hostname="DESKTOP-NGV1E6I" time="0.307">
   <properties/>
-  <testcase name="createUser_validInputs_success()" classname="ch.uzh.ifi.hase.soprafs26.service.UserServiceTest" time="0.384"/>
-  <testcase name="createUser_duplicateName_throwsException()" classname="ch.uzh.ifi.hase.soprafs26.service.UserServiceTest" time="0.015">
+  <testcase name="createUser_validInputs_success()" classname="ch.uzh.ifi.hase.soprafs26.service.UserServiceTest" time="0.289"/>
+  <testcase name="createUser_duplicateName_throwsException()" classname="ch.uzh.ifi.hase.soprafs26.service.UserServiceTest" time="0.012">
     <failure message="org.opentest4j.AssertionFailedError: Expected org.springframework.web.server.ResponseStatusException to be thrown, but nothing was thrown." type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: Expected org.springframework.web.server.ResponseStatusException to be thrown, but nothing was thrown.
 	at app//org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:159)
 	at app//org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:74)
@@ -11,7 +11,7 @@
 	at app//ch.uzh.ifi.hase.soprafs26.service.UserServiceTest.createUser_duplicateName_throwsException(UserServiceTest.java:66)
 </failure>
   </testcase>
-  <testcase name="createUser_duplicateInputs_throwsException()" classname="ch.uzh.ifi.hase.soprafs26.service.UserServiceTest" time="0.017"/>
+  <testcase name="createUser_duplicateInputs_throwsException()" classname="ch.uzh.ifi.hase.soprafs26.service.UserServiceTest" time="0.005"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
