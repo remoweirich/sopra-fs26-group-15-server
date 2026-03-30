@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapperTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-03-27T10:46:28.556Z" hostname="MacBook-Pro-von-Remo.local" time="0.014">
-  <properties/>
-  <testcase name="testCreateUser_fromUserPostDTO_toUser_success()" classname="ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapperTest" time="0.007"/>
-  <testcase name="testGetUser_fromUser_toUserGetDTO_success()" classname="ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapperTest" time="0.006"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

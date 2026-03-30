@@ -1,6 +1,6 @@
-package ch.uzh.ifi.hase.soprafs26.rest.dto;
+package ch.uzh.ifi.hase.soprafs26.objects;
 
-public class GuessMessageDTO {
+public class GuessMessage {
 
     private Long lobbyId;
 
@@ -10,6 +10,11 @@ public class GuessMessageDTO {
 
     private String longitude;
 
+
+    public GuessMessage(Long lobbyId, Long userId) {
+        this.lobbyId = lobbyId;
+        this.userId = userId;
+    }
 
     public Long getLobbyId() {return lobbyId;}
     public void setLobbyId(Long lobbyId) {this.lobbyId = lobbyId;}
