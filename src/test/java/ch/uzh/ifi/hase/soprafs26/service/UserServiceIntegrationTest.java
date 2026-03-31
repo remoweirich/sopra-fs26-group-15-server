@@ -36,38 +36,46 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
-	public void createUser_validInputs_success() {
+	public void registerUser_validInputs_success() {
 		// given
 		assertNull(userRepository.findByUsername("testUsername"));
 
 		User testUser = new User();
 		testUser.setUsername("testUsername");
+		testUser.setEmail("test@uzh.ch");
+		testUser.setPassword("password");
 
 		// when
-		User createdUser = userService.createUser(testUser);
+		User createdUser = userService.registerUser(testUser);
 
 		// then
 		assertEquals(testUser.getUserId(), createdUser.getUserId());
 		assertEquals(testUser.getUsername(), createdUser.getUsername());
-		assertNotNull(createdUser.getToken());
+		assertNotNull(createdUser.getCreationDate());
+		assertNotNull(createdUser.getUserScoreboard());
+		assertNull(createdUser.getToken());
 		assertEquals(UserStatus.OFFLINE, createdUser.getStatus());
 	}
 
 	@Test
-	public void createUser_duplicateUsername_throwsException() {
+	public void registerUser_duplicateUsername_throwsException() {
 		assertNull(userRepository.findByUsername("testUsername"));
 
 		User testUser = new User();
 		testUser.setUsername("testUsername");
-		userService.createUser(testUser);
+		testUser.setEmail("first@uzh.ch");
+		testUser.setPassword("password");
+		userService.registerUser(testUser);
 
 		// attempt to create second user with same username
 		User testUser2 = new User();
 
 		// change the name but forget about the username
 		testUser2.setUsername("testUsername");
+		testUser2.setEmail("second@uzh.ch");
+		testUser2.setPassword("password");
 
 		// check that an error is thrown
-		assertThrows(ResponseStatusException.class, () -> userService.createUser(testUser2));
+		assertThrows(ResponseStatusException.class, () -> userService.registerUser(testUser2));
 	}
 }

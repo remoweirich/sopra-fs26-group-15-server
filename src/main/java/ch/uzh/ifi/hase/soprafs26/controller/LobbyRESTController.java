@@ -18,12 +18,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@RestController
 public class LobbyRESTController {
 
     public final LobbyService lobbyService;
     public final AuthService authService;
 
-    public LobbyRESTController(LobbyService lobbyService, AuthService authService) {
+    LobbyRESTController(LobbyService lobbyService, AuthService authService) {
         this.lobbyService = lobbyService;
         this.authService = authService;
     }
@@ -56,14 +57,8 @@ public class LobbyRESTController {
         // in this version: lobbyCodePostDTO contains userID, modify based on
         // implementation of authService
         Lobby lobbyCodePostDTOentity = DTOMapper.INSTANCE.convertLobbyCodePostDTOtoEntity(lobbyCodePostDTO);
-        // Check if the user is authenticated
-        try {
-            authService.authUser(new AuthHeader(userId, token));
-            Lobby lobby = lobbyService.joinLobby(userId, lobbyId, lobbyCodePostDTOentity.getLobbyCode());
-            // Return the lobby access information
-            return DTOMapper.INSTANCE.convertEntityToLobbyAccessDTO(lobby);
-        } catch (Exception e) {
-            throw e;
-        }
+        authService.authUser(new AuthHeader(userId, token));
+        Lobby lobby = lobbyService.joinLobby(userId, lobbyId, lobbyCodePostDTOentity.getLobbyCode());
+        return DTOMapper.INSTANCE.convertEntityToLobbyAccessDTO(lobby);
     }
 }

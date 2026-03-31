@@ -7,10 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import ch.uzh.ifi.hase.soprafs26.constant.LobbyState;
+import ch.uzh.ifi.hase.soprafs26.objects.Game;
 
 import ch.uzh.ifi.hase.soprafs26.entity.*;
-
-import ch.uzh.ifi.hase.soprafs26.security.AuthService;
 
 import ch.uzh.ifi.hase.soprafs26.rest.dto.MyLobbyDTO;
 
@@ -22,19 +21,18 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Objects;
 
 @Service
 @Transactional
 public class LobbyService {
 
-    private List<Lobby> activeLobbies = new ArrayList<>();
-    private final AuthService authService;
+    private final List<Lobby> activeLobbies = new ArrayList<>();
     private final UserService userService;
     private final GameService gameService;
     private final SimpMessagingTemplate messagingTemplate;
 
-    public LobbyService(AuthService authService, UserService userService, GameService gameService, SimpMessagingTemplate messagingTemplate) {
-        this.authService = authService;
+    public LobbyService(UserService userService, GameService gameService, SimpMessagingTemplate messagingTemplate) {
         this.userService = userService;
         this.gameService = gameService;
         this.messagingTemplate = messagingTemplate;
@@ -50,8 +48,11 @@ public class LobbyService {
         User user = userService.getUserById(userId);
 
         //Check whether the lobby code is correct (only for private lobbies)
-        if (!lobby.getLobbyCode().equals(lobbyCode) && lobby.getVisibility() == LobbyVisibility.PRIVATE) {
+        if (lobby.getVisibility() == LobbyVisibility.PRIVATE && !Objects.equals(lobby.getLobbyCode(), lobbyCode)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Incorrect lobby code");
+        }
+        if (lobby.getUsers().stream().anyMatch(existingUser -> existingUser.getUserId().equals(userId))) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User is already in this lobby");
         }
         // Check whether the lobby is full
         if (lobby.getUsers().size() >= lobby.getSize()) {
@@ -79,7 +80,7 @@ public class LobbyService {
         Lobby lobby = getLobbyById(lobbyId);
 
         //create a Game object and fetch the Train data
-        Game game = gameService.setupGame();
+        Game game = gameService.setupGame(lobby, 5);
 
         //update the Lobby object
         lobby.setGame(game);
@@ -95,12 +96,4 @@ public class LobbyService {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Lobby not found");
     }
 
-    private Lobby getLobbyByCode(String lobbyCode) {
-        for (Lobby lobby : activeLobbies) {
-            if (lobby.getLobbyCode().equals(lobbyCode)) {
-                return lobby;
-            }
-        }
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Lobby not found");
-    }
 }

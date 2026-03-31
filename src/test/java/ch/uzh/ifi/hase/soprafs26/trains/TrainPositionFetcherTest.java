@@ -1,10 +1,10 @@
 package ch.uzh.ifi.hase.soprafs26.trains;
 
 import ch.uzh.ifi.hase.soprafs26.objects.Station;
-import ch.uzh.ifi.hase.soprafs26.entity.Train;
+import ch.uzh.ifi.hase.soprafs26.objects.Train;
 import ch.uzh.trains.TrainPositionFetcher;
 import ch.uzh.ifi.hase.soprafs26.objects.LineString;
- 
+
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +16,6 @@ import java.util.List;
 
 public class TrainPositionFetcherTest {
 
-    @Autowired
     private TrainPositionFetcher fetcher;
 
     private static final int SUBSET_SIZE = 5;
@@ -55,7 +54,7 @@ public class TrainPositionFetcherTest {
             System.out.printf("  Origin     : %s%n", nvl(t.getLineOrigin()));
             System.out.printf("  Destination: %s%n", nvl(t.getLineDestination()));
             System.out.printf("  Current Position: X=%d, Y=%d%n", t.getCurrentX(), t.getCurrentY());
-            
+
             //System.out.println("LineString (if available): " + (t.getLineString() != null ? printLineString(t.getLineString()) : "N/A"));
             printLineString(t.getLineString());
 
@@ -88,7 +87,7 @@ public class TrainPositionFetcherTest {
         }
         return;
     }
-    
+
     private void printStation(Station s) {
         if (s == null) {
             System.out.println("     (not available)");
@@ -112,4 +111,4 @@ public class TrainPositionFetcherTest {
         return new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss z")
                 .format(new java.util.Date(epochMs));
     }
-} 
+}
