@@ -1,7 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.trains;
 
 import ch.uzh.ifi.hase.soprafs26.objects.Station;
-import ch.uzh.ifi.hase.soprafs26.entity.Train;
+import ch.uzh.ifi.hase.soprafs26.objects.Train;
 import ch.uzh.ifi.hase.soprafs26.objects.LineString;
  
 
