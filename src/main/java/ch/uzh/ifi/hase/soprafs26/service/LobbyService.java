@@ -30,11 +30,13 @@ public class LobbyService {
     private List<Lobby> activeLobbies = new ArrayList<>();
     private final AuthService authService;
     private final UserService userService;
+    private final GameService gameService;
     private final SimpMessagingTemplate messagingTemplate;
 
-    public LobbyService(AuthService authService, UserService userService, SimpMessagingTemplate messagingTemplate) {
+    public LobbyService(AuthService authService, UserService userService, GameService gameService, SimpMessagingTemplate messagingTemplate) {
         this.authService = authService;
         this.userService = userService;
+        this.gameService = gameService;
         this.messagingTemplate = messagingTemplate;
     }
 
@@ -58,14 +60,13 @@ public class LobbyService {
         // add user to lobby
         lobby.addUser(user);
 
-        // if Lobby is now full: if game is public, start game, else wait for admin to
-        // start the game
+        //if Lobby is now full: if game is public, start game, else wait for admin to start the game
         if (lobby.getUsers().size() >= lobby.getSize() && lobby.getVisibility() == LobbyVisibility.PUBLIC) {
             lobby.setLobbyState(LobbyState.IN_GAME);
             startGame(lobby.getLobbyId());
         }
 
-        // send broadcast message to lobby that user has joined
+        //send broadcast message to lobby that user has joined
         MyLobbyDTO myLobbyDTO = DTOMapper.INSTANCE.convertEntityToMyLobbyDTO(lobby);
         Message message = new Message(MessageType.LOBBY_STATE, myLobbyDTO);
         messagingTemplate.convertAndSend("/topic/lobby/" + lobby.getLobbyId(), message);
@@ -74,6 +75,15 @@ public class LobbyService {
     }
 
     public void startGame(Long lobbyId) {
+
+        Lobby lobby = getLobbyById(lobbyId);
+
+        //create a Game object and fetch the Train data
+        Game game = gameService.setupGame();
+
+        //update the Lobby object
+        lobby.setGame(game);
+        lobby.setLobbyState(LobbyState.IN_GAME);
     }
 
     public Lobby getLobbyById(Long lobbyId) {

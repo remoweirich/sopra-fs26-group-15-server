@@ -23,4 +23,9 @@ public class GuessMessageDTO {
     public String getLongitude() {return longitude;}
     public void setLongitude(String longitude) {this.longitude = longitude;}
 
+    public GuessMessageDTO(long lobbyId, long userId) {
+        this.lobbyId = lobbyId;
+        this.userId = userId;
+    }
 }
+

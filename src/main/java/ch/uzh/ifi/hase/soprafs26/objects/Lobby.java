@@ -25,6 +25,8 @@ public class Lobby {
 
     private List<User> users;
 
+    private List<Round> rounds;
+
     private Integer currentRound;
 
     private Integer maxRounds;
@@ -57,6 +59,9 @@ public class Lobby {
     public List<User> getUsers() {return users;}
     public void setUsers(List<User> users) {this.users = users;}
     public void addUser(User user) {this.users.add(user);}
+
+    public List<Round> getRounds() {return rounds;}
+    public void setRounds(List<Round> rounds) {this.rounds = rounds;}
 
     public Integer getCurrentRound() {return currentRound;}
     public void setCurrentRound(Integer currentRound) {this.currentRound = currentRound;}
