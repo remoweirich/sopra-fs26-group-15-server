@@ -38,11 +38,13 @@ public class LobbyService {
     private List<Lobby> activeLobbies = new ArrayList<>();
     private final AuthService authService;
     private final UserService userService;
+    private final GameService gameService;
     private final SimpMessagingTemplate messagingTemplate;
 
-    public LobbyService(AuthService authService, UserService userService, SimpMessagingTemplate messagingTemplate) {
+    public LobbyService(AuthService authService, UserService userService, GameService gameService, SimpMessagingTemplate messagingTemplate) {
         this.authService = authService;
         this.userService = userService;
+        this.gameService = gameService;
         this.messagingTemplate = messagingTemplate;
     }
 
@@ -79,7 +81,17 @@ public class LobbyService {
         return lobby;
     }
 
-    public void startGame(String lobbyId) {}
+    public void startGame(String lobbyId) {
+
+        Lobby lobby = getLobbyById(lobbyId);
+
+        //create a Game object and fetch the Train data
+        Game game = gameService.setupGame();
+
+        //update the Lobby object
+        lobby.setGame(game);
+        lobby.setLobbyState(LobbyState.IN_GAME);
+    }
 
     private Lobby getLobbyById(String lobbyId) {
         for (Lobby lobby : activeLobbies) {

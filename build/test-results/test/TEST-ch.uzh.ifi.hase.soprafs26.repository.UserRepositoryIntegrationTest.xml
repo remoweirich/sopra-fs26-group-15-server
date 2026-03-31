@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="ch.uzh.ifi.hase.soprafs26.repository.UserRepositoryIntegrationTest" tests="1" skipped="0" failures="1" errors="0" timestamp="2026-03-30T09:25:48.251Z" hostname="DESKTOP-NGV1E6I" time="0.281">
+<testsuite name="ch.uzh.ifi.hase.soprafs26.repository.UserRepositoryIntegrationTest" tests="1" skipped="0" failures="1" errors="0" timestamp="2026-03-30T13:29:59.615Z" hostname="DESKTOP-NGV1E6I" time="0.115">
   <properties/>
-  <testcase name="findById_success()" classname="ch.uzh.ifi.hase.soprafs26.repository.UserRepositoryIntegrationTest" time="0.281">
+  <testcase name="findById_success()" classname="ch.uzh.ifi.hase.soprafs26.repository.UserRepositoryIntegrationTest" time="0.115">
     <failure message="org.hibernate.PropertyValueException: not-null property references a null or transient value for entity ch.uzh.ifi.hase.soprafs26.entity.User.creationDate" type="org.hibernate.PropertyValueException">org.hibernate.PropertyValueException: not-null property references a null or transient value for entity ch.uzh.ifi.hase.soprafs26.entity.User.creationDate
 	at app//org.hibernate.engine.internal.Nullability.checkNullability(Nullability.java:120)
 	at app//org.hibernate.action.internal.AbstractEntityInsertAction.nullifyTransientReferencesIfNotAlready(AbstractEntityInsertAction.java:126)
@@ -24,8 +24,8 @@
 	at app//ch.uzh.ifi.hase.soprafs26.repository.UserRepositoryIntegrationTest.findById_success(UserRepositoryIntegrationTest.java:31)
 </failure>
   </testcase>
-  <system-out><![CDATA[2026-03-30T11:25:47.316+02:00  INFO 13356 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [ch.uzh.ifi.hase.soprafs26.repository.UserRepositoryIntegrationTest]: UserRepositoryIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-03-30T11:25:47.437+02:00  INFO 13356 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration ch.uzh.ifi.hase.soprafs26.Application for test class ch.uzh.ifi.hase.soprafs26.repository.UserRepositoryIntegrationTest
+  <system-out><![CDATA[2026-03-30T15:29:53.765+02:00  INFO 18551 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [ch.uzh.ifi.hase.soprafs26.repository.UserRepositoryIntegrationTest]: UserRepositoryIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-03-30T15:29:53.851+02:00  INFO 18551 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration ch.uzh.ifi.hase.soprafs26.Application for test class ch.uzh.ifi.hase.soprafs26.repository.UserRepositoryIntegrationTest
 
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
@@ -36,21 +36,22 @@
 
  :: Spring Boot ::                (v4.0.0)
 
-2026-03-30T11:25:47.527+02:00  INFO 13356 --- [    Test worker] .u.i.h.s.r.UserRepositoryIntegrationTest : Starting UserRepositoryIntegrationTest using Java 17.0.15 with PID 13356 (started by dorian in /home/dorian/sopra/guessbb/server/sopra-fs26-group-15-server)
-2026-03-30T11:25:47.528+02:00  INFO 13356 --- [    Test worker] .u.i.h.s.r.UserRepositoryIntegrationTest : No active profile set, falling back to 1 default profile: "default"
-2026-03-30T11:25:47.728+02:00  INFO 13356 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-03-30T11:25:47.756+02:00  INFO 13356 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 24 ms. Found 1 JPA repository interface.
-2026-03-30T11:25:47.791+02:00  INFO 13356 --- [    Test worker] beddedDataSourceBeanFactoryPostProcessor : Replacing 'dataSource' DataSource bean with embedded version
-2026-03-30T11:25:47.862+02:00  INFO 13356 --- [    Test worker] o.s.j.d.e.EmbeddedDatabaseFactory        : Starting embedded database: url='jdbc:h2:mem:ce842f4d-3e55-4b33-951f-09c39bff2ad8;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false', username='sa'
-2026-03-30T11:25:47.921+02:00  INFO 13356 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2026-03-30T11:25:47.980+02:00  INFO 13356 --- [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-03-30T11:25:47.983+02:00  WARN 13356 --- [    Test worker] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2026-03-30T11:25:47.985+02:00  INFO 13356 --- [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
-	Database JDBC URL [jdbc:h2:mem:ce842f4d-3e55-4b33-951f-09c39bff2ad8]
+2026-03-30T15:29:53.937+02:00  INFO 18551 --- [    Test worker] .u.i.h.s.r.UserRepositoryIntegrationTest : Starting UserRepositoryIntegrationTest using Java 17.0.13 with PID 18551 (started by dorian in /home/dorian/sopra/guessbb/server/sopra-fs26-group-15-server)
+2026-03-30T15:29:53.938+02:00  INFO 18551 --- [    Test worker] .u.i.h.s.r.UserRepositoryIntegrationTest : No active profile set, falling back to 1 default profile: "default"
+2026-03-30T15:29:54.282+02:00  INFO 18551 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-03-30T15:29:54.413+02:00  INFO 18551 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 102 ms. Found 1 JPA repository interface.
+2026-03-30T15:29:54.539+02:00  INFO 18551 --- [    Test worker] beddedDataSourceBeanFactoryPostProcessor : Replacing 'dataSource' DataSource bean with embedded version
+2026-03-30T15:29:54.655+02:00  INFO 18551 --- [    Test worker] o.s.j.d.e.EmbeddedDatabaseFactory        : Starting embedded database: url='jdbc:h2:mem:4aab74ed-9106-498c-b6c0-3bc7cd953c6c;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false', username='sa'
+2026-03-30T15:29:55.471+02:00  INFO 18551 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-03-30T15:29:55.607+02:00  INFO 18551 --- [    Test worker] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 7.1.8.Final
+2026-03-30T15:29:56.394+02:00  INFO 18551 --- [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-03-30T15:29:56.528+02:00  WARN 18551 --- [    Test worker] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-03-30T15:29:56.587+02:00  INFO 18551 --- [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:4aab74ed-9106-498c-b6c0-3bc7cd953c6c]
 	Database driver: H2 JDBC Driver
 	Database dialect: H2Dialect
 	Database version: 2.4.240
-	Default catalog/schema: CE842F4D-3E55-4B33-951F-09C39BFF2AD8/PUBLIC
+	Default catalog/schema: 4AAB74ED-9106-498C-B6C0-3BC7CD953C6C/PUBLIC
 	Autocommit mode: undefined/unknown
 	Isolation level: READ_COMMITTED [default READ_COMMITTED]
 	JDBC fetch size: 100
@@ -58,13 +59,14 @@
 	Minimum pool size: undefined/unknown
 	Maximum pool size: undefined/unknown
 Hibernate: create global temporary table HTE_users(rn_ integer not null, status tinyint, userScoreboard_gamesPlayed integer, userScoreboard_gamesWon integer, userScoreboard_guessingPrecision float(24), userScoreboard_totalPoints integer, creationDate timestamp(6), userId bigint, email varchar(255), password varchar(255), token varchar(255), userBio varchar(255), username varchar(255), friends varbinary(255) array, primary key (rn_)) transactional
-2026-03-30T11:25:48.088+02:00  INFO 13356 --- [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-03-30T15:29:58.826+02:00  INFO 18551 --- [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
 Hibernate: drop table if exists users cascade 
 Hibernate: drop sequence if exists users_seq
 Hibernate: create sequence users_seq start with 1 increment by 50
 Hibernate: create table users (games_played integer, games_won integer, guessing_precision float(24), status tinyint not null check ((status between 0 and 1)), total_points integer, creation_date timestamp(6) not null, user_id bigint not null, email varchar(255) not null unique, password varchar(255) not null, token varchar(255) unique, user_bio varchar(255), username varchar(255) not null unique, friends varbinary(255) array, primary key (user_id))
-2026-03-30T11:25:48.108+02:00  INFO 13356 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-03-30T11:25:48.243+02:00  INFO 13356 --- [    Test worker] .u.i.h.s.r.UserRepositoryIntegrationTest : Started UserRepositoryIntegrationTest in 0.796 seconds (process running for 18.141)
+2026-03-30T15:29:58.947+02:00  INFO 18551 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-03-30T15:29:59.194+02:00  INFO 18551 --- [    Test worker] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-03-30T15:29:59.610+02:00  INFO 18551 --- [    Test worker] .u.i.h.s.r.UserRepositoryIntegrationTest : Started UserRepositoryIntegrationTest in 5.747 seconds (process running for 15.412)
 Hibernate: select next value for users_seq
 ]]></system-out>
   <system-err><![CDATA[]]></system-err>
