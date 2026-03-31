@@ -1,7 +1,5 @@
 package ch.uzh.ifi.hase.soprafs26.constant;
 
-import javax.print.DocFlavor;
-
 public enum MessageType {
     LOBBY_STATE,
     UPDATE_LOBBY_SETTINGS,
