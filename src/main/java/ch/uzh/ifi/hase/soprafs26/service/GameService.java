@@ -61,10 +61,10 @@ public class GameService {
         return newGame;
     }
 
-    public void processGuessMessage(Message guessMessage){
-//        Long gameId = guessMessage.getLobbyId();
-        Long gameId = guessMessage.getPayload().gameId;
+    public void processGuessMessage(GuessMessageDTO guessMessage){
+        Long gameId = guessMessage.getLobbyId();
         Long userId = guessMessage.getUserId();
+
 
         Lobby currentLobby = lobbyService.getLobbyById(gameId);
         Game currentGame = getGameById(gameId);
@@ -91,4 +91,7 @@ public class GameService {
 
     }
 
+    public void publishRoundStart(){
+
+    }
 }

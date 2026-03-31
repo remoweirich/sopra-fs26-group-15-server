@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.websocket;
 
 import ch.uzh.ifi.hase.soprafs26.constant.MessageType;
+import org.springframework.messaging.handler.annotation.Payload;
 
 public class Message {
     private MessageType type;
