@@ -1,4 +1,4 @@
-package ch.uzh.ifi.hase.soprafs26.entity;
+package ch.uzh.ifi.hase.soprafs26.objects;
 
 import java.util.List;
 public class LineString {

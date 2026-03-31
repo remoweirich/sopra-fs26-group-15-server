@@ -1,8 +1,5 @@
 package ch.uzh.ifi.hase.soprafs26.objects;
 
-import java.util.List;
-import ch.uzh.ifi.hase.soprafs26.entity.LineString;
-
 public class Train {
 
     private String trainId;

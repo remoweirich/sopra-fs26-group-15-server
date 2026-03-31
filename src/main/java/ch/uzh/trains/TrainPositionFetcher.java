@@ -1,9 +1,8 @@
 package ch.uzh.trains;
 
-import ch.uzh.ifi.hase.soprafs26.entity.Station;
-import ch.uzh.ifi.hase.soprafs26.entity.Train;
-import ch.uzh.ifi.hase.soprafs26.entity.LineString;
-import ch.uzh.ifi.hase.soprafs26.entity.LineString.Point;
+import ch.uzh.ifi.hase.soprafs26.objects.Station;
+import ch.uzh.ifi.hase.soprafs26.objects.Train;
+import ch.uzh.ifi.hase.soprafs26.objects.LineString;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -62,7 +61,8 @@ public class TrainPositionFetcher {
     private boolean useMock;
 
      // For testing without Spring context, you can hardcode the API key here:
-    private String apiKey = "5cc87b12d7c5370001c1d655253cc458629148158093d5ca81b4c5f0";
+    @Value("${geops.api.key}")
+    private String apiKey;
 
 
     private static final String SWITZERLAND_BBOX =

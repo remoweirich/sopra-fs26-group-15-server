@@ -1,22 +1,15 @@
 package ch.uzh.ifi.hase.soprafs26.trains;
 
-import ch.uzh.ifi.hase.soprafs26.entity.Station;
+import ch.uzh.ifi.hase.soprafs26.objects.Station;
 import ch.uzh.ifi.hase.soprafs26.entity.Train;
 import ch.uzh.trains.TrainPositionFetcher;
-import ch.uzh.ifi.hase.soprafs26.entity.LineString;
+import ch.uzh.ifi.hase.soprafs26.objects.LineString;
  
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 

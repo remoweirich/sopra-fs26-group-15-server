@@ -9,6 +9,8 @@ jobs:
   build:
     name: Build and analyze
     runs-on: ubuntu-latest
+    env:
+      GEOPS_API_KEY: ${{ secrets.GEOPS_API_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
