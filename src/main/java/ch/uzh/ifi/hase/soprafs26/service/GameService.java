@@ -7,11 +7,15 @@ import ch.uzh.ifi.hase.soprafs26.objects.*;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GuessMessageDTO;
 import ch.uzh.ifi.hase.soprafs26.security.AuthService;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
+@Transactional
 public class GameService {
     private AuthService authService;
 
@@ -56,7 +60,7 @@ public class GameService {
         return newGame;
     }
 
-    public void proccessGuessMessage(GuessMessageDTO guessMessageDTO){
+    public void processGuessMessage(GuessMessageDTO guessMessageDTO){
         Long gameId = guessMessageDTO.getLobbyId();
         Long userId = guessMessageDTO.getUserId();
 

@@ -1,7 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
-import ch.uzh.ifi.hase.soprafs26.entity.UserGameStatus;
+import ch.uzh.ifi.hase.soprafs26.objects.UserGameStatus;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GuessMessageDTO;
 import ch.uzh.ifi.hase.soprafs26.service.GameService;
@@ -10,6 +10,8 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import websocket.WebSocketConfig;
+
 
 @Controller
 public class GameController {
@@ -22,14 +24,13 @@ public class GameController {
         this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
-    @MessageMapping("/game/{gameID}/guess")
-    @SendTo("/topic/game")
+    @MessageMapping("/game/{gameId}/guess")
     public void processGuessMessage(@DestinationVariable Long gameId, GuessMessageDTO guessMessageDTO) {
         gameService.processGuessMessage(guessMessageDTO);
     }
 
-    @MessageMapping("/game/{gameID}/ready")
-    public void updateUserStatus(@DestinationVariable Long gameID, UserGameStatus userGameStatus) {
-        gameService.updateUserStatus(gameID, userGameStatus);
+    @MessageMapping("/game/{gameId}/ready")
+    public void updateUserGameStatus(@DestinationVariable Long gameID, UserGameStatus userGameStatus) {
+        gameService.updateUserGameStatus(gameID, userGameStatus);
     }
 }
