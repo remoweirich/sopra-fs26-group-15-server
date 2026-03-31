@@ -7,8 +7,6 @@ import ch.uzh.ifi.hase.soprafs26.objects.LineString;
 
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import org.junit.jupiter.api.BeforeEach;
 
 import java.util.List;
