@@ -28,15 +28,12 @@ public class GameService {
 
     private List<Game> activeGames;
 
-    private LobbyService lobbyService;
-
     private TrainPositionFetcher trainPositionFetcher;
 
     private final SimpMessagingTemplate messagingTemplate;
 
-    public GameService(AuthService authService, LobbyService lobbyService, TrainPositionFetcher trainPositionFetcher, SimpMessagingTemplate messagingTemplate) {
+    public GameService(AuthService authService, TrainPositionFetcher trainPositionFetcher, SimpMessagingTemplate messagingTemplate) {
         this.authService = authService;
-        this.lobbyService = lobbyService;
         this.trainPositionFetcher = trainPositionFetcher;
         this.messagingTemplate = messagingTemplate;
         this.activeGames = new ArrayList<>();
@@ -51,8 +48,7 @@ public class GameService {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not found");
     }
 
-    public Game setupGame(long lobbyId) {
-        Lobby currentLobby = lobbyService.getLobbyById(lobbyId);
+    public Game setupGame(Lobby currentLobby) {
 
         try {
             List<Train> trains = trainPositionFetcher.fetchTrainsMock(currentLobby.getMaxRounds());
@@ -92,25 +88,22 @@ public class GameService {
         }
     }
 
-    public void processGuessMessage(GuessMessageDTO guessMessage){
+    public void processGuessMessage(GuessMessageDTO guessMessage, Lobby currentLobby){
         Long gameId = guessMessage.getLobbyId();
         Long userId = guessMessage.getUserId();
 
-
-        Lobby currentLobby = lobbyService.getLobbyById(gameId);
         Game currentGame = getGameById(gameId);
         Integer roundNumber = currentLobby.getCurrentRound();
         List<Round> rounds = currentGame.getRounds();
 
 
         UserGameStatus userGameStatus = new UserGameStatus(userId, true);
-        updateUserGameStatus(gameId, userGameStatus);
+        updateUserGameStatus(userGameStatus, currentLobby);
 
     }
 
-    public void updateUserGameStatus(Long gameId, UserGameStatus userGameStatus) {
-        Game currentGame = getGameById(gameId);
-        Lobby currentLobby = lobbyService.getLobbyById(gameId);
+    public void updateUserGameStatus(UserGameStatus userGameStatus, Lobby currentLobby) {
+        Game currentGame = currentLobby.getGame();
         List<Round> rounds = currentGame.getRounds();
         Round currentRound =  rounds.get(currentLobby.getCurrentRound());
         List<UserGameStatus> allUsersGameStatuses = currentRound.getAllUserGameStatuses();

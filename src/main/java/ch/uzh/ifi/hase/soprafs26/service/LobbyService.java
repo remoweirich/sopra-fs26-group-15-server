@@ -80,7 +80,7 @@ public class LobbyService {
         Lobby lobby = getLobbyById(lobbyId);
 
         //create a Game object and fetch the Train data
-        Game game = gameService.setupGame(lobbyId);
+        Game game = gameService.setupGame(lobby);
 
         //update the Lobby object
         lobby.setGame(game);
