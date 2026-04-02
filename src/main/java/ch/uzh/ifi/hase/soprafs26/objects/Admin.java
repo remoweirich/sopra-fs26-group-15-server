@@ -6,6 +6,11 @@ public class Admin {
 
     private String token;
 
+    public Admin(Long userId, String token){
+        this.userId = userId;
+        this.token = token;
+    }
+
     public Long getUserId() {return userId;}
     public void setUserId(Long userId) {this.userId = userId;}
 

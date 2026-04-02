@@ -1,12 +1,21 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.constant.LobbyVisibility;
+import ch.uzh.ifi.hase.soprafs26.objects.Admin;
+import ch.uzh.ifi.hase.soprafs26.objects.Game;
 import ch.uzh.ifi.hase.soprafs26.objects.Lobby;
+import ch.uzh.ifi.hase.soprafs26.objects.Score;
+import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.CreateLobbyPostDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.LobbyAccessDTO;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import ch.uzh.ifi.hase.soprafs26.constant.LobbyState;
+
+import java.security.SecureRandom;
 
 import ch.uzh.ifi.hase.soprafs26.entity.*;
 
@@ -22,6 +31,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -31,15 +42,80 @@ public class LobbyService {
     private final AuthService authService;
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
+    private long newLobbyId = 0L;
 
-    public LobbyService(AuthService authService, UserService userService, SimpMessagingTemplate messagingTemplate) {
+
+    public LobbyService(AuthService authService, UserService userService, SimpMessagingTemplate messagingTemplate, UserRepository userRepository) {
         this.authService = authService;
         this.userService = userService;
         this.messagingTemplate = messagingTemplate;
+        this.userRepository = userRepository;
     }
 
     public List<Lobby> getAllLobbies() {
         return activeLobbies;
+    }
+
+    private final UserRepository userRepository;
+
+    private final String CHARS = "ABCDEFGHJKLMNPQRSTUVWXY1Z23456789";
+    private final SecureRandom RANDOM = new SecureRandom();
+
+    public LobbyAccessDTO createLobby(CreateLobbyPostDTO createLobbyPostDTO, boolean isGuest) {
+        if (isGuest) {
+            User guestUser = new User();
+            guestUser.setUsername("guest_" + UUID.randomUUID().toString().substring(0, 8));
+            guestUser.setPassword(UUID.randomUUID().toString()); // dummy password
+            guestUser.setEmail(UUID.randomUUID().toString() + "@guest.com"); // dummy email
+            //guestUser.setIsGuest(true);
+
+            guestUser = userService.registerUser(guestUser);
+            User loggedInGuest = userService.loginUser(guestUser.getUsername(), guestUser.getPassword());
+
+            createLobbyPostDTO.setUserId(loggedInGuest.getUserId());
+            createLobbyPostDTO.setToken(loggedInGuest.getToken());
+        }
+
+        Lobby newLobby = new Lobby();
+
+        newLobby.setLobbyId(newLobbyId++);
+
+        newLobby.setLobbyName(createLobbyPostDTO.getLobbyName());
+
+        String newLobbyCode = createLobbyCode(); // to be replaced by random code
+        newLobby.setLobbyCode(newLobbyCode);
+
+        Admin newAdmin = new Admin(createLobbyPostDTO.getUserId(), createLobbyPostDTO.getToken());
+        newLobby.setAdmin(newAdmin);
+
+        newLobby.setSize(createLobbyPostDTO.getSize());
+
+        newLobby.setVisibility(createLobbyPostDTO.getVisibility());
+
+        List<User> users = new ArrayList<>();
+        User currentUser = userRepository.findById(createLobbyPostDTO.getUserId()).orElse(null);
+        users.add(currentUser);
+        newLobby.setUsers(users);
+
+        newLobby.setCurrentRound(0);
+
+        newLobby.setMaxRounds(createLobbyPostDTO.getMaxRounds());
+
+        List<Score> scores = new ArrayList<>();
+        newLobby.setScores(scores);
+
+        newLobby.setLobbyState(LobbyState.WAITING);
+
+        Game newGame = new Game();
+        newLobby.setGame(newGame);
+
+        activeLobbies.add(newLobby);
+
+        LobbyAccessDTO dto = DTOMapper.INSTANCE.convertEntityToLobbyAccessDTO(newLobby);
+        dto.setUserId(createLobbyPostDTO.getUserId());
+        dto.setToken(createLobbyPostDTO.getToken());
+
+        return dto;
     }
 
     public Lobby joinLobby(Long userId, Long lobbyId, String lobbyCode) {
@@ -93,4 +169,27 @@ public class LobbyService {
         }
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Lobby not found");
     }
+
+
+    public String createLobbyCode() {
+        StringBuilder sb = new StringBuilder(4);
+        do {
+            sb.setLength(0);
+            for (int i = 0; i < 4; i++) {
+                sb.append(CHARS.charAt(RANDOM.nextInt(CHARS.length())));
+            }
+        }
+        while (existsByCode(sb.toString()));
+
+
+        return sb.toString();
+    }
+
+
+    public boolean existsByCode(String code) {
+        return activeLobbies.stream()
+                .anyMatch(lobby -> lobby.getLobbyCode().equals(code));
+    }
+
+
 }

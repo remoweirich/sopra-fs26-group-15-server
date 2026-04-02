@@ -77,7 +77,6 @@ public interface DTOMapper {
 
 	@Mapping(source = "lobbyId", target = "lobbyId")
 	@Mapping(source = "lobbyCode", target = "lobbyCode")
-
 	LobbyAccessDTO convertEntityToLobbyAccessDTO(Lobby lobby);
 
 	@Mapping(source = "lobbyCode", target = "lobbyCode")

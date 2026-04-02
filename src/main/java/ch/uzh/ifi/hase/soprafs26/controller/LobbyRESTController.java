@@ -13,11 +13,14 @@ import ch.uzh.ifi.hase.soprafs26.objects.Lobby;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.LobbyCodePostDTO;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@RestController
 public class LobbyRESTController {
 
     public final LobbyService lobbyService;
@@ -27,6 +30,38 @@ public class LobbyRESTController {
         this.lobbyService = lobbyService;
         this.authService = authService;
     }
+
+    @PostMapping("/lobbies")
+    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseBody
+    public LobbyAccessDTO createLobby(@RequestHeader ("token") String token, @RequestBody CreateLobbyPostDTO createLobbyPostDTO){
+        boolean isGuest;
+        LobbyAccessDTO lobbyAccessDTO = null;
+
+        AuthHeader authHeader = new AuthHeader(createLobbyPostDTO.getUserId(), token);
+        try{
+            boolean isAuthenticated = authService.authUser(authHeader);
+
+            if(!isAuthenticated){
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+            }
+            isGuest = false;
+            lobbyAccessDTO = lobbyService.createLobby(createLobbyPostDTO, isGuest);
+
+        } catch (ResponseStatusException e){
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                isGuest = true;
+                lobbyAccessDTO = lobbyService.createLobby(createLobbyPostDTO, isGuest);
+
+            } else {
+                throw e;
+            }
+
+        }
+
+        return lobbyAccessDTO;
+    }
+
 
     @GetMapping("/lobbies")
     @ResponseStatus(HttpStatus.OK)
