@@ -7,6 +7,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.objects.*;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GuessMessageDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.MyLobbyDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.RoundStartDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs26.security.AuthService;
 import ch.uzh.ifi.hase.soprafs26.trains.TrainPositionFetcher;
@@ -105,18 +106,38 @@ public class GameService {
     public void updateUserGameStatus(UserGameStatus userGameStatus, Lobby currentLobby) {
         Game currentGame = currentLobby.getGame();
         List<Round> rounds = currentGame.getRounds();
-        Round currentRound =  rounds.get(currentLobby.getCurrentRound());
+        Round currentRound = rounds.get(currentLobby.getCurrentRound());
         List<UserGameStatus> allUsersGameStatuses = currentRound.getAllUserGameStatuses();
+        int numAreReady = 0;
 
-        for  (UserGameStatus usGaSt : allUsersGameStatuses) {
-            if(usGaSt.getUserId().equals(userGameStatus.getUserId())) {
+        for (UserGameStatus usGaSt : allUsersGameStatuses) {
+            if (usGaSt.getUserId().equals(userGameStatus.getUserId())) {
                 usGaSt.setIsReady(userGameStatus.getIsReady());
             }
-        }
+            if (usGaSt.getIsReady() == true) {
+                numAreReady += 1;
+            }
 
+            if (numAreReady == allUsersGameStatuses.size()) {
+                RoundStart(currentLobby);
+            }
+
+        }
     }
 
-    public void publishRoundStart(){
+    public void RoundStart(Lobby currentLobby) {
+        Game currentGame = currentLobby.getGame();
+        Long gameId = currentGame.getGameId();
+        List<Train> trains = currentGame.getTrains();
+        Train train =  trains.get(currentLobby.getCurrentRound());
+        List<Round> rounds = currentGame.getRounds();
+        Round currentRound = rounds.get(currentLobby.getCurrentRound());
+        int maxRounds = currentLobby.getMaxRounds();
+
+        RoundStartDTO roundStartDTO = new RoundStartDTO(currentRound.getRoundNumber(), maxRounds, train);
+        Message message = new Message(MessageType.ROUND_START, roundStartDTO);
+        messagingTemplate.convertAndSend("/topic/game/" + gameId, message);
+
 
     }
 }
