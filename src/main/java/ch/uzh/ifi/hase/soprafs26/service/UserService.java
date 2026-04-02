@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UpdateUserPutDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -145,4 +146,16 @@ public class UserService {
 					String.format(baseErrorMessage, "email", "is"));
 		}
 	}
+
+    public void updateUser(Long userId, UpdateUserPutDTO userUpdate) {
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (userUpdate.getUsername() != null) user.setUsername(userUpdate.getUsername());
+        if (userUpdate.getPassword() != null) user.setPassword(userUpdate.getPassword());
+        if (userUpdate.getEmail() != null) user.setEmail(userUpdate.getEmail());
+        if (userUpdate.getUserBio() != null) user.setUserBio(userUpdate.getUserBio());
+
+        userRepository.save(user);
+    }
 }

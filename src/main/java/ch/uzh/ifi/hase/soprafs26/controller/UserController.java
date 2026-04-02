@@ -11,9 +11,6 @@ import ch.uzh.ifi.hase.soprafs26.security.AuthHeader;
 import org.springframework.web.server.ResponseStatusException;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * HELÖOOOOOOOOOOOO
  */
@@ -69,6 +66,7 @@ public class UserController {
 	public Object getUser(@PathVariable("userId") Long userId,
 			@RequestHeader(value = "token", required = false, defaultValue = "") String token) {
 
+
 		AuthHeader authHeader = new AuthHeader(userId, token);
 		boolean isAuthenticated = authService.authUser(authHeader);
 		User user = userService.getUserById(userId);
@@ -88,9 +86,20 @@ public class UserController {
 		if (!authService.authUser(authHeader)) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
 		}
+
 		userService.logoutUser(authHeader);
 	}
 
+    @PutMapping("users/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateUser(@RequestHeader("token") String token, @PathVariable("userId") Long userId, @RequestBody UpdateUserPutDTO updateUserPutDTO){
+        AuthHeader authHeader = new AuthHeader(userId, token);
+        if (!authService.authUser(authHeader)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+        }
+
+        userService.updateUser(userId, updateUserPutDTO);
+    }
 }
 
 // @RestController

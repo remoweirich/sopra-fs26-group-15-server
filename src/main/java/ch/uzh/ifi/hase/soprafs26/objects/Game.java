@@ -10,7 +10,9 @@ public class Game {
     private List<Round> rounds;
 
     private List<Train> trains;
+    public Game() {
 
+    }
 
     public Game(Long gameId, List<Round> rounds, List<Train> trains) {
         this.gameId = gameId;

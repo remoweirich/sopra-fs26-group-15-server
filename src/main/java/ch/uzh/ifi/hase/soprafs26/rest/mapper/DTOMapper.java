@@ -30,7 +30,8 @@ public interface DTOMapper {
 	@Mapping(source = "username", target = "username")
 	User convertUserPostDTOtoEntity(UserPostDTO userPostDTO);
 
-	@Mapping(source = "userScoreboard", target = "userScoreboard")
+
+    @Mapping(source = "userScoreboard", target = "userScoreboard")
 	@Mapping(source = "username", target = "username")
 	@Mapping(source = "email", target = "email")
 	@Mapping(source = "userBio", target = "userBio")
@@ -76,7 +77,6 @@ public interface DTOMapper {
 
 	@Mapping(source = "lobbyId", target = "lobbyId")
 	@Mapping(source = "lobbyCode", target = "lobbyCode")
-
 	LobbyAccessDTO convertEntityToLobbyAccessDTO(Lobby lobby);
 
 	@Mapping(source = "lobbyCode", target = "lobbyCode")
