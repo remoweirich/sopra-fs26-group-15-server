@@ -44,7 +44,7 @@ public class LobbyService {
     private final UserService userService;
     private final GameService gameService;
     private final SimpMessagingTemplate messagingTemplate;
-    private long newLobbyId = 0L;
+    private long newLobbyId = 1L;
 
 
     public LobbyService(AuthService authService, UserService userService, GameService gameService, SimpMessagingTemplate messagingTemplate, UserRepository userRepository) {
