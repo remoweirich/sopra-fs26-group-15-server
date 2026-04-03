@@ -3,12 +3,3 @@
 
 runtime: java17
 instance_class: F2
-
-gtfs:
-  api-token: YOUR_TOKEN_HERE
-  static-url: https://data.opentransportdata.swiss/dataset/timetable-2026-gtfs2020
-  rt-url: https://api.opentransportdata.swiss/la/gtfs-rt
-  # Where to cache the downloaded ZIP on disk
-  local-zip-path: /var/data/gtfs/gtfs_static.zip
-  # Reload static data every Monday at 03:00 (published ~twice/week)
-  reload-cron: "0 0 3 * * MON"
