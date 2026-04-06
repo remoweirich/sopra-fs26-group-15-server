@@ -3,3 +3,8 @@
 
 runtime: java17
 instance_class: F2
+
+env_variables:
+  # This is a placeholder that sed(tool to automatically replace string) will look for
+  # In GitHub Actions, the actual value will be injected from the repository secrets
+  GEOPS_API_KEY: "GEOP_API_KEY_PLACEHOLDER"

@@ -97,6 +97,7 @@ public class GameService {
         List<Round> rounds = currentGame.getRounds();
 
 
+
         UserGameStatus userGameStatus = new UserGameStatus(userId, true);
         updateUserGameStatus(userGameStatus, currentLobby);
 
