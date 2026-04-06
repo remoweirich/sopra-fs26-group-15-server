@@ -163,6 +163,33 @@ public class LobbyService {
         lobby.setLobbyState(LobbyState.IN_GAME);
     }
 
+    public void leaveLobby(Long lobbyId, Long userId) {
+        Lobby lobby = getLobbyById(lobbyId);
+
+        User user = userService.getUserById(userId);
+
+        //remove user from lobby
+        lobby.removeUser(user);
+
+        //if user was admin, assign new admin
+        if (lobby.getAdmin().getUserId().equals(user.getUserId())) {
+            if (!lobby.getUsers().isEmpty()) {
+                User newAdminUser = lobby.getUsers().get(0);
+                Admin newAdmin = new Admin(newAdminUser.getUserId(), newAdminUser.getToken());
+                lobby.setAdmin(newAdmin);
+            } else {
+                //if no users are left in the lobby, delete the lobby
+                activeLobbies.remove(lobby);
+                return;
+            }
+        }
+
+        //send broadcast message to lobby that user has left
+        MyLobbyDTO myLobbyDTO = DTOMapper.INSTANCE.convertEntityToMyLobbyDTO(lobby);
+        Message message = new Message(MessageType.LOBBY_STATE, myLobbyDTO);
+        messagingTemplate.convertAndSend("/topic/lobby/" + lobby.getLobbyId(), message);
+    }
+
     public Lobby getLobbyById(Long lobbyId) {
         for (Lobby lobby : activeLobbies) {
             if (lobby.getLobbyId().equals(lobbyId)) {
