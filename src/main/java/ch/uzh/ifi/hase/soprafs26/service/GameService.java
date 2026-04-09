@@ -18,7 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -61,16 +63,19 @@ public class GameService {
 
         List<User> players = currentLobby.getUsers();
 
-        List<UserGameStatus> allUsersGameStatus = new ArrayList<>();
-        List<GuessMessageDTO> guessMessages = new ArrayList<>();
+        Map<Long, UserGameStatus> allUsersGameStatus = new HashMap<>();
+        Map<Long, GuessMessageDTO> guessMessages = new HashMap<>();
+        Map<Long, Score> scores = new HashMap<>();
 
         for  (User user : players) {
-            allUsersGameStatus.add(new UserGameStatus(user.getUserId(), false));
-            guessMessages.add(new GuessMessageDTO(currentLobby.getLobbyId(), user.getUserId()));
+            Long userId = user.getUserId();
+            scores.put(userId, new Score(user.getUserId()));
+            allUsersGameStatus.put(userId, new UserGameStatus(user.getUserId(), false));
+            guessMessages.put(userId, new GuessMessageDTO(currentLobby.getLobbyId(), user.getUserId()));
         }
 
         for (int i = 0; i < currentLobby.getMaxRounds(); i++) {
-            rounds.add(new Round(i+1, trains.get(i), guessMessages, allUsersGameStatus));
+            rounds.add(new Round(i+1, trains.get(i), guessMessages, allUsersGameStatus, scores));
         }
 
         Game newGame = new Game(currentLobby.getLobbyId(), rounds, trains);
@@ -88,6 +93,9 @@ public class GameService {
         }
     }
 
+    /**
+     * Process Player guess, save score and send back userGameStatus to frontend subscribers
+     */
     public void processGuessMessage(GuessMessageDTO guessMessage, Lobby currentLobby){
         Long gameId = guessMessage.getLobbyId();
         Long userId = guessMessage.getUserId();
@@ -98,26 +106,21 @@ public class GameService {
 
         Round currentRound = rounds.get(roundNumber - 1);
         Train currentTrain = currentRound.getTrain();
-        Long trainCurentX = currentTrain.getCurrentX();
-        Long trainCurentY = currentTrain.getCurrentY();
-
         Long playerGuessX = guessMessage.getXcoordinate();
         Long playerGuessY = guessMessage.getYcoordinate();
 
-        Long guessDistance = (long) Math.sqrt((playerGuessX - trainCurentX)*(playerGuessX - trainCurentX) + (playerGuessY - trainCurentY)*(playerGuessY - trainCurentY));
-        int score;
-        if (guessDistance <= 0) {
-            score = 1000;
-        }
-        else{
-            score = (int) (1000/(guessDistance*0.0008 + 1));
-        }
+        int score = calculateScore(currentTrain, playerGuessX, playerGuessY);
+        double distance = calculateGuessDistance(currentTrain, playerGuessX, playerGuessY);
 
+        currentRound.setScore(userId, score);
+        currentRound.setGuessMessage(userId, guessMessage);
         // TODO : Send Score back to frontend subscribers
-         // Process the guess and update the user's game status
-
         UserGameStatus userGameStatus = new UserGameStatus(userId, true);
         updateUserGameStatus(userGameStatus, currentLobby);
+
+        Message message = new Message(MessageType.GAME_STATE, currentGame);
+        messagingTemplate.convertAndSend("/topic/game/" + gameId, message);
+
 
     }
 
@@ -125,17 +128,70 @@ public class GameService {
         Game currentGame = currentLobby.getGame();
         List<Round> rounds = currentGame.getRounds();
         Round currentRound =  rounds.get(currentLobby.getCurrentRound());
-        List<UserGameStatus> allUsersGameStatuses = currentRound.getAllUserGameStatuses();
 
-        for  (UserGameStatus usGaSt : allUsersGameStatuses) {
-            if(usGaSt.getUserId().equals(userGameStatus.getUserId())) {
-                usGaSt.setIsReady(userGameStatus.getIsReady());
-            }
-        }
+        currentRound.setUserStatus(userGameStatus.getUserId(), userGameStatus.getIsReady());
 
     }
 
     public void publishRoundStart(){
 
+    }
+
+    /**
+     * Calculates a score (0–1000) for a player's train position guess.
+     *
+     * Uses Gaussian decay: score = 1000 * e^(-k * errorRatio²)
+     * where errorRatio = guessDistance / totalLineLength
+     *
+     * Decay constant k is chosen so that errorRatio = 1.0 (guess is off by a full
+     * line length) yields a score of ~5, giving a near-zero floor for bad guesses.
+     *
+     *   errorRatio = 0.00 → 1000 pts  (perfect)
+     *   errorRatio = 0.10 →  742 pts  (great)
+     *   errorRatio = 0.25 →  214 pts  (decent)
+     *   errorRatio = 0.50 →   21 pts  (poor)
+     *   errorRatio = 1.00 →    5 pts  (terrible)
+     */
+    public int calculateScore(Train train, long playerX, long playerY) {
+
+        // 1. Euclidean distance between the guess and the train's actual position
+        double dx = playerX - train.getCurrentX();
+        double dy = playerY - train.getCurrentY();
+        double guessDistance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+
+        // 2. Total length of the train line (origin → destination)
+        double ldx = train.getLineDestination().getXCoordinate()
+                - train.getLineOrigin().getXCoordinate();
+        double ldy = train.getLineDestination().getYCoordinate()
+                - train.getLineOrigin().getYCoordinate();
+        double totalLineLength = Math.sqrt(Math.pow(ldx, 2) + Math.pow(ldy, 2));
+
+        // Edge case: degenerate line (origin == destination)
+        // Fall back to a fixed reference distance of 1 km in EPSG:3857 meters
+        if (totalLineLength < 1.0) {
+            totalLineLength = 1000.0;
+        }
+
+        // 3. Relative error ratio (clamped — can't do worse than a full line length)
+        double errorRatio = guessDistance / totalLineLength;
+
+        // 4. Gaussian decay: k = ln(1000/5) ≈ 5.298
+        //    Chosen so that errorRatio = 1.0 → score ≈ 5 (near-zero, not exactly 0)
+        final double k = Math.log(1000.0 / 5.0); // ≈ 5.298
+
+        double rawScore = 1000.0 * Math.exp(-k * Math.pow(errorRatio, 2));
+
+        // 5. Round and clamp to [0, 1000]
+        return (int) Math.min(1000, Math.max(0, Math.round(rawScore)));
+    }
+
+    /**
+     * Helper method to calculate the distance between the player's guess and the train's actual position.
+     */
+    public double calculateGuessDistance(Train train, Long playerX, Long playerY) {
+        double dx = playerX - train.getCurrentX();
+        double dy = playerY - train.getCurrentY();
+        double guessDistance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+        return Math.round(guessDistance * 1000.0);
     }
 }
