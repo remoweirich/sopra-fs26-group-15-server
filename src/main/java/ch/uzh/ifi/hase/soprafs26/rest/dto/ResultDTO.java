@@ -1,20 +1,22 @@
 package ch.uzh.ifi.hase.soprafs26.rest.dto;
 
 import ch.uzh.ifi.hase.soprafs26.objects.Score;
+import ch.uzh.ifi.hase.soprafs26.objects.Train;
+import ch.uzh.ifi.hase.soprafs26.objects.UserResult;
 
 import java.util.List;
 
 public class ResultDTO {
-    private List<Score> totalScores;
+    private int currentRound;
 
-    private List<Score> roundScores;
+    private List<UserResult> userResults;
 
-    public List<Score> getTotalScores() {return totalScores;}
-    public void setTotalScores(List<Score> totalScores) {this.totalScores = totalScores;}
+    private Train train;
 
-    public List<Score> getRoundScores() {return  roundScores;}
-    public void setRoundScores(List<Score> roundScores) {this.roundScores = roundScores;}
-
-
+    public ResultDTO(int currentRound, List<UserResult> userResults, Train train) {
+        this.currentRound = currentRound;
+        this.userResults = userResults;
+        this.train = train;
+    }
 
 }

@@ -41,6 +41,8 @@ public class GameService {
 
     private final SimpMessagingTemplate messagingTemplate;
 
+    private Boolean scoresPublished = false;
+
     public GameService(AuthService authService, TrainPositionFetcher trainPositionFetcher, SimpMessagingTemplate messagingTemplate) {
         this.authService = authService;
         this.trainPositionFetcher = trainPositionFetcher;
@@ -70,22 +72,24 @@ public class GameService {
 
         List<User> players = currentLobby.getUsers();
 
-        Map<Long, UserGameStatus> allUsersGameStatus = new HashMap<>();
-        Map<Long, GuessMessageDTO> guessMessages = new HashMap<>();
-        Map<Long, Score> scores = new HashMap<>();
-
-        for  (User user : players) {
-            Long userId = user.getUserId();
-            scores.put(userId, new Score(user.getUserId()));
-            allUsersGameStatus.put(userId, new UserGameStatus(user.getUserId(), false));
-            guessMessages.put(userId, new GuessMessageDTO(currentLobby.getLobbyId(), user.getUserId()));
-        }
+        Map<Long, UserGameStatus> connectedPlayers = new HashMap<>();
 
         for (int i = 0; i < currentLobby.getMaxRounds(); i++) {
-            rounds.add(new Round(i+1, trains.get(i), guessMessages, allUsersGameStatus, scores));
+            Map<Long, UserGameStatus> roundUserStatus = new HashMap<>();
+            Map<Long, GuessMessageDTO> roundGuesses = new HashMap<>();
+            Map<Long, Score> roundScores = new HashMap<>();
+
+            for (User user : players) {
+                Long userId = user.getUserId();
+                roundUserStatus.put(userId, new UserGameStatus(userId, false));
+                roundGuesses.put(userId, new GuessMessageDTO(currentLobby.getLobbyId(), userId));
+                roundScores.put(userId, new Score(userId));
+            }
+
+            rounds.add(new Round(i+1, trains.get(i), roundGuesses, roundUserStatus, roundScores));
         }
 
-        Game newGame = new Game(currentLobby.getLobbyId(), rounds, trains);
+        Game newGame = new Game(currentLobby.getLobbyId(), rounds, trains, connectedPlayers);
 
         activeGames.add(newGame);
 
@@ -101,6 +105,8 @@ public class GameService {
             throw new Error("Failed to fetch mock trains", e);
         }
     }
+
+
 
     /**
      * Process Player guess, save score and send back userGameStatus to frontend subscribers
@@ -138,9 +144,9 @@ public class GameService {
             if (timer != null){
                 timer.cancel(false);
             }
-            roundEnd(gameId);
+            allowedToPublish(currentLobby);
         }
-        Message message = new Message(MessageType.GAME_STATE, currentGame);
+        Message message = new Message(MessageType.GAME_STATE, userId);
         messagingTemplate.convertAndSend("/topic/game/" + gameId, message);
 
 
@@ -154,6 +160,7 @@ public class GameService {
                 // Assuming Score class has getScore() and setScore()
                 int currentTotal = s.getPoints();
                 s.setPoints(currentTotal + pointsToAdd);
+                lobby.setScores(totalScores);
                 return;
             }
         }
@@ -162,29 +169,30 @@ public class GameService {
         Score newScore = new Score(userId);
         newScore.setPoints(pointsToAdd);
         totalScores.add(newScore);
+        lobby.setScores(totalScores);
     }
 
+    public void readyForNextRound(UserGameStatus userGameStatus, Lobby currentLobby){
+        Boolean allAreReady = updateUserGameStatus(userGameStatus, currentLobby);
+        if (allAreReady) {
+            roundStart(currentLobby);
+        }
+    }
 
     public Boolean updateUserGameStatus(UserGameStatus userGameStatus, Lobby currentLobby) {
         Game currentGame = currentLobby.getGame();
         List<Round> rounds = currentGame.getRounds();
-        Round currentRound =  rounds.get(currentLobby.getCurrentRound());
+        Round currentRound =  rounds.get(currentLobby.getCurrentRound()-1);
         List<UserGameStatus> allUsersGameStatuses = currentRound.getAllUserGameStatuses();
 
         currentRound.setUserGameStatus(userGameStatus.getUserId(), userGameStatus.getIsReady());
-        int numAreReady = 0;
 
         for (UserGameStatus usGaSt : allUsersGameStatuses) {
-            if (usGaSt.getIsReady() == true) {
-                numAreReady += 1;
+            if (usGaSt.getIsReady() == false) {
+                return false;
             }
-
-        if (numAreReady == allUsersGameStatuses.size()) {
-            return true;
         }
-
-        }
-        return false;
+        return true;
     }
 
     public boolean canSubmitGuess(long gameId) {
@@ -192,34 +200,40 @@ public class GameService {
     }
 
     public void roundStart(Lobby currentLobby) {
+        scoresPublished = false;
+        int currentRoundNumber =  currentLobby.getCurrentRound()+1;
+        currentLobby.setCurrentRound(currentRoundNumber);
+
         Game currentGame = currentLobby.getGame();
         Long gameId = currentGame.getGameId();
-        List<Train> trains = currentGame.getTrains();
-        Train train =  trains.get(currentLobby.getCurrentRound());
-        List<Round> rounds = currentGame.getRounds();
-        Round currentRound = rounds.get(currentLobby.getCurrentRound());
+
+        Train trainWithoutCoordinates = currentGame.getTrains().get(currentRoundNumber-1);
+        trainWithoutCoordinates.setCurrentX(0);
+        trainWithoutCoordinates.setCurrentY(0);
+
         int maxRounds = currentLobby.getMaxRounds();
 
-        RoundStartDTO roundStartDTO = new RoundStartDTO(currentRound.getRoundNumber(), maxRounds, train);
+        RoundStartDTO roundStartDTO = new RoundStartDTO(currentRoundNumber, maxRounds, trainWithoutCoordinates);
         Message message = new Message(MessageType.ROUND_START, roundStartDTO);
         messagingTemplate.convertAndSend("/topic/game/" + gameId, message);
 
         ScheduledFuture<?> timer = scheduler.schedule(
-                () -> roundEnd(gameId),
-                45,
+                () -> roundEnd(currentLobby),
+                45, //might be longer depending on front end timer implementation
                 TimeUnit.SECONDS
         );
 
         activeTimers.put(gameId, timer);
     }
 
-    public void roundEnd(Long gameId) {
+    public void roundEnd(Lobby currentLobby) {
+        Long gameId = currentLobby.getLobbyId();
 
         messagingTemplate.convertAndSend("/topic/game/"+ gameId,
                 new Message(MessageType.ROUND_END, null));
 
         ScheduledFuture<?> lastMessagesTimer = scheduler.schedule(
-                () -> activeTimers.remove(gameId),
+                () -> allowedToPublish(currentLobby),
                 3,
                 TimeUnit.SECONDS
         );
@@ -227,19 +241,38 @@ public class GameService {
         activeTimers.put(gameId, lastMessagesTimer);
     }
 
+    public void allowedToPublish(Lobby currentLobby) {
+        if (!scoresPublished) {
+            publishScores(currentLobby);
+        }
+    }
+
     public void publishScores(Lobby currentLobby) {
+        scoresPublished = true;
         Game currentGame =  currentLobby.getGame();
+        int currentRoundNumber = currentLobby.getCurrentRound();
+        Train train = currentGame.getTrains().get(currentRoundNumber-1);
+        Round currentRound =  currentGame.getRounds().get(currentRoundNumber-1);
 
         List<Score> totalScores =  currentLobby.getScores();
 
-        List<Score> roundScores = currentGame.getRounds().get(currentLobby.getCurrentRound()).getAllScores();
+        Map<Long, Score> roundScores = currentGame.getRounds().get(currentLobby.getCurrentRound()).getAllScores();
+        Map<Long, Double> distances = currentRound.getDistances();
+        List<UserResult> userResults = new ArrayList<>();
 
-        ResultDTO resultDTO = new ResultDTO();
-        resultDTO.setTotalScores(totalScores);
-        resultDTO.setRoundScores(roundScores);
+        for (Score totalScore : totalScores) {
+            long userId = totalScore.getUserId();
+            int totalPoints = totalScore.getPoints();
+            int roundPoints = roundScores.get(userId).getPoints();
+            GuessMessageDTO guessMessage = currentRound.getGuessMessages().get(userId);
+            long xCoordinate = guessMessage.getXcoordinate();
+            long yCoordinate = guessMessage.getYcoordinate();
+            double distance = distances.get(userId);
+            userResults.add(new UserResult(userId, totalPoints, roundPoints, xCoordinate, yCoordinate, distance));
+        }
 
+        ResultDTO resultDTO = new ResultDTO(currentRoundNumber, userResults, train);
         Message message = new Message(MessageType.SCORES, resultDTO);
-
         messagingTemplate.convertAndSend("/topic/game/" + currentGame.getGameId(), message);
 
 

@@ -37,12 +37,12 @@ public class GameController {
     }
 
     @MessageMapping("/game/{gameId}/ready")
-    public void updateUserGameStatus(@DestinationVariable Long gameId, Message readyForNextRoundMessage) {
+    public void readyForNextRound(@DestinationVariable Long gameId, Message readyForNextRoundMessage) {
         Lobby currentLobby = lobbyService.getLobbyById(gameId);
         MessageType type = readyForNextRoundMessage.getType();
         if (type == MessageType.READY_FOR_NEXT_ROUND){
             UserGameStatus userGameStatus = objectMapper.convertValue(readyForNextRoundMessage.getPayload(), UserGameStatus.class);
-            gameService.updateUserGameStatus(userGameStatus, currentLobby);
+            gameService.readyForNextRound(userGameStatus, currentLobby);
         }
     }
 }
