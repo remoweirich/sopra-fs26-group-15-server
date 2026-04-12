@@ -182,7 +182,19 @@ public class GameService {
     public Boolean updateUserGameStatus(UserGameStatus userGameStatus, Lobby currentLobby) {
         Game currentGame = currentLobby.getGame();
         List<Round> rounds = currentGame.getRounds();
-        Round currentRound =  rounds.get(currentLobby.getCurrentRound()-1);
+        int currentRoundNumber = currentLobby.getCurrentRound();
+        if (currentRoundNumber == 0){
+            currentGame.setConnectedPlayers(userGameStatus.getUserId(), userGameStatus);
+            List<UserGameStatus> connectedPlayers = currentGame.getConnectedPlayers();
+            for (UserGameStatus connectedPlayer : connectedPlayers) {
+                if (connectedPlayer.getIsReady() == false) {
+                    return false;
+                }
+            }
+            return true;
+
+        }
+        Round currentRound =  rounds.get(currentRoundNumber-1);
         List<UserGameStatus> allUsersGameStatuses = currentRound.getAllUserGameStatuses();
 
         currentRound.setUserGameStatus(userGameStatus.getUserId(), userGameStatus.getIsReady());
