@@ -95,6 +95,8 @@ public class GameService {
 
         return newGame;
 
+        //TODO: call Round start, allow for Frontend to subscribe to Round start messages, and trigger the timer for the first round
+
         } catch (Exception e) {
             throw new Error("Failed to fetch mock trains", e);
         }
