@@ -12,7 +12,6 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.RoundStartDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs26.security.AuthService;
 import ch.uzh.ifi.hase.soprafs26.trains.TrainPositionFetcher;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import ch.uzh.ifi.hase.soprafs26.websocket.Message;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -30,7 +29,7 @@ import java.util.concurrent.*;
 @Service
 @Transactional
 public class GameService {
-    private AuthService authService;
+    //private AuthService authService;
 
     private List<Game> activeGames;
 
@@ -44,7 +43,7 @@ public class GameService {
     private Boolean scoresPublished = false;
 
     public GameService(AuthService authService, TrainPositionFetcher trainPositionFetcher, SimpMessagingTemplate messagingTemplate) {
-        this.authService = authService;
+        //this.authService = authService;
         this.trainPositionFetcher = trainPositionFetcher;
         this.messagingTemplate = messagingTemplate;
         this.activeGames = new ArrayList<>();
@@ -129,7 +128,7 @@ public class GameService {
         Long playerGuessY = guessMessage.getYcoordinate();
 
         double guessDistance = calculateGuessDistance(currentTrain, playerGuessX, playerGuessY);
-        int score = calculateScore(currentTrain, playerGuessX, playerGuessY, guessDistance);
+        int score = calculateScore(currentTrain, guessDistance);
 
         currentRound.setScore(userId, score);
         currentRound.setGuessMessage(userId, guessMessage);
@@ -304,7 +303,7 @@ public class GameService {
      *   errorRatio = 0.50 →   21 pts  (poor)
      *   errorRatio = 1.00 →    5 pts  (terrible)
      */
-    public int calculateScore(Train train, long playerX, long playerY, double guessDistance) {
+    public int calculateScore(Train train, double guessDistance) {
         // 1. Total length of the train line (origin → destination)
         double ldx = train.getLineDestination().getXCoordinate()
                 - train.getLineOrigin().getXCoordinate();
