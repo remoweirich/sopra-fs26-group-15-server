@@ -154,10 +154,8 @@ public class GameService {
 
     private void updateLobbyTotalScore(Lobby lobby, Long userId, int pointsToAdd) {
         List<Score> totalScores = lobby.getScores();
-
         for (Score s : totalScores) {
             if (s.getUserId().equals(userId)) {
-                // Assuming Score class has getScore() and setScore()
                 int currentTotal = s.getPoints();
                 s.setPoints(currentTotal + pointsToAdd);
                 lobby.setScores(totalScores);
