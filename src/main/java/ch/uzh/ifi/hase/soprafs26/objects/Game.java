@@ -13,7 +13,7 @@ public class Game {
 
     private List<Train> trains;
 
-    private Map<Long, UserGameStatus> connectedPlayers = new HashMap<>();
+    private Map<Long, UserGameStatus> connectedPlayers = new HashMap<>(); //To see if all players are Subscribed to the topic game/{gameId}
 
     public Game() {
 

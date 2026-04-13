@@ -2,10 +2,11 @@ package ch.uzh.ifi.hase.soprafs26.objects;
 
 import ch.uzh.ifi.hase.soprafs26.constant.LobbyState;
 import ch.uzh.ifi.hase.soprafs26.constant.LobbyVisibility;
-import ch.uzh.ifi.hase.soprafs26.objects.Game;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Lobby {
 
@@ -31,7 +32,7 @@ public class Lobby {
 
     private Integer maxRounds;
 
-    private List<Score> scores;
+    private Map<Long, Score> scores;
 
     private LobbyState lobbyState;
 
@@ -69,8 +70,10 @@ public class Lobby {
     public Integer getMaxRounds() {return maxRounds;}
     public void setMaxRounds(Integer maxRounds) {this.maxRounds = maxRounds;}
 
-    public List<Score> getScores() {return scores;}
-    public void setScores(List<Score> scores) {this.scores = scores;}
+    public List<Score> getScores() {return new ArrayList<>(scores.values());}
+    public void setScore(long userId, Score score) {this.scores.put(userId, score);}
+    public void setScores(Map<Long, Score> scores) {this.scores = scores;}
+    public Score getScore(long userId) {return this.scores.get(userId);}
 
     public LobbyState getLobbyState()  {return lobbyState;}
     public void setLobbyState(LobbyState lobbyState) {this.lobbyState = lobbyState;}

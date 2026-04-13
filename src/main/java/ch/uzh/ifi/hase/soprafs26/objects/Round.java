@@ -19,13 +19,15 @@ public class Round {
     public Round(int roundNumber, Train train,
                  Map<Long, GuessMessageDTO> guessMessages,
                  Map<Long, UserGameStatus> allUserGameStatuses,
-                 Map<Long, Score> scores) {
+                 Map<Long, Score> scores,
+                 Map<Long, Double> distances) {
 
         this.roundNumber = roundNumber;
         this.train = train;
         this.guessMessages = guessMessages;
         this.allUserGameStatuses = allUserGameStatuses;
         this.scores = scores;
+        this.distances = distances;
     }
 
 

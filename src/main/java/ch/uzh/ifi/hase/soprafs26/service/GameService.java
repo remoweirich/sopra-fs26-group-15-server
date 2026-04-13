@@ -77,15 +77,20 @@ public class GameService {
             Map<Long, UserGameStatus> roundUserStatus = new HashMap<>();
             Map<Long, GuessMessageDTO> roundGuesses = new HashMap<>();
             Map<Long, Score> roundScores = new HashMap<>();
+            Map<Long, Double> roundDistances = new HashMap<>();
 
             for (User user : players) {
                 Long userId = user.getUserId();
+                Score score = new Score(userId);
+                roundDistances.put(userId, 0.0);
+                score.setPoints(0);
+                currentLobby.setScore(userId, score);
                 roundUserStatus.put(userId, new UserGameStatus(userId, false));
                 roundGuesses.put(userId, new GuessMessageDTO(currentLobby.getLobbyId(), userId));
                 roundScores.put(userId, new Score(userId));
             }
 
-            rounds.add(new Round(i+1, trains.get(i), roundGuesses, roundUserStatus, roundScores));
+            rounds.add(new Round(i+1, trains.get(i), roundGuesses, roundUserStatus, roundScores, roundDistances));
         }
 
         Game newGame = new Game(currentLobby.getLobbyId(), rounds, trains, connectedPlayers);
@@ -128,13 +133,13 @@ public class GameService {
         Long playerGuessY = guessMessage.getYcoordinate();
 
         double guessDistance = calculateGuessDistance(currentTrain, playerGuessX, playerGuessY);
-        int score = calculateScore(currentTrain, guessDistance);
+        int points = calculateScore(currentTrain, guessDistance);
 
-        currentRound.setScore(userId, score);
+        currentRound.setScore(userId, points);
         currentRound.setGuessMessage(userId, guessMessage);
         currentRound.setDistances(userId, guessDistance);
 
-        updateLobbyTotalScore(currentLobby, userId, score);
+        updateLobbyTotalScore(currentLobby, userId, points);
 
         UserGameStatus userGameStatus = new UserGameStatus(userId, true);
         Boolean allAreReady = updateUserGameStatus(userGameStatus, currentLobby);
@@ -153,21 +158,9 @@ public class GameService {
     }
 
     private void updateLobbyTotalScore(Lobby lobby, Long userId, int pointsToAdd) {
-        List<Score> totalScores = lobby.getScores();
-        for (Score s : totalScores) {
-            if (s.getUserId().equals(userId)) {
-                int currentTotal = s.getPoints();
-                s.setPoints(currentTotal + pointsToAdd);
-                lobby.setScores(totalScores);
-                return;
-            }
-        }
-
-        // Fallback: If for some reason the score object doesn't exist yet, create it
-        Score newScore = new Score(userId);
-        newScore.setPoints(pointsToAdd);
-        totalScores.add(newScore);
-        lobby.setScores(totalScores);
+        Score score = lobby.getScore(userId);
+        score.setPoints(score.getPoints() + pointsToAdd);
+        lobby.setScore(userId, score);
     }
 
     public void readyForNextRound(UserGameStatus userGameStatus, Lobby currentLobby){
@@ -273,7 +266,10 @@ public class GameService {
         for (Score totalScore : totalScores) {
             long userId = totalScore.getUserId();
             int totalPoints = totalScore.getPoints();
-            int roundPoints = roundScores.get(userId).getPoints();
+            Integer roundPoints = roundScores.get(userId).getPoints();
+            if(roundPoints == null){
+                roundPoints = 0;
+            }
             GuessMessageDTO guessMessage = currentRound.getGuessMessages().get(userId);
             long xCoordinate = guessMessage.getXcoordinate();
             long yCoordinate = guessMessage.getYcoordinate();

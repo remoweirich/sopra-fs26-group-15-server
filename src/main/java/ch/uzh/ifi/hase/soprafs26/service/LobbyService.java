@@ -30,10 +30,7 @@ import ch.uzh.ifi.hase.soprafs26.constant.*;
 import ch.uzh.ifi.hase.soprafs26.websocket.Message;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Transactional
@@ -104,7 +101,7 @@ public class LobbyService {
 
         newLobby.setMaxRounds(createLobbyPostDTO.getMaxRounds());
 
-        List<Score> scores = new ArrayList<>();
+        Map<Long, Score> scores = new HashMap<>();
         newLobby.setScores(scores);
 
         newLobby.setLobbyState(LobbyState.WAITING);
