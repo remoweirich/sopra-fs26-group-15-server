@@ -6,9 +6,9 @@ public class GuessMessageDTO {
 
     private Long userId;
 
-    private String latitude;
+    private Long Xcoordinate;
 
-    private String longitude;
+    private Long Ycoordinate;
 
 
     public Long getLobbyId() {return lobbyId;}
@@ -17,11 +17,11 @@ public class GuessMessageDTO {
     public Long getUserId() {return userId;}
     public void setUserId(Long userId) {this.userId = userId;}
 
-    public String getLatitude() {return latitude;}
-    public void setLatitude(String latitude) {this.latitude = latitude;}
+    public Long getXcoordinate() {return Xcoordinate;}
+    public void setXcoordinate(Long Xcoordinate) {this.Xcoordinate = Xcoordinate;}
 
-    public String getLongitude() {return longitude;}
-    public void setLongitude(String longitude) {this.longitude = longitude;}
+    public Long getYcoordinate() {return Ycoordinate;}
+    public void setYcoordinate(Long Ycoordinate) {this.Ycoordinate = Ycoordinate;}
 
     public GuessMessageDTO(long lobbyId, long userId) {
         this.lobbyId = lobbyId;

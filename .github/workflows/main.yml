@@ -11,6 +11,8 @@ jobs:
   test:
     name: Test and SonarQube
     runs-on: ubuntu-latest
+    env:
+      GEOPS_API_KEY: ${{ secrets.GEOPS_API_KEY }}
 
     steps:
       - name: Checkout repository code
@@ -28,6 +30,7 @@ jobs:
       - name: Test and analyze
         run: ./gradlew test jacocoTestReport sonar
         env:
+          GEOPS_API_KEY: ${{ secrets.GEOPS_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
@@ -69,6 +72,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: Inject Secret into app.yaml
+        run: |
+          sed -i "s/GEOP_API_KEY_PLACEHOLDER/${{ secrets.GEOPS_API_KEY }}/g" app.yaml
+        # 'sed -i' means "edit in-place"
+        # 's/find/replace/g' is the substitute command
 
       - name: Deploy to App Engine
         id: deploy

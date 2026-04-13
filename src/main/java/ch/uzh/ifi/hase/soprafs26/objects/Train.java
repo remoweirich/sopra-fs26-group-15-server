@@ -4,8 +4,8 @@ public class Train {
 
     private String trainId;
     private Line line;
-    private String lineOrigin;
-    private String lineDestination;
+    private Station lineOrigin;
+    private Station lineDestination;
     private long departureTime;
     private long arrivalTime;
     private Station lastLeavingStation;
@@ -29,11 +29,11 @@ public class Train {
     public Line getLine() { return line; }
     public void setLine(Line line) { this.line = line; }
 
-    public String getLineOrigin() { return lineOrigin; }
-    public void setLineOrigin(String lineOrigin) { this.lineOrigin = lineOrigin; }
+    public Station getLineOrigin() { return lineOrigin; }
+    public void setLineOrigin(Station lineOrigin) { this.lineOrigin = lineOrigin; }
 
-    public String getLineDestination() { return lineDestination; }
-    public void setLineDestination(String lineDestination) { this.lineDestination = lineDestination; }
+    public Station getLineDestination() { return lineDestination; }
+    public void setLineDestination(Station lineDestination) { this.lineDestination = lineDestination; }
 
     public long getDepartureTime() { return departureTime; }
     public void setDepartureTime(long departureTime) { this.departureTime = departureTime; }

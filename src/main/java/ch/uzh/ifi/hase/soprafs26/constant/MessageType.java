@@ -8,5 +8,8 @@ public enum MessageType {
     GAME_START, 
     GAME_STATE,
     GUESS_MESSAGE,
-    READY_FOR_NEXT_ROUND
+    READY_FOR_NEXT_ROUND,
+    ROUND_START,
+    ROUND_END,
+    SCORES
 }

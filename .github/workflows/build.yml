@@ -34,5 +34,7 @@ jobs:
         run: chmod +x gradlew
       - name: Build and analyze
         env:
+          GEOPS_API_KEY: ${{ secrets.GEOPS_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew build sonar --info

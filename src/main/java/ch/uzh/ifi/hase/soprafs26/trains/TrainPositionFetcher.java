@@ -60,8 +60,8 @@ public class TrainPositionFetcher {
     @Value("${geops.mock:false}")
     private boolean useMock;
 
-     // For testing without Spring context, you can hardcode the API key here:
-    private String apiKey = "5cc87b12d7c5370001c1d655253cc458629148158093d5ca81b4c5f0";
+    @Value("${geops.api.key}")
+    private String apiKey;
 
 
     private static final String SWITZERLAND_BBOX =
@@ -458,12 +458,16 @@ public class TrainPositionFetcher {
         }
 
         JsonNode seq = content.get(0);
-        train.setLineDestination(seq.path("destination").asText(null));
+        //train.setLineDestination(seq.path("destination").asText(null));
+
 
         JsonNode stations = seq.path("stations");
         if (!stations.isArray() || stations.size() == 0) return;
 
-        train.setLineOrigin(stations.get(0).path("stationName").asText(null));
+        //train.setLineOrigin(stations.get(0).path("stationName").asText(null));
+        train.setLineOrigin(parseStation(stations.get(0)));
+
+        train.setLineDestination(parseStation(stations.get(stations.size() - 1)));
 
         Station lastLeaving = null;
         Station nextPending = null;
