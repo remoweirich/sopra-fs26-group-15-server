@@ -9,6 +9,8 @@ import ch.uzh.ifi.hase.soprafs26.websocket.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,6 +44,10 @@ public class LobbyWebSocketController {
             AuthHeader.class
         );
 
+        if (!authService.authUser(authHeader)) {
+            return;
+        }
+
 
         //Check whether user is admin of the lobby
         Long userId = authHeader.getUserId();
@@ -51,5 +57,33 @@ public class LobbyWebSocketController {
         // Start the game
         lobbyService.startGame(Long.parseLong(lobbyId));
         
+}
+
+//Leave Lobby
+@MessageMapping("/lobby/{lobbyId}/leave")
+    public void leaveLobby(@DestinationVariable String lobbyId, Message message) {
+        
+        Lobby lobby = lobbyService.getLobbyById(Long.parseLong(lobbyId));
+
+            
+        // Authenticate the user
+        // Convert payload to AuthHeader
+        AuthHeader authHeader = objectMapper.convertValue(
+            message.getPayload(), 
+            AuthHeader.class
+        );
+        try{
+            boolean isAuthenticated = authService.authUser(authHeader);
+
+            if(!isAuthenticated){
+                return;
+            }
+        
+                // remove user from Lobby
+                lobbyService.leaveLobby(Long.parseLong(lobbyId), authHeader.getUserId());
+        }
+        catch (ResponseStatusException e){
+        }
+                
 }
 }
