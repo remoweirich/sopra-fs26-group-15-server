@@ -88,17 +88,32 @@ public class LobbyRESTController {
     public LobbyAccessDTO joinLobby(@PathVariable("id") Long lobbyId, @RequestHeader("Token") String token,
             @RequestHeader("UserId") Long userId,
             @RequestBody LobbyCodePostDTO lobbyCodePostDTO) {
-        // in this version: lobbyCodePostDTO contains userID, modify based on
-        // implementation of authService
-        Lobby lobbyCodePostDTOentity = DTOMapper.INSTANCE.convertLobbyCodePostDTOtoEntity(lobbyCodePostDTO);
-        // Check if the user is authenticated
-        try {
-            authService.authUser(new AuthHeader(userId, token));
-            Lobby lobby = lobbyService.joinLobby(userId, lobbyId, lobbyCodePostDTOentity.getLobbyCode());
-            // Return the lobby access information
-            return DTOMapper.INSTANCE.convertEntityToLobbyAccessDTO(lobby);
-        } catch (Exception e) {
-            throw e;
+        boolean isGuest;
+        Lobby lobby = null;
+        LobbyAccessDTO lobbyAccessPostDTO = new LobbyAccessDTO(lobbyId, lobbyCodePostDTO.getLobbyCode(), userId, token);
+
+        AuthHeader authHeader = new AuthHeader(userId, token);
+        try{
+            boolean isAuthenticated = authService.authUser(authHeader);
+
+            if(!isAuthenticated){
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+            }
+            isGuest = false;
+            lobby = lobbyService.joinLobby(lobbyAccessPostDTO, isGuest);
+
+        } catch (ResponseStatusException e){
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                isGuest = true;
+                lobby = lobbyService.joinLobby(lobbyAccessPostDTO, isGuest);
+
+            } else {
+                throw e;
+            }
+
         }
+
+        return DTOMapper.INSTANCE.convertEntityToLobbyAccessDTO(lobby);
+
     }
 }

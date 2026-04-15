@@ -15,6 +15,13 @@ public class LobbyAccessDTO {
         this.lobbyCode = lobbyCode;
     }
 
+    public LobbyAccessDTO(Long lobbyId, String lobbyCode, Long userId, String token){
+        this.lobbyId = lobbyId;
+        this.lobbyCode = lobbyCode;
+        this.userId = userId;
+        this.token = token;
+    }
+
 
     public Long getLobbyId() {return lobbyId;}
     public void setLobbyId(Long lobbyId) {this.lobbyId = lobbyId;}
