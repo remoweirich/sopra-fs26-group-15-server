@@ -9,6 +9,8 @@ public class RegisterPostDTO {
 
     private String userBio;
 
+    private Boolean isGuest;
+
 
     public String getUsername() {return username;}
     public void setUsername(String username) {this.username = username;}
@@ -21,4 +23,7 @@ public class RegisterPostDTO {
 
     public String getUserBio() {return userBio;}
     public void setUserBio(String userBio) {this.userBio = userBio;}
+
+    public Boolean getIsGuest() {return isGuest;}
+    public void setIsGuest(Boolean isGuest) {this.isGuest = isGuest;}
 }

@@ -34,11 +34,11 @@ public class LobbyRESTController {
     @PostMapping("/lobbies")
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
-    public LobbyAccessDTO createLobby(@RequestHeader ("token") String token, @RequestBody CreateLobbyPostDTO createLobbyPostDTO){
+    public LobbyAccessDTO createLobby(@RequestHeader ("token") String token, @RequestHeader("userId") Long userId, @RequestBody CreateLobbyPostDTO createLobbyPostDTO){
         boolean isGuest;
         LobbyAccessDTO lobbyAccessDTO = null;
 
-        AuthHeader authHeader = new AuthHeader(createLobbyPostDTO.getUserId(), token);
+        AuthHeader authHeader = new AuthHeader(userId, token);
         try{
             boolean isAuthenticated = authService.authUser(authHeader);
 
@@ -46,12 +46,12 @@ public class LobbyRESTController {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
             }
             isGuest = false;
-            lobbyAccessDTO = lobbyService.createLobby(createLobbyPostDTO, isGuest);
+            lobbyAccessDTO = lobbyService.createLobby(createLobbyPostDTO, isGuest, userId, token);
 
         } catch (ResponseStatusException e){
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 isGuest = true;
-                lobbyAccessDTO = lobbyService.createLobby(createLobbyPostDTO, isGuest);
+                lobbyAccessDTO = lobbyService.createLobby(createLobbyPostDTO, isGuest, null, null);
 
             } else {
                 throw e;

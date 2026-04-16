@@ -61,19 +61,19 @@ public class LobbyService {
     private final String CHARS = "ABCDEFGHJKLMNPQRSTUVWXY1Z23456789";
     private final SecureRandom RANDOM = new SecureRandom();
 
-    public LobbyAccessDTO createLobby(CreateLobbyPostDTO createLobbyPostDTO, boolean isGuest) {
+    public LobbyAccessDTO createLobby(CreateLobbyPostDTO createLobbyPostDTO, boolean isGuest, Long userId, String token) {
         if (isGuest) {
             User guestUser = new User();
             guestUser.setUsername("guest_" + UUID.randomUUID().toString().substring(0, 8));
             guestUser.setPassword(UUID.randomUUID().toString()); // dummy password
             guestUser.setEmail(UUID.randomUUID().toString() + "@guest.com"); // dummy email
-            //guestUser.setIsGuest(true);
+            guestUser.setIsGuest(true);
 
             guestUser = userService.registerUser(guestUser);
             User loggedInGuest = userService.loginUser(guestUser.getUsername(), guestUser.getPassword());
 
-            createLobbyPostDTO.setUserId(loggedInGuest.getUserId());
-            createLobbyPostDTO.setToken(loggedInGuest.getToken());
+            userId = loggedInGuest.getUserId();
+            token = loggedInGuest.getToken();
         }
 
         Lobby newLobby = new Lobby();
@@ -85,7 +85,7 @@ public class LobbyService {
         String newLobbyCode = createLobbyCode(); // to be replaced by random code
         newLobby.setLobbyCode(newLobbyCode);
 
-        Admin newAdmin = new Admin(createLobbyPostDTO.getUserId(), createLobbyPostDTO.getToken());
+        Admin newAdmin = new Admin(userId, token);
         newLobby.setAdmin(newAdmin);
 
         newLobby.setSize(createLobbyPostDTO.getSize());
@@ -93,7 +93,7 @@ public class LobbyService {
         newLobby.setVisibility(createLobbyPostDTO.getVisibility());
 
         List<User> users = new ArrayList<>();
-        User currentUser = userRepository.findById(createLobbyPostDTO.getUserId()).orElse(null);
+        User currentUser = userRepository.findById(userId).orElse(null);
         users.add(currentUser);
         newLobby.setUsers(users);
 
@@ -112,8 +112,8 @@ public class LobbyService {
         activeLobbies.add(newLobby);
 
         LobbyAccessDTO dto = DTOMapper.INSTANCE.convertEntityToLobbyAccessDTO(newLobby);
-        dto.setUserId(createLobbyPostDTO.getUserId());
-        dto.setToken(createLobbyPostDTO.getToken());
+        dto.setUserId(userId);
+        dto.setToken(token);
 
         return dto;
     }

@@ -63,6 +63,9 @@ public class User implements Serializable {
 
 	private List<User> friends = new ArrayList<>();
 
+    @Column(nullable = false)
+    private Boolean isGuest;
+
 	public Long getUserId() {
 		return userId;
 	}
@@ -142,5 +145,9 @@ public class User implements Serializable {
 	public void setFriends(List<User> friends) {
 		this.friends = friends;
 	}
+
+    public Boolean getIsGuest() {return isGuest;}
+
+    public void setIsGuest(Boolean isGuest) {this.isGuest = isGuest;}
 
 }
