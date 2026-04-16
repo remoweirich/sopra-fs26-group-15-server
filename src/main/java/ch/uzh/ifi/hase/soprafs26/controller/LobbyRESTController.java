@@ -85,20 +85,27 @@ public class LobbyRESTController {
     @PostMapping("/lobbies/{id}")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public LobbyAccessDTO joinLobby(@PathVariable("id") Long lobbyId, @RequestHeader("Token") String token,
-            @RequestHeader("UserId") Long userId,
+    public LobbyAccessDTO joinLobby(
+            @PathVariable("id") Long lobbyId,
+            @RequestHeader("token") String token,
+            @RequestHeader("userId") Long userId,
             @RequestBody LobbyCodePostDTO lobbyCodePostDTO) {
-        // in this version: lobbyCodePostDTO contains userID, modify based on
-        // implementation of authService
-        Lobby lobbyCodePostDTOentity = DTOMapper.INSTANCE.convertLobbyCodePostDTOtoEntity(lobbyCodePostDTO);
-        // Check if the user is authenticated
-        try {
-            authService.authUser(new AuthHeader(userId, token));
-            Lobby lobby = lobbyService.joinLobby(userId, lobbyId, lobbyCodePostDTOentity.getLobbyCode());
-            // Return the lobby access information
-            return DTOMapper.INSTANCE.convertEntityToLobbyAccessDTO(lobby);
-        } catch (Exception e) {
-            throw e;
+
+        // 1. Authentifizierung
+        AuthHeader authHeader = new AuthHeader(userId, token);
+        boolean isAuthenticated = authService.authUser(authHeader);
+
+        if (!isAuthenticated) {
+            // Nutze UNAUTHORIZED (401) statt BAD_REQUEST (400) für Auth-Fehler
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
         }
+
+        // 2. Logik ausführen
+        // Wir lassen die Exceptions aus dem Service (z.B. "Lobby full", "Wrong code")
+        // einfach durchfließen, damit sie im Frontend korrekt ankommen.
+        Lobby lobby = lobbyService.joinLobby(userId, lobbyId, lobbyCodePostDTO.getLobbyCode());
+
+        // 3. Mapping (Wichtig: lobbyAccessDTO darf nicht null sein!)
+        return DTOMapper.INSTANCE.convertEntityToLobbyAccessDTO(lobby);
     }
 }
