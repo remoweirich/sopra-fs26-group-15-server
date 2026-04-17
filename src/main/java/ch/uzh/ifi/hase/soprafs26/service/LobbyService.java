@@ -187,6 +187,15 @@ public class LobbyService {
         messagingTemplate.convertAndSend("/topic/lobby/" + lobby.getLobbyId(), message);
     }
 
+    public Lobby getLobby(Long lobbyId, Long userId) {
+        Lobby lobby = getLobbyById(lobbyId);
+        if (!lobby.existsUser(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You must join the lobby first!");
+        } else {
+            return lobby;
+        }
+    }
+
     public Lobby getLobbyById(Long lobbyId) {
         for (Lobby lobby : activeLobbies) {
             if (lobby.getLobbyId().equals(lobbyId)) {

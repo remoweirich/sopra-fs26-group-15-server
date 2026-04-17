@@ -108,4 +108,21 @@ public class LobbyRESTController {
         // 3. Mapping (Wichtig: lobbyAccessDTO darf nicht null sein!)
         return DTOMapper.INSTANCE.convertEntityToLobbyAccessDTO(lobby);
     }
+
+    @GetMapping("/lobbies/{lobbyId)")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public MyLobbyDTO getMyLobby(
+            @PathVariable("lobbyId") Long lobbyId,
+            @RequestHeader("token") String token,
+            @RequestHeader("userId") Long userId) {
+
+        AuthHeader authHeader = new AuthHeader(userId, token);
+        boolean isAuthenticated = authService.authUser(authHeader);
+        if (!isAuthenticated) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Please log in");
+        }
+        Lobby lobby = lobbyService.getLobby(lobbyId, userId);
+        return DTOMapper.INSTANCE.convertEntityToMyLobbyDTO(lobby);
+    }
 }
