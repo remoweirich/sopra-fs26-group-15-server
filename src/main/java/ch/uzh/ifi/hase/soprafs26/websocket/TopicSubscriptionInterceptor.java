@@ -77,7 +77,7 @@ public class TopicSubscriptionInterceptor implements ChannelInterceptor {
         Long userId = Long.parseLong(accessor.getFirstNativeHeader("userId"));
         String token = accessor.getFirstNativeHeader("token");
 
-        if (authService.authUser(new AuthHeader(userId, token))){
+        if (!authService.authUser(new AuthHeader(userId, token))){
             throw new IllegalArgumentException("Cannot connect: Invalid credentials");
         }
     }
