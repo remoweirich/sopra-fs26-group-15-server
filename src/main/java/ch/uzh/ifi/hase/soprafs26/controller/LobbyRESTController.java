@@ -109,7 +109,7 @@ public class LobbyRESTController {
         return DTOMapper.INSTANCE.convertEntityToLobbyAccessDTO(lobby);
     }
 
-    @GetMapping("/lobbies/{lobbyId)")
+    @GetMapping("/lobbies/{lobbyId}")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public MyLobbyDTO getMyLobby(
