@@ -33,27 +33,28 @@ public class LobbyWebSocketController {
 
     @MessageMapping("/lobby/{lobbyId}/start")
     public void startGameAdmin(@DestinationVariable String lobbyId, Message message) {
-        
+        System.out.println("CHeck ob im controller");
         Lobby lobby = lobbyService.getLobbyById(Long.parseLong(lobbyId));
 
             
         // Authenticate the user
         // Convert payload to AuthHeader
-        AuthHeader authHeader = objectMapper.convertValue(
-            message.getPayload(), 
-            AuthHeader.class
-        );
+//        AuthHeader authHeader = objectMapper.convertValue(
+//            message.getPayload(),
+//            AuthHeader.class
+//        );
 
-        if (!authService.authUser(authHeader)) {
-            return;
-        }
-
-
-        //Check whether user is admin of the lobby
-        Long userId = authHeader.getUserId();
-        if (!lobby.getAdmin().getUserId().equals(userId)) {
-            return;
-    }
+//        if (!authService.authUser(authHeader)) {
+//            return;
+//        }
+//        System.out.println("Check nach auth check");
+//
+//        //Check whether user is admin of the lobby
+//        Long userId = authHeader.getUserId();
+//        if (!lobby.getAdmin().getUserId().equals(userId)) {
+//            return;
+//  }
+        System.out.println("Check nach admin check");
         // Start the game
         lobbyService.startGame(Long.parseLong(lobbyId));
         
