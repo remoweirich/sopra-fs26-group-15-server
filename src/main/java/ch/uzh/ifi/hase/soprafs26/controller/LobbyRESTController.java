@@ -34,11 +34,11 @@ public class LobbyRESTController {
     @PostMapping("/lobbies")
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
-    public LobbyAccessDTO createLobby(@RequestHeader ("token") String token, @RequestBody CreateLobbyPostDTO createLobbyPostDTO){
+    public LobbyAccessDTO createLobby(@RequestHeader ("token") String token, @RequestHeader("userId") Long userId, @RequestBody CreateLobbyPostDTO createLobbyPostDTO){
         boolean isGuest;
         LobbyAccessDTO lobbyAccessDTO = null;
 
-        AuthHeader authHeader = new AuthHeader(createLobbyPostDTO.getUserId(), token);
+        AuthHeader authHeader = new AuthHeader(userId, token);
         try{
             boolean isAuthenticated = authService.authUser(authHeader);
 
@@ -46,12 +46,12 @@ public class LobbyRESTController {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
             }
             isGuest = false;
-            lobbyAccessDTO = lobbyService.createLobby(createLobbyPostDTO, isGuest);
+            lobbyAccessDTO = lobbyService.createLobby(createLobbyPostDTO, isGuest, userId, token);
 
         } catch (ResponseStatusException e){
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 isGuest = true;
-                lobbyAccessDTO = lobbyService.createLobby(createLobbyPostDTO, isGuest);
+                lobbyAccessDTO = lobbyService.createLobby(createLobbyPostDTO, isGuest, null, null);
 
             } else {
                 throw e;
@@ -91,23 +91,42 @@ public class LobbyRESTController {
             @RequestHeader("userId") Long userId,
             @RequestBody LobbyCodePostDTO lobbyCodePostDTO) {
 
-        // 1. Authentifizierung
+        boolean isGuest;
+        LobbyAccessDTO lobbyAccessDTO = null;
+        Lobby lobby = null;
+
         AuthHeader authHeader = new AuthHeader(userId, token);
-        boolean isAuthenticated = authService.authUser(authHeader);
+        try{
+            boolean isAuthenticated = authService.authUser(authHeader);
 
-        if (!isAuthenticated) {
-            // Nutze UNAUTHORIZED (401) statt BAD_REQUEST (400) für Auth-Fehler
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
+            if(!isAuthenticated){
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+            }
+            isGuest = false;
+            lobby = lobbyService.joinLobby(userId, lobbyId, lobbyCodePostDTO.getLobbyCode(), isGuest);
+        } catch (ResponseStatusException e){
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                isGuest = true;
+                lobby = lobbyService.joinLobby(userId, lobbyId, lobbyCodePostDTO.getLobbyCode(), isGuest);
+
+            } else {
+                throw e;
+            }
+
         }
-
-        // 2. Logik ausführen
-        // Wir lassen die Exceptions aus dem Service (z.B. "Lobby full", "Wrong code")
-        // einfach durchfließen, damit sie im Frontend korrekt ankommen.
-        Lobby lobby = lobbyService.joinLobby(userId, lobbyId, lobbyCodePostDTO.getLobbyCode());
-
         // 3. Mapping (Wichtig: lobbyAccessDTO darf nicht null sein!)
         return DTOMapper.INSTANCE.convertEntityToLobbyAccessDTO(lobby);
     }
+
+    @GetMapping("/lobbies/debug")
+    @ResponseStatus(HttpStatus.OK)
+        @ResponseBody
+    public List<Lobby> getLobbiesDebug() {
+        List<Lobby> lobbies = lobbyService.getAllLobbies();
+
+        return lobbies;
+    }
+
 
     @GetMapping("/lobbies/{lobbyId}")
     @ResponseStatus(HttpStatus.OK)

@@ -31,17 +31,6 @@ public interface DTOMapper {
     @Mapping(target = "friends", ignore = true)
     User convertRegisterPostDTOtoUser(RegisterPostDTO registerPostDTO);
 
-    @Mapping(target = "userId", ignore = true)
-    @Mapping(target = "userScoreboard", ignore = true)
-    @Mapping(target = "email", ignore = true)
-    @Mapping(target = "password", ignore = true) // Falls Passwort nicht im UserPostDTO ist
-    @Mapping(target = "userBio", ignore = true)
-    @Mapping(target = "creationDate", ignore = true)
-    @Mapping(target = "token", ignore = true)
-    @Mapping(target = "status", ignore = true)
-    @Mapping(target = "friends", ignore = true)
-    User convertUserPostDTOtoEntity(UserPostDTO userPostDTO);
-
 	UserAuthDTO convertUsertoUserAuthDTO(User user);
 
     @Mapping(source = "lobbyId", target = "lobbyId")
@@ -68,10 +57,7 @@ public interface DTOMapper {
 	@Mapping(source = "friends", target = "friends")
 	UserDTO convertUserToUserDTO(User user);
 
-	@Mapping(source = "userId", target = "userId")
-	@Mapping(source = "username", target = "username")
-	@Mapping(source = "status", target = "status")
-	UserGetDTO convertEntityToUserGetDTO(User user);
+
 
 	@Mapping(source = "lobbyName", target = "lobbyName")
 	@Mapping(source = "size", target = "size")

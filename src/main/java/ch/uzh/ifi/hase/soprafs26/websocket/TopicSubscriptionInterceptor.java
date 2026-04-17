@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.websocket;
 
+import ch.uzh.ifi.hase.soprafs26.security.AuthHeader;
 import ch.uzh.ifi.hase.soprafs26.security.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -30,6 +31,7 @@ public class TopicSubscriptionInterceptor implements ChannelInterceptor {
         switch (command) {
             case SUBSCRIBE -> handleSubscription(accessor);
             case SEND -> handlePublish(accessor);
+            case CONNECT -> handleConnect(accessor);
             // You can add CONNECT here later for global authentication
             default -> { /* Allow other commands like DISCONNECT/HEARTBEAT */ }
         }
@@ -68,6 +70,15 @@ public class TopicSubscriptionInterceptor implements ChannelInterceptor {
             if (!canAccessLobby(userId, token, lobbyId)) {
                 throw new IllegalArgumentException("Cannot publish: You are not a member of lobby " + lobbyId);
             }
+        }
+    }
+
+    private void handleConnect(StompHeaderAccessor accessor) {
+        Long userId = Long.parseLong(accessor.getFirstNativeHeader("userId"));
+        String token = accessor.getFirstNativeHeader("token");
+
+        if (authService.authUser(new AuthHeader(userId, token))){
+            throw new IllegalArgumentException("Cannot connect: Invalid credentials");
         }
     }
 
