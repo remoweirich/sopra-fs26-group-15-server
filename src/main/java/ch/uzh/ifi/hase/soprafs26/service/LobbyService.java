@@ -178,6 +178,9 @@ public class LobbyService {
         //update the Lobby object
         lobby.setGame(game);
         lobby.setLobbyState(LobbyState.IN_GAME);
+
+        Message startMessage = new Message(MessageType.GAME_START, null);
+        messagingTemplate.convertAndSend("/topic/lobby/" + lobbyId, startMessage);
     }
 
     public void leaveLobby(Long lobbyId, Long userId) {

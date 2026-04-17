@@ -63,7 +63,8 @@ public class UserController {
 	@GetMapping("/users/{userId}")
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public Object getUser(@PathVariable("userId") Long userId,
+	public Object getUser(
+            @PathVariable("userId") Long userId,
 			@RequestHeader(value = "token", required = false, defaultValue = "") String token) {
 
 
