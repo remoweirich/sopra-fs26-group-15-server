@@ -92,10 +92,10 @@ public class LobbyService {
 
         newLobby.setVisibility(createLobbyPostDTO.getVisibility());
 
-        Map<Long, User> users = new HashMap<>();
-        User currentUser = userRepository.findById(createLobbyPostDTO.getUserId()).orElse(null);
-        users.put(createLobbyPostDTO.getUserId(), currentUser);
-        newLobby.setUsers(users);
+//        Map<Long, User> users = new HashMap<>();
+//        User currentUser = userRepository.findById(createLobbyPostDTO.getUserId()).orElse(null);
+//        users.put(createLobbyPostDTO.getUserId(), currentUser);
+//        newLobby.setUsers(users);
 
         newLobby.setCurrentRound(0);
 
@@ -103,6 +103,8 @@ public class LobbyService {
 
         Map<Long, Score> scores = new HashMap<>();
         newLobby.setScores(scores);
+
+        newLobby.setUsers(new HashMap<>());
 
         newLobby.setLobbyState(LobbyState.WAITING);
 
@@ -123,8 +125,8 @@ public class LobbyService {
 
         User user = userService.getUserById(userId);
 
-        //Check whether the lobby code is correct (only for private lobbies)
-        if (!lobby.getLobbyCode().equals(lobbyCode) && lobby.getVisibility() == LobbyVisibility.PRIVATE) {
+        //Check whether the lobby code is correct
+        if (!lobby.getLobbyCode().equals(lobbyCode)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Incorrect lobby code");
         }
         // Check whether the lobby is full
