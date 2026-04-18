@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -118,14 +119,27 @@ public class GameService {
     public void processGuessMessage(GuessMessageDTO guessMessage, Lobby currentLobby){
         Long gameId = guessMessage.getLobbyId();
         Long userId = guessMessage.getUserId();
+        
+        System.out.println("received guess message for game " + gameId + " from user " + userId + " with coordinates: " + guessMessage.getXcoordinate() + ", " + guessMessage.getYcoordinate());
 
         if (!canSubmitGuess(gameId)){
+            System.out.println("User " + userId + " submitted guess too late - round already ended");
             return;
         }
 
-        Game currentGame = getGameById(gameId);
+        // Ensure the lobby has the game attached (in case a fresh lobby was retrieved from DB)
+        if (currentLobby.getGame() == null) {
+            currentLobby.setGame(getGameById(gameId));
+        }
+
+        Game currentGame = currentLobby.getGame();
         int roundNumber = currentLobby.getCurrentRound() -1;
         List<Round> rounds = currentGame.getRounds();
+
+        if (roundNumber < 0 || roundNumber >= rounds.size()) {
+            System.out.println("Invalid round number: " + roundNumber);
+            return;
+        }
 
         Round currentRound = rounds.get(roundNumber);
         Train currentTrain = currentRound.getTrain();
@@ -138,6 +152,8 @@ public class GameService {
         currentRound.setScore(userId, points);
         currentRound.setGuessMessage(userId, guessMessage);
         currentRound.setDistances(userId, guessDistance);
+        
+        System.out.println("Processed guess for user " + userId + " in round " + (roundNumber + 1) + ": distance=" + guessDistance + ", points=" + points);
 
         updateLobbyTotalScore(currentLobby, userId, points);
 
@@ -164,8 +180,15 @@ public class GameService {
     }
 
     public void readyForNextRound(UserGameStatus userGameStatus, Lobby currentLobby){
+        // Ensure the lobby has the game attached (in case a fresh lobby was retrieved from DB)
+        if (currentLobby.getGame() == null) {
+            currentLobby.setGame(getGameById(currentLobby.getLobbyId()));
+        }
+        
         Boolean allAreReady = updateUserGameStatus(userGameStatus, currentLobby);
+        
         if (allAreReady) {
+            System.out.println("all users ready, roundStart()");
             roundStart(currentLobby);
         }
     }
@@ -177,18 +200,29 @@ public class GameService {
         if (currentRoundNumber == 0){
             currentGame.setConnectedPlayers(userGameStatus.getUserId(), userGameStatus);
             List<UserGameStatus> connectedPlayers = currentGame.getConnectedPlayers();
+            int totalUsersInLobby = currentLobby.getUsers().size();
+            
+            // Check if all users in the lobby have connected
+            if (connectedPlayers.size() != totalUsersInLobby) {
+                System.out.println("Not all users connected yet. Connected: " + connectedPlayers.size() + "/" + totalUsersInLobby);
+                return false;
+            }
+            
+            // Check if all connected players are ready
             for (UserGameStatus connectedPlayer : connectedPlayers) {
                 if (connectedPlayer.getIsReady() == false) {
+                    System.out.println("User " + connectedPlayer.getUserId() + " is not ready");
                     return false;
                 }
             }
+            System.out.println("All users ready! Total: " + totalUsersInLobby);
             return true;
-
         }
         Round currentRound =  rounds.get(currentRoundNumber-1);
-        List<UserGameStatus> allUsersGameStatuses = currentRound.getAllUserGameStatuses();
-
+        
         currentRound.setUserGameStatus(userGameStatus.getUserId(), userGameStatus.getIsReady());
+        
+        List<UserGameStatus> allUsersGameStatuses = currentRound.getAllUserGameStatuses();
 
         for (UserGameStatus usGaSt : allUsersGameStatuses) {
             if (usGaSt.getIsReady() == false) {
@@ -203,6 +237,9 @@ public class GameService {
     }
 
     public void roundStart(Lobby currentLobby) {
+
+        
+
         scoresPublished = false;
         int currentRoundNumber =  currentLobby.getCurrentRound()+1;
         currentLobby.setCurrentRound(currentRoundNumber);
@@ -210,7 +247,7 @@ public class GameService {
         Game currentGame = currentLobby.getGame();
         Long gameId = currentGame.getGameId();
 
-        Train trainWithoutCoordinates = currentGame.getTrains().get(currentRoundNumber-1);
+        Train trainWithoutCoordinates = new Train(currentGame.getTrains().get(currentRoundNumber-1));
         trainWithoutCoordinates.setCurrentX(0);
         trainWithoutCoordinates.setCurrentY(0);
 
@@ -219,6 +256,7 @@ public class GameService {
         RoundStartDTO roundStartDTO = new RoundStartDTO(currentRoundNumber, maxRounds, trainWithoutCoordinates);
         Message message = new Message(MessageType.ROUND_START, roundStartDTO);
         messagingTemplate.convertAndSend("/topic/game/" + gameId, message);
+        System.out.println("sent round start message for game " + gameId + " and round " + currentRoundNumber + message);
 
         ScheduledFuture<?> timer = scheduler.schedule(
                 () -> roundEnd(currentLobby),
@@ -234,6 +272,9 @@ public class GameService {
 
         messagingTemplate.convertAndSend("/topic/game/"+ gameId,
                 new Message(MessageType.ROUND_END, null));
+
+        // Remove the active timer so late-arriving guesses are rejected
+        activeTimers.remove(gameId);
 
         ScheduledFuture<?> lastMessagesTimer = scheduler.schedule(
                 () -> allowedToPublish(currentLobby),
@@ -271,9 +312,16 @@ public class GameService {
                 roundPoints = 0;
             }
             GuessMessageDTO guessMessage = currentRound.getGuessMessages().get(userId);
-            long xCoordinate = guessMessage.getXcoordinate();
-            long yCoordinate = guessMessage.getYcoordinate();
+            long xCoordinate = 0;
+            long yCoordinate = 0;
+            if (guessMessage != null && guessMessage.getXcoordinate() != null && guessMessage.getYcoordinate() != null) {
+                xCoordinate = guessMessage.getXcoordinate().longValue();
+                yCoordinate = guessMessage.getYcoordinate().longValue();
+            }
             double distance = distances.get(userId);
+            if (distance == 0.0 && guessMessage == null) {
+                distance = Double.MAX_VALUE; // User didn't submit a guess
+            }
             userResults.add(new UserResult(userId, totalPoints, roundPoints, xCoordinate, yCoordinate, distance));
         }
 
@@ -307,10 +355,15 @@ public class GameService {
                 - train.getLineOrigin().getYCoordinate();
         double totalLineLength = Math.sqrt(Math.pow(ldx, 2) + Math.pow(ldy, 2));
 
+        System.out.println("calculateScore: origin=(" + train.getLineOrigin().getXCoordinate() + "," + train.getLineOrigin().getYCoordinate() + 
+                           "), dest=(" + train.getLineDestination().getXCoordinate() + "," + train.getLineDestination().getYCoordinate() +
+                           "), lineLength=" + totalLineLength + ", guessDistance=" + guessDistance);
+
         // Edge case: degenerate line (origin == destination)
         // Fall back to a fixed reference distance of 1 km in EPSG:3857 meters
         if (totalLineLength < 1.0) {
             totalLineLength = 1000.0;
+            System.out.println("Using fallback line length: 1000");
         }
 
         // 2. Relative error ratio (clamped — can't do worse than a full line length)
@@ -322,8 +375,12 @@ public class GameService {
 
         double rawScore = 1000.0 * Math.exp(-k * Math.pow(errorRatio, 2));
 
+        System.out.println("errorRatio=" + errorRatio + ", k=" + k + ", rawScore=" + rawScore);
+
         // 4. Round and clamp to [0, 1000]
-        return (int) Math.min(1000, Math.max(0, Math.round(rawScore)));
+        int finalScore = (int) Math.min(1000, Math.max(0, Math.round(rawScore)));
+        System.out.println("finalScore=" + finalScore);
+        return finalScore;
     }
 
     /**

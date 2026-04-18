@@ -23,6 +23,7 @@ public class Game {
         this.gameId = gameId;
         this.rounds = rounds;
         this.trains = trains;
+        this.connectedPlayers = connectedPlayers;
     }
 
     public Long getGameId() {return gameId;}

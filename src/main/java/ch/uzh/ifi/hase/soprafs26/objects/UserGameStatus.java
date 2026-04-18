@@ -8,7 +8,7 @@ public class UserGameStatus {
 
     public UserGameStatus(Long userId,  Boolean isReady) {
         this.userId = userId;
-        this.isReady = false;
+        this.isReady = isReady;
     }
 
     public Long getUserId() {return userId;}

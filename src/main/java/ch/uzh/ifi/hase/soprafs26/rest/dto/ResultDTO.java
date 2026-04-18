@@ -19,4 +19,27 @@ public class ResultDTO {
         this.train = train;
     }
 
+    public int getCurrentRound() {
+        return currentRound;
+    }
+
+    public void setCurrentRound(int currentRound) {
+        this.currentRound = currentRound;
+    }
+
+    public List<UserResult> getUserResults() {
+        return userResults;
+    }
+
+    public void setUserResults(List<UserResult> userResults) {
+        this.userResults = userResults;
+    }
+
+    public Train getTrain() {
+        return train;
+    }
+
+    public void setTrain(Train train) {
+        this.train = train;
+    }
 }

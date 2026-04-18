@@ -21,6 +21,22 @@ public class Train {
         this.trainId = trainId;
     }
 
+    // Copy constructor
+    public Train(Train other) {
+        this.trainId = other.trainId;
+        this.line = other.line;
+        this.lineOrigin = other.lineOrigin;
+        this.lineDestination = other.lineDestination;
+        this.departureTime = other.departureTime;
+        this.arrivalTime = other.arrivalTime;
+        this.lastLeavingStation = other.lastLeavingStation;
+        this.nextPendingStation = other.nextPendingStation;
+        this.currentX = other.currentX;
+        this.currentY = other.currentY;
+        this.timestamp = other.timestamp;
+        this.lineString = other.lineString;
+    }
+
     // --- Getters & Setters ---
 
     public String getTrainId() { return trainId; }
