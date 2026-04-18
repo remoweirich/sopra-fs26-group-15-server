@@ -67,6 +67,8 @@ public class UserService {
 
 		newUser.setCreationDate(new Date());
 
+		newUser.setIsGuest(false);
+
 		checkIfUserExists(newUser);
 
 		newUser = userRepository.save(newUser);
