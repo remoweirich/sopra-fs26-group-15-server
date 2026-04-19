@@ -4,6 +4,7 @@ import ch.uzh.ifi.hase.soprafs26.constant.LobbyState;
 import ch.uzh.ifi.hase.soprafs26.constant.LobbyVisibility;
 import ch.uzh.ifi.hase.soprafs26.objects.Admin;
 import ch.uzh.ifi.hase.soprafs26.objects.Score;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
 
 import java.util.List;
 

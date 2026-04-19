@@ -39,6 +39,12 @@ public interface DTOMapper {
     @Mapping(target = "token", ignore = true)  // Neu hinzufügen
     LobbyAccessDTO convertLobbyToLobbyAccessDTO(Lobby lobby);
 
+	@Mapping(source = "userId", target = "userId")
+	@Mapping(source = "username", target = "username")
+	@Mapping(source = "token", target = "token")
+	@Mapping(source = "status", target = "status")
+	UserGetDTO convertUserToUserGetDTO(User user);
+
 
 
 

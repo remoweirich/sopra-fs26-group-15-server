@@ -24,7 +24,7 @@ public class GameController {
     private final GameService gameService;
     private final ObjectMapper objectMapper;
     private final LobbyService lobbyService;
-    private final boolean integrationTestMode = true;
+    private final boolean integrationTestMode = false;
 
     public GameController(GameService gameService, ObjectMapper objectMapper, LobbyService lobbyService) {
         this.gameService = gameService;
