@@ -13,7 +13,6 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.MyLobbyDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.ResultDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoundStartDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
-import ch.uzh.ifi.hase.soprafs26.security.AuthService;
 import ch.uzh.ifi.hase.soprafs26.trains.TrainPositionFetcher;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
@@ -231,7 +230,7 @@ public class GameService {
         
         currentRound.setUserGameStatus(userGameStatus.getUserId(), userGameStatus.getIsReady());
         
-        List<UserGameStatus> allUsersGameStatuses = currentRound.getAllUserGameStatuses();
+        List<UserGameStatus> allUsersGameStatuses = currentRound.getAllUserGameStatusesList();
 
         for (UserGameStatus usGaSt : allUsersGameStatuses) {
             if (usGaSt.getIsReady() == false) {
@@ -307,7 +306,7 @@ public class GameService {
 
         List<Score> totalScores =  currentLobby.getScores();
 
-        Map<Long, Score> roundScores = currentRound.getAllScores();
+        Map<Long, Score> roundScores = currentRound.getScores();
         Map<Long, Double> distances = currentRound.getDistances();
         List<UserResult> userResults = new ArrayList<>();
 

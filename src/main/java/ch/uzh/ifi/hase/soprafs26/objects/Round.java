@@ -2,6 +2,8 @@ package ch.uzh.ifi.hase.soprafs26.objects;
 
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GuessMessageDTO;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +11,27 @@ import java.util.Map;
 
 public class Round {
 
+    @Getter
+    @Setter
     private int roundNumber;
+    @Setter
+    @Getter
     private Train train;
 
+    @Getter
+    @Setter
     private Map<Long, GuessMessageDTO> guessMessages;
+
+    @Getter
+    @Setter
     private Map<Long, UserGameStatus> allUserGameStatuses;
+
+    @Getter
+    @Setter
     private Map<Long, Score> scores;
+
+    @Getter
+    @Setter
     private Map<Long, Double> distances;
 
     public Round(){}
@@ -33,7 +50,7 @@ public class Round {
         this.distances = distances;
     }
 
-
+    @JsonIgnore
     public void setScore(Long userId, int points) {
         Score score = scores.get(userId);
         if (score != null) {
@@ -41,10 +58,7 @@ public class Round {
         }
     }
 
-    public Map<Long, Score> getAllScores() {
-        return this.scores;
-    }
-
+    @JsonIgnore
     public void setUserGameStatus(Long userId, boolean isReady) {
         UserGameStatus status = allUserGameStatuses.get(userId);
         if (status != null) {
@@ -53,25 +67,19 @@ public class Round {
     }
 
     @JsonIgnore
-    public List<UserGameStatus> getAllUserGameStatuses() {
+    public List<UserGameStatus> getAllUserGameStatusesList() {
         return new ArrayList<>(allUserGameStatuses.values());
     }
 
+    @JsonIgnore
     public void setDistances(long userId, double distance) {
         this.distances.put(userId, distance);
     }
-    public Map<Long, Double> getDistances() {return this.distances;}
 
+    @JsonIgnore
     public void setGuessMessage(Long userId, GuessMessageDTO guess) {
         guessMessages.put(userId, guess);
     }
-    public Map<Long, GuessMessageDTO> getGuessMessages() {
-        return this.guessMessages;
-    }
 
-    public int getRoundNumber() { return roundNumber; }
-    public void setRoundNumber(int roundNumber) { this.roundNumber = roundNumber; }
-    public Train getTrain() { return train; }
-    public void setTrain(Train train) { this.train = train; }
 
 }
