@@ -1,5 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
+import ch.uzh.ifi.hase.soprafs26.entity.GameResult;
+import ch.uzh.ifi.hase.soprafs26.repository.GameRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
 
 import ch.uzh.ifi.hase.soprafs26.constant.*;
@@ -25,10 +27,12 @@ public class LobbyRESTController {
 
     public final LobbyService lobbyService;
     public final AuthService authService;
+    private final GameRepository gameRepository;
 
-    public LobbyRESTController(LobbyService lobbyService, AuthService authService) {
+    public LobbyRESTController(LobbyService lobbyService, AuthService authService, GameRepository gameRepository) {
         this.lobbyService = lobbyService;
         this.authService = authService;
+        this.gameRepository = gameRepository;
     }
 
     @PostMapping("/lobbies")
@@ -143,5 +147,24 @@ public class LobbyRESTController {
         }
         Lobby lobby = lobbyService.getLobby(lobbyId, userId);
         return DTOMapper.INSTANCE.convertEntityToMyLobbyDTO(lobby);
+    }
+
+    @GetMapping("/game/{gameId}/leaderboard")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public GameResultDTO leaderboard(
+            @PathVariable("gameId") Long gameId,
+            @RequestHeader("token") String token,
+            @RequestHeader("userId") Long userId) {
+
+        AuthHeader authHeader = new AuthHeader(userId, token);
+        boolean isAuthenticated = authService.authUser(authHeader);
+        if (!isAuthenticated) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Please log in");
+        }
+
+        GameResult gameResult = gameRepository.findByGameId(gameId);
+
+        return DTOMapper.INSTANCE.convertGameResultToGameResultDTO(gameResult);
     }
 }

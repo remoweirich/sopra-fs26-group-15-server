@@ -8,6 +8,7 @@ import ch.uzh.ifi.hase.soprafs26.objects.Game;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.objects.*;
 import ch.uzh.ifi.hase.soprafs26.repository.GameRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GuessMessageDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.MyLobbyDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.ResultDTO;
@@ -33,6 +34,7 @@ import java.util.concurrent.*;
 @Service
 @Transactional
 public class GameService {
+    private final UserRepository userRepository;
     //private AuthService authService;
 
     private List<Game> activeGames;
@@ -46,13 +48,14 @@ public class GameService {
 
     private Map<Long, Boolean> scoresPublished = new HashMap<>();
 
-    public GameService(/*AuthService authService,*/ TrainPositionFetcher trainPositionFetcher, GameRepository gameRepository, SimpMessagingTemplate messagingTemplate, ApplicationEventPublisher eventPublisher) {
+    public GameService(/*AuthService authService,*/ TrainPositionFetcher trainPositionFetcher, GameRepository gameRepository, SimpMessagingTemplate messagingTemplate, ApplicationEventPublisher eventPublisher, UserRepository userRepository) {
         //this.authService = authService;
         this.eventPublisher = eventPublisher;
         this.trainPositionFetcher = trainPositionFetcher;
         this.gameRepository = gameRepository;
         this.messagingTemplate = messagingTemplate;
         this.activeGames = new ArrayList<>();
+        this.userRepository = userRepository;
     }
 
     public Game getGameById(Long gameId) {
@@ -411,7 +414,15 @@ public class GameService {
         Long gameId = game.getGameId();
         GameResult gameResult = gameRepository.findByGameId(gameId);
         gameResult.setRounds(rounds);
-        gameResult.setTotalScores(currentScores);
+        gameResult.setScores(currentScores);
+        Map<Long, String> usernames = new HashMap<>();
+        for (Score score : currentScores) {
+            long userId = score.getUserId();
+            String username = userRepository.findById(score.getUserId()).get().getUsername();
+            usernames.put(userId, username);
+        }
+        gameResult.setUsernames(usernames);
+
         gameRepository.save(gameResult);
         gameRepository.flush();
         activeTimers.remove(gameId);

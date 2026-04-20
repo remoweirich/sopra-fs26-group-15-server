@@ -82,7 +82,7 @@ public class LobbyService {
         gameRepository.save(gameResult);
         gameRepository.flush();
 
-        newLobby.setLobbyId(gameResult.getId());
+        newLobby.setLobbyId(gameResult.getGameId());
 
         newLobby.setLobbyName(createLobbyPostDTO.getLobbyName());
 

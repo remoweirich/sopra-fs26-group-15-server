@@ -12,6 +12,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 
 @Entity
@@ -19,6 +20,8 @@ import java.util.List;
 public class GameResult implements Serializable {
 
     @Id
+    @Getter
+    @Setter
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long gameId;
 
@@ -32,15 +35,12 @@ public class GameResult implements Serializable {
     @Getter
     @JdbcTypeCode(SqlTypes.JSON)
     @Column
-    private List<Score> totalScores;
+    private Map<Long, String> usernames;
 
-
-    public void setId(Long id) {
-        this.gameId = id;
-    }
-
-    public Long getId() {
-        return gameId;
-    }
+    @Setter
+    @Getter
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column
+    private List<Score> scores;
 
 }

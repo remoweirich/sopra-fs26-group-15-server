@@ -45,8 +45,11 @@ public interface DTOMapper {
 	@Mapping(source = "status", target = "status")
 	UserGetDTO convertUserToUserGetDTO(User user);
 
-
-
+    @Mapping(source = "gameId", target = "gameId")
+    @Mapping(source = "rounds", target = "rounds")
+    @Mapping(source = "scores", target = "scores")
+    @Mapping(source = "usernames", target = "usernames")
+    GameResultDTO convertGameResultToGameResultDTO(GameResult gameResult);
 
     @Mapping(source = "userScoreboard", target = "userScoreboard")
 	@Mapping(source = "username", target = "username")
