@@ -165,6 +165,8 @@ public class GameService {
             if (timer != null){
                 timer.cancel(false);
             }
+            System.out.println("went through process guess: ");
+            System.out.println(activeTimers);
             allowedToPublish(currentLobby);
         }
         Message message = new Message(MessageType.GAME_STATE, userId);
@@ -273,8 +275,7 @@ public class GameService {
         messagingTemplate.convertAndSend("/topic/game/"+ gameId,
                 new Message(MessageType.ROUND_END, null));
 
-        // Remove the active timer so late-arriving guesses are rejected
-        activeTimers.remove(gameId);
+
 
         ScheduledFuture<?> lastMessagesTimer = scheduler.schedule(
                 () -> allowedToPublish(currentLobby),
@@ -283,6 +284,8 @@ public class GameService {
         );
 
         activeTimers.put(gameId, lastMessagesTimer);
+        System.out.println("after buffer timer activated: ");
+        System.out.println(activeTimers);
     }
 
     public void allowedToPublish(Lobby currentLobby) {
@@ -292,6 +295,9 @@ public class GameService {
     }
 
     public void publishScores(Lobby currentLobby) {
+        activeTimers.remove(currentLobby.getLobbyId());
+        System.out.println("just before scores published: ");
+        System.out.println(activeTimers);
         scoresPublished = true;
         Game currentGame =  currentLobby.getGame();
         int currentRoundNumber = currentLobby.getCurrentRound();
