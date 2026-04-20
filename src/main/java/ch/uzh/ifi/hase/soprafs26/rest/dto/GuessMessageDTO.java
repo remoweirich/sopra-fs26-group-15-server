@@ -23,6 +23,9 @@ public class GuessMessageDTO {
     public Long getYcoordinate() {return Ycoordinate;}
     public void setYcoordinate(Long Ycoordinate) {this.Ycoordinate = Ycoordinate;}
 
+
+    public GuessMessageDTO() {}
+
     public GuessMessageDTO(long lobbyId, long userId) {
         this.lobbyId = lobbyId;
         this.userId = userId;
