@@ -151,8 +151,9 @@ public class GameService {
 
         currentRound.setScore(userId, points);
         currentRound.setGuessMessage(userId, guessMessage);
-        currentRound.setDistances(userId, guessDistance);
-        
+        double roundedDistanceKm = Math.round((guessDistance / 1000.0) * 100.0) / 100.0;
+        currentRound.setDistances(userId, roundedDistanceKm);
+
         System.out.println("Processed guess for user " + userId + " in round " + (roundNumber + 1) + ": distance=" + guessDistance + ", points=" + points);
 
         updateLobbyTotalScore(currentLobby, userId, points);
