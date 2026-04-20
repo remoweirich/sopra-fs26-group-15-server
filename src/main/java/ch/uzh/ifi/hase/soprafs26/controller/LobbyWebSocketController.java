@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
+import ch.uzh.ifi.hase.soprafs26.constant.MessageType;
 import ch.uzh.ifi.hase.soprafs26.security.AuthHeader;
 import ch.uzh.ifi.hase.soprafs26.service.LobbyService;
 import ch.uzh.ifi.hase.soprafs26.security.AuthService;
@@ -63,28 +64,28 @@ public class LobbyWebSocketController {
 //Leave Lobby
 @MessageMapping("/lobby/{lobbyId}/leave")
     public void leaveLobby(@DestinationVariable String lobbyId, Message message) {
-        
+        System.out.println("In LobbyWebSocketController");
         Lobby lobby = lobbyService.getLobbyById(Long.parseLong(lobbyId));
 
             
         // Authenticate the user
         // Convert payload to AuthHeader
-        AuthHeader authHeader = objectMapper.convertValue(
-            message.getPayload(), 
-            AuthHeader.class
-        );
-        try{
-            boolean isAuthenticated = authService.authUser(authHeader);
+        MessageType type = message.getType();
+        if (type == MessageType.LEAVE_LOBBY) {
+            AuthHeader authHeader = objectMapper.convertValue(message.getPayload(), AuthHeader.class);
 
-            if(!isAuthenticated){
-                return;
-            }
-        
+            try {
+                boolean isAuthenticated = authService.authUser(authHeader);
+                System.out.println("isAuthenticated: " + isAuthenticated);
+                if (!isAuthenticated) {
+                    return;
+                }
+
                 // remove user from Lobby
                 lobbyService.leaveLobby(Long.parseLong(lobbyId), authHeader.getUserId());
+            }
+            catch (ResponseStatusException e) {
+            }
         }
-        catch (ResponseStatusException e){
-        }
-                
 }
 }

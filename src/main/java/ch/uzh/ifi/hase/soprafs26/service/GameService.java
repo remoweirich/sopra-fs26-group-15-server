@@ -279,8 +279,7 @@ public class GameService {
         messagingTemplate.convertAndSend("/topic/game/"+ gameId,
                 new Message(MessageType.ROUND_END, null));
 
-        // Remove the active timer so late-arriving guesses are rejected
-        activeTimers.remove(gameId);
+
 
         ScheduledFuture<?> lastMessagesTimer = scheduler.schedule(
                 () -> allowedToPublish(currentLobby),
@@ -298,6 +297,7 @@ public class GameService {
     }
 
     public void publishScores(Lobby currentLobby) {
+        activeTimers.remove(currentLobby.getLobbyId());
         Game currentGame =  currentLobby.getGame();
         Long gameId = currentGame.getGameId();
         scoresPublished.put(gameId, true);

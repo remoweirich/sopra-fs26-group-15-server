@@ -195,6 +195,7 @@ public class LobbyService {
     }
 
     public void leaveLobby(Long lobbyId, Long userId) {
+        System.out.println("In lobbyService");
         Lobby lobby = getLobbyById(lobbyId);
         //change from user based to userId since I (Shadi) changed users to be a map indexed by userId
         //remove user from lobby
@@ -217,6 +218,7 @@ public class LobbyService {
         MyLobbyDTO myLobbyDTO = DTOMapper.INSTANCE.convertEntityToMyLobbyDTO(lobby);
         Message message = new Message(MessageType.LOBBY_STATE, myLobbyDTO);
         messagingTemplate.convertAndSend("/topic/lobby/" + lobby.getLobbyId(), message);
+        System.out.println("Message sent from lobbyService");
     }
 
     public Lobby getLobby(Long lobbyId, Long userId) {
