@@ -464,10 +464,18 @@ public class TrainPositionFetcher {
         JsonNode stations = seq.path("stations");
         if (!stations.isArray() || stations.size() == 0) return;
 
+        Station lineOrigin = parseStation(stations.get(0));
+        Station lineDestination = parseStation(stations.get(stations.size() - 1));
         //train.setLineOrigin(stations.get(0).path("stationName").asText(null));
         train.setLineOrigin(parseStation(stations.get(0)));
 
         train.setLineDestination(parseStation(stations.get(stations.size() - 1)));
+
+        //set the departure and arrival time for the origin and final destination stations
+
+        train.setDepartureTime(lineOrigin.getDepartureTime());
+        train.setArrivalTime(lineDestination.getArrivalTime());
+
 
         Station lastLeaving = null;
         Station nextPending = null;
