@@ -15,6 +15,9 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 import org.springframework.core.io.ClassPathResource;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+
 
 import java.net.URI;
 import java.util.*;
@@ -65,10 +68,10 @@ public class TrainPositionFetcher {
 
 
     private static final String SWITZERLAND_BBOX =
-            "BBOX 640000 5730000 1200000 6100000 7 mots=rail";
+            "BBOX 640000 5730000 1200000 6100000 10 tenant=sbb mots=rail"; //maximal zoom level for testing, use zoom level 7 to cover whole switzerland
 
-    private static final long BBOX_COLLECT_TIMEOUT_MS  = 6_000; //prob need to set it higher
-    private static final long STOP_SEQUENCE_TIMEOUT_MS = 5_000;
+    private static final long BBOX_COLLECT_TIMEOUT_MS  = 10_000; //prob need to set it higher
+    private static final long STOP_SEQUENCE_TIMEOUT_MS = 2_000;
     private static final String WS_BASE_URL = "wss://api.geops.io/tracker-ws/v1/";
     private static final String MOCK_FILE   = "mock_train_messages.json";
 
@@ -172,7 +175,7 @@ public class TrainPositionFetcher {
     // -------------------------------------------------------------------------
     // Live WebSocket path
     // -------------------------------------------------------------------------
-
+/* 
     public List<Train> fetchTrainsLive(int subsetSize) throws Exception {
         Map<String, Train>          discoveredTrains = new ConcurrentHashMap<>();
         Map<String, CountDownLatch> ssLatches        = new ConcurrentHashMap<>();
@@ -334,7 +337,273 @@ public class TrainPositionFetcher {
         log.info("Returning {} enriched trains", result.size());
         return result;
     }
+*/
 
+public List<Train> fetchTrainsLive(int subsetSize) throws Exception {
+    Map<String, Train>    discoveredTrains = new ConcurrentHashMap<>();
+    Map<String, JsonNode> stopSequenceData = new ConcurrentHashMap<>();
+
+    CountDownLatch  openLatch         = new CountDownLatch(1);
+    AtomicBoolean   bboxCollectionDone = new AtomicBoolean(false);
+
+    // We'll hold the session in an AtomicReference so we can reconnect
+    AtomicReference<WebSocketSession> sessionRef = new AtomicReference<>();
+
+    // Factory so we can create a fresh handler+session on reconnect
+    // The handler only needs stopSequenceData and ssLatches, which we pass in
+    WebSocketSession session = connectSession(
+            sessionRef, openLatch, bboxCollectionDone, discoveredTrains, stopSequenceData);
+
+    // Phase 1: collect BBOX vehicles
+    if (!openLatch.await(10, TimeUnit.SECONDS)) {
+        session.close();
+        throw new IllegalStateException("WebSocket did not open in time");
+    }
+    Thread.sleep(BBOX_COLLECT_TIMEOUT_MS);
+    bboxCollectionDone.set(true);
+
+    log.info("Discovered {} active trains", discoveredTrains.size());
+
+    if (discoveredTrains.isEmpty()) {
+        sessionRef.get().close();
+        return Collections.emptyList();
+    }
+
+    // Phase 2: build candidate pool
+    List<String> allIds = new ArrayList<>(discoveredTrains.keySet());
+    Collections.shuffle(allIds);
+    Set<String> attempted = new LinkedHashSet<>();
+
+    List<String> selectedIds = new ArrayList<>();
+    for (String id : allIds) {
+        if (selectedIds.size() >= subsetSize) break;
+        selectedIds.add(id);
+        attempted.add(id);
+    }
+
+    List<Train> result        = new ArrayList<>();
+    int nextCandidateIndex    = attempted.size();
+    int retries               = 0;
+    final int MAX_RETRIES     = 10;
+
+    try {
+        while (result.size() < subsetSize) {
+
+            if (retries >= MAX_RETRIES) {
+                log.warn("Exiting after {} retries; only {}/{} complete trains found",
+                        MAX_RETRIES, result.size(), subsetSize);
+                break;
+            }
+            retries++;
+
+            // Phase 3: ensure session is alive, reconnect if needed
+            if (!sessionRef.get().isOpen()) {
+                log.warn("Session closed — reconnecting before retry {}", retries);
+                connectSession(sessionRef, new CountDownLatch(1),
+                        bboxCollectionDone, discoveredTrains, stopSequenceData);
+                Thread.sleep(2_000); // brief wait for the new session to stabilise
+            }
+
+            Map<String, CountDownLatch> ssLatches = new ConcurrentHashMap<>();
+            for (String trainId : selectedIds) {
+                ssLatches.put(trainId, new CountDownLatch(1));
+                try {
+                    sessionRef.get().sendMessage(new TextMessage("GET stopsequence_" + trainId));
+                } catch (Exception e) {
+                    log.warn("Failed to send stop-sequence request for {}: {}", trainId, e.getMessage());
+                    ssLatches.get(trainId).countDown();
+                }
+            }
+            for (String trainId : selectedIds) {
+                if (!ssLatches.get(trainId).await(STOP_SEQUENCE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+                    log.warn("Timeout waiting for stop sequence of {}", trainId);
+                }
+            }
+
+            // Phase 4: enrich and validate
+            for (String trainId : selectedIds) {
+                Train    train      = discoveredTrains.get(trainId);
+                JsonNode seqContent = stopSequenceData.get(trainId);
+
+                if (seqContent == null || seqContent.isNull()) {
+                    log.warn("No stop sequence data for train {}, skipping", trainId);
+                    continue;
+                }
+
+                Train candidate = new Train(train);
+                enrichTrainFromStopSequence(candidate, seqContent);
+
+                if (isComplete(candidate)) {
+                    result.add(candidate);
+                    log.debug("Train {} is complete ({}/{})", trainId, result.size(), subsetSize);
+                } else {
+                    log.warn("Train {} is incomplete after enrichment, skipping", trainId);
+                }
+
+                if (result.size() >= subsetSize) break;
+            }
+
+            if (result.size() >= subsetSize) break;
+
+            // Pick fresh candidates
+            int stillNeeded = subsetSize - result.size();
+            selectedIds = new ArrayList<>();
+            while (selectedIds.size() < stillNeeded && nextCandidateIndex < allIds.size()) {
+                String candidate = allIds.get(nextCandidateIndex++);
+                if (!attempted.contains(candidate)) {
+                    selectedIds.add(candidate);
+                    attempted.add(candidate);
+                }
+            }
+
+            if (selectedIds.isEmpty()) {
+                log.warn("Exhausted all {} discovered trains; only {}/{} complete trains found",
+                        allIds.size(), result.size(), subsetSize);
+                break;
+            }
+
+            log.info("Retrying with {} fresh candidates to reach target of {}",
+                    selectedIds.size(), subsetSize);
+        }
+    } finally {
+        WebSocketSession s = sessionRef.get();
+        if (s != null && s.isOpen()) s.close();
+    }
+
+    log.info("Returning {} enriched trains (target was {})", result.size(), subsetSize);
+    return result;
+}
+
+/**
+ * Opens a new WebSocket session, registers it in sessionRef, and returns it.
+ * The handler skips trajectory messages once bboxCollectionDone is true,
+ * and routes stop-sequence responses into stopSequenceData.
+ * ssLatches are now created fresh per retry batch, so the handler looks them
+ * up dynamically via a shared map — we pass a reference to a holder instead.
+ */
+private WebSocketSession connectSession(
+        AtomicReference<WebSocketSession> sessionRef,
+        CountDownLatch openLatch,
+        AtomicBoolean bboxCollectionDone,
+        Map<String, Train> discoveredTrains,
+        Map<String, JsonNode> stopSequenceData) throws Exception {
+
+    // ssLatches are looked up by trainId as responses arrive;
+    // we use a shared reference so the handler always sees the current batch's latches
+    Map<String, CountDownLatch> sharedLatches = new ConcurrentHashMap<>();
+
+    WebSocketHandler handler = new AbstractWebSocketHandler() {
+
+        
+        
+        @Override
+        public void afterConnectionEstablished(WebSocketSession s) {
+            log.debug("WebSocket connected: {}", s.getId());
+            sessionRef.set(s);
+        }
+
+        @Override
+        protected void handleTextMessage(WebSocketSession s, TextMessage message) {
+            try {
+                JsonNode root   = objectMapper.readTree(message.getPayload());
+                String   source = root.path("source").asText("");
+
+                if ("websocket".equals(source)) {
+                    if ("open".equals(root.path("content").path("status").asText())) {
+                        log.debug("WebSocket open, sending BBOX");
+                        openLatch.countDown();
+                        if (!bboxCollectionDone.get()) {
+                            s.sendMessage(new TextMessage(SWITZERLAND_BBOX));
+                        }
+                    }
+                    return;
+                }
+
+                if ("trajectory".equals(source)) {
+                    if (bboxCollectionDone.get()) return;
+                    JsonNode content = root.path("content");
+                    if (content.isNull() || content.isMissingNode()) return;
+
+                    JsonNode props   = content.path("properties");
+                    String   trainId = props.path("train_id").asText(null);
+                    long   timestamp = props.path("timestamp").asLong();
+                    if (trainId == null) return;
+
+                    Train train = discoveredTrains.computeIfAbsent(trainId, id -> {
+                        Train t = new Train(id);
+                        t.setTimestamp(timestamp);
+                        JsonNode lineNode = props.path("line");
+                        if (!lineNode.isMissingNode() && !lineNode.isNull()) {
+                            t.setLine(new Train.Line(lineNode.path("name").asText(null)));
+                        }
+                        return t;
+                    });
+
+                    LineString lineString = parseLineString(
+                            content.path("geometry").path("coordinates"));
+                    if (lineString != null) train.setLineString(lineString);
+                    return;
+                }
+
+                if (source.startsWith("stopsequence_")) {
+                    String trainId = source.substring("stopsequence_".length());
+                    stopSequenceData.put(trainId, root.path("content"));
+                    CountDownLatch latch = sharedLatches.get(trainId);
+                    if (latch != null) latch.countDown();
+                }
+
+            } catch (Exception e) {
+                log.warn("Error processing WebSocket message: {}", e.getMessage());
+            }
+        }
+
+        @Override
+        public void handleTransportError(WebSocketSession s, Throwable ex) {
+            log.error("WebSocket transport error: {}", ex.getMessage());
+            openLatch.countDown();
+        }
+
+        @Override
+        public void afterConnectionClosed(WebSocketSession s, CloseStatus status) {
+            log.warn("WebSocket session {} closed: {}", s.getId(), status);
+        }
+    };
+
+    // Increase buffer to 1MB to handle large stop-sequence payloads
+    
+jakarta.websocket.WebSocketContainer container = jakarta.websocket.ContainerProvider.getWebSocketContainer();
+container.setDefaultMaxTextMessageBufferSize(1024 * 1024);
+container.setDefaultMaxBinaryMessageBufferSize(1024 * 1024);
+
+StandardWebSocketClient client = new StandardWebSocketClient(container);
+    String url = WS_BASE_URL + "?key=" + apiKey;
+    WebSocketSession session = client
+            .execute(handler, new WebSocketHttpHeaders(), URI.create(url))
+            .get(10, TimeUnit.SECONDS);
+
+    sessionRef.set(session);
+    return session;
+}
+
+/**
+ * Returns true only when every field required for game-play is non-null / non-zero.
+ * currentX / currentY are intentionally excluded — they are set later by interpolatePosition().
+ */
+private boolean isComplete(Train train) {
+    if (train.getLineString() == null || train.getLineString().getPoints().isEmpty()) return false;
+    if (train.getLineOrigin() == null || isBlank(train.getLineOrigin().getStationName()))  return false;
+    if (train.getLineDestination() == null || isBlank(train.getLineDestination().getStationName())) return false;
+    if (train.getDepartureTime() == 0 || train.getArrivalTime() == 0) return false;
+    if (train.getLastLeavingStation() == null || isBlank(train.getLastLeavingStation().getStationName())) return false;
+    if (train.getNextPendingStation() == null || isBlank(train.getNextPendingStation().getStationName())) return false;
+    if (train.getLastLeavingStation().getXCoordinate() == 0 && train.getLastLeavingStation().getYCoordinate() == 0) return false;
+    if (train.getNextPendingStation().getXCoordinate() == 0 && train.getNextPendingStation().getYCoordinate() == 0) return false;
+    return true;
+}
+
+private boolean isBlank(String s) {
+    return s == null || s.isBlank();
+}
     // -------------------------------------------------------------------------
     // Interpolating current train position from enriched Train object
     // -------------------------------------------------------------------------

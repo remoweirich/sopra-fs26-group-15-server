@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 
+import ch.uzh.ifi.hase.soprafs26.constant.LobbyState;
 import ch.uzh.ifi.hase.soprafs26.constant.MessageType;
 import ch.uzh.ifi.hase.soprafs26.objects.Game;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
@@ -61,8 +62,11 @@ public class GameService {
 
     public Game setupGame(Lobby currentLobby) {
 
+        
+            
+        
         try {
-            List<Train> trains = trainPositionFetcher.fetchTrainsMock(currentLobby.getMaxRounds());
+            List<Train> trains = trainPositionFetcher.fetchTrainsLive(currentLobby.getMaxRounds());
 
             for (Train train : trains) {
                 trainPositionFetcher.interpolatePosition(train);
@@ -110,6 +114,7 @@ public class GameService {
             throw new Error("Failed to fetch mock trains", e);
         }
     }
+    
 
 
 
