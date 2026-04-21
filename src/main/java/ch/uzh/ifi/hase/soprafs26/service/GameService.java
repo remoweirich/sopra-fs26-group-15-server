@@ -3,16 +3,20 @@ package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.constant.LobbyState;
 import ch.uzh.ifi.hase.soprafs26.constant.MessageType;
+import ch.uzh.ifi.hase.soprafs26.entity.GameResult;
+import ch.uzh.ifi.hase.soprafs26.events.GameEndedEvent;
 import ch.uzh.ifi.hase.soprafs26.objects.Game;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.objects.*;
+import ch.uzh.ifi.hase.soprafs26.repository.GameRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GuessMessageDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.MyLobbyDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.ResultDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoundStartDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
-import ch.uzh.ifi.hase.soprafs26.security.AuthService;
 import ch.uzh.ifi.hase.soprafs26.trains.TrainPositionFetcher;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import ch.uzh.ifi.hase.soprafs26.websocket.Message;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -31,24 +35,28 @@ import java.util.concurrent.*;
 @Service
 @Transactional
 public class GameService {
+    private final UserRepository userRepository;
     //private AuthService authService;
 
     private List<Game> activeGames;
 
     private TrainPositionFetcher trainPositionFetcher;
-
+    private final GameRepository gameRepository;
     private final Map<Long, ScheduledFuture<?>> activeTimers = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
-
+    private final ApplicationEventPublisher eventPublisher;
     private final SimpMessagingTemplate messagingTemplate;
 
-    private Boolean scoresPublished = false;
+    private Map<Long, Boolean> scoresPublished = new HashMap<>();
 
-    public GameService(/*AuthService authService,*/ TrainPositionFetcher trainPositionFetcher, SimpMessagingTemplate messagingTemplate) {
+    public GameService(/*AuthService authService,*/ TrainPositionFetcher trainPositionFetcher, GameRepository gameRepository, SimpMessagingTemplate messagingTemplate, ApplicationEventPublisher eventPublisher, UserRepository userRepository) {
         //this.authService = authService;
+        this.eventPublisher = eventPublisher;
         this.trainPositionFetcher = trainPositionFetcher;
+        this.gameRepository = gameRepository;
         this.messagingTemplate = messagingTemplate;
         this.activeGames = new ArrayList<>();
+        this.userRepository = userRepository;
     }
 
     public Game getGameById(Long gameId) {
@@ -77,6 +85,8 @@ public class GameService {
         List<User> players = currentLobby.getUsers();
 
         Map<Long, UserGameStatus> connectedPlayers = new HashMap<>();
+        Long gameId = currentLobby.getLobbyId();
+        scoresPublished.put(gameId, false);
 
         for (int i = 0; i < currentLobby.getMaxRounds(); i++) {
             Map<Long, UserGameStatus> roundUserStatus = new HashMap<>();
@@ -91,14 +101,14 @@ public class GameService {
                 score.setPoints(0);
                 currentLobby.setScore(userId, score);
                 roundUserStatus.put(userId, new UserGameStatus(userId, false));
-                roundGuesses.put(userId, new GuessMessageDTO(currentLobby.getLobbyId(), userId));
+                roundGuesses.put(userId, new GuessMessageDTO(gameId, userId));
                 roundScores.put(userId, new Score(userId));
             }
 
             rounds.add(new Round(i+1, trains.get(i), roundGuesses, roundUserStatus, roundScores, roundDistances));
         }
 
-        Game newGame = new Game(currentLobby.getLobbyId(), rounds, trains, connectedPlayers);
+        Game newGame = new Game(gameId, rounds, trains, connectedPlayers);
 
         activeGames.add(newGame);
 
@@ -171,8 +181,6 @@ public class GameService {
             if (timer != null){
                 timer.cancel(false);
             }
-            System.out.println("went through process guess: ");
-            System.out.println(activeTimers);
             allowedToPublish(currentLobby);
         }
         Message message = new Message(MessageType.GAME_STATE, userId);
@@ -230,7 +238,7 @@ public class GameService {
         
         currentRound.setUserGameStatus(userGameStatus.getUserId(), userGameStatus.getIsReady());
         
-        List<UserGameStatus> allUsersGameStatuses = currentRound.getAllUserGameStatuses();
+        List<UserGameStatus> allUsersGameStatuses = currentRound.getAllUserGameStatusesList();
 
         for (UserGameStatus usGaSt : allUsersGameStatuses) {
             if (usGaSt.getIsReady() == false) {
@@ -245,15 +253,12 @@ public class GameService {
     }
 
     public void roundStart(Lobby currentLobby) {
-
-        
-
-        scoresPublished = false;
         int currentRoundNumber =  currentLobby.getCurrentRound()+1;
         currentLobby.setCurrentRound(currentRoundNumber);
 
         Game currentGame = currentLobby.getGame();
         Long gameId = currentGame.getGameId();
+        scoresPublished.put(gameId, false);
 
         Train trainWithoutCoordinates = new Train(currentGame.getTrains().get(currentRoundNumber-1));
         trainWithoutCoordinates.setCurrentX(0);
@@ -290,29 +295,26 @@ public class GameService {
         );
 
         activeTimers.put(gameId, lastMessagesTimer);
-        System.out.println("after buffer timer activated: ");
-        System.out.println(activeTimers);
     }
 
     public void allowedToPublish(Lobby currentLobby) {
-        if (!scoresPublished) {
+        if (!scoresPublished.get(currentLobby.getLobbyId())) {
             publishScores(currentLobby);
         }
     }
 
     public void publishScores(Lobby currentLobby) {
         activeTimers.remove(currentLobby.getLobbyId());
-        System.out.println("just before scores published: ");
-        System.out.println(activeTimers);
-        scoresPublished = true;
         Game currentGame =  currentLobby.getGame();
+        Long gameId = currentGame.getGameId();
+        scoresPublished.put(gameId, true);
         int currentRoundNumber = currentLobby.getCurrentRound();
         Train train = currentGame.getTrains().get(currentRoundNumber-1);
         Round currentRound =  currentGame.getRounds().get(currentRoundNumber-1);
 
         List<Score> totalScores =  currentLobby.getScores();
 
-        Map<Long, Score> roundScores = currentRound.getAllScores();
+        Map<Long, Score> roundScores = currentRound.getScores();
         Map<Long, Double> distances = currentRound.getDistances();
         List<UserResult> userResults = new ArrayList<>();
 
@@ -337,10 +339,16 @@ public class GameService {
             userResults.add(new UserResult(userId, totalPoints, roundPoints, xCoordinate, yCoordinate, distance));
         }
 
+
         ResultDTO resultDTO = new ResultDTO(currentRoundNumber, userResults, train);
         Message message = new Message(MessageType.SCORES, resultDTO);
-        messagingTemplate.convertAndSend("/topic/game/" + currentGame.getGameId(), message);
+        messagingTemplate.convertAndSend("/topic/game/" + gameId, message);
 
+
+        if (currentLobby.getMaxRounds() == currentRoundNumber){
+            System.out.println("call GameTearDown for game  " + gameId);
+            gameTearDown(currentLobby);
+        }
 
     }
 
@@ -402,5 +410,35 @@ public class GameService {
         double dx = playerX - train.getCurrentX();
         double dy = playerY - train.getCurrentY();
         return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+    }
+
+    public void gameTearDown(Lobby currentLobby) {
+        List<Score> currentScores = currentLobby.getScores();
+        Game game = currentLobby.getGame();
+        List<Round> rounds = game.getRounds();
+        Long gameId = game.getGameId();
+        GameResult gameResult = gameRepository.findByGameId(gameId);
+        gameResult.setRounds(rounds);
+        gameResult.setScores(currentScores);
+        Map<Long, String> usernames = new HashMap<>();
+        for (Score score : currentScores) {
+            long userId = score.getUserId();
+            String username = userRepository.findById(score.getUserId()).get().getUsername();
+            usernames.put(userId, username);
+        }
+        gameResult.setUsernames(usernames);
+
+        gameRepository.save(gameResult);
+        gameRepository.flush();
+        activeTimers.remove(gameId);
+        scoresPublished.remove(gameId);
+
+        eventPublisher.publishEvent(new GameEndedEvent(this, gameId));
+
+
+        activeGames.remove(game);
+        currentLobby.setGame(null);
+        System.out.println("Game " + game.getGameId() + " has ended and been removed from active games.");
+
     }
 }
