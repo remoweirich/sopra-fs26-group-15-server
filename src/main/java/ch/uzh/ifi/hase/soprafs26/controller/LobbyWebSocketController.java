@@ -40,21 +40,20 @@ public class LobbyWebSocketController {
             
         // Authenticate the user
         // Convert payload to AuthHeader
-//        AuthHeader authHeader = objectMapper.convertValue(
-//            message.getPayload(),
-//            AuthHeader.class
-//        );
+        AuthHeader authHeader = objectMapper.convertValue(
+            message.getPayload(),
+            AuthHeader.class
+        );
 
-//        if (!authService.authUser(authHeader)) {
-//            return;
-//        }
-//        System.out.println("Check nach auth check");
-//
-//        //Check whether user is admin of the lobby
-//        Long userId = authHeader.getUserId();
-//        if (!lobby.getAdmin().getUserId().equals(userId)) {
-//            return;
-//  }
+        if (!authService.authUser(authHeader)) {
+            throw new  ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+
+        //Check whether user is admin of the lobby
+        Long userId = authHeader.getUserId();
+        if (!lobby.getAdmin().getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the admin can start the game");
+  }
         System.out.println("Check nach admin check");
         // Start the game
         lobbyService.startGame(Long.parseLong(lobbyId));
