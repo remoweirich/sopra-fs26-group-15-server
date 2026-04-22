@@ -1,3 +1,32 @@
+package ch.uzh.ifi.hase.soprafs26.controller;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class UserControllerTest {
+
+    @Test
+    void registerUser() {
+    }
+
+    @Test
+    void loginUser() {
+    }
+
+    @Test
+    void getUser() {
+    }
+
+    @Test
+    void logoutUser() {
+    }
+
+    @Test
+    void updateUser() {
+    }
+}
+
 //package ch.uzh.ifi.hase.soprafs26.controller;
 //
 //import tools.jackson.core.JacksonException;
