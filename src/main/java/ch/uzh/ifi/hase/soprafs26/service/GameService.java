@@ -361,11 +361,6 @@ public class GameService {
      * Decay constant k is chosen so that errorRatio = 1.0 (guess is off by a full
      * line length) yields a score of ~5, giving a near-zero floor for bad guesses.
      *
-     *   errorRatio = 0.00 → 1000 pts  (perfect)
-     *   errorRatio = 0.10 →  697 pts  (great)
-     *   errorRatio = 0.25 →  283 pts  (decent)
-     *   errorRatio = 0.50 →   200 pts  (poor)
-     *   errorRatio = 1.00 →    80 pts  (terrible)
      */
     public int calculateScore(Train train, double guessDistance) {
         // 1. Total length of the train line (origin → destination)
@@ -401,6 +396,13 @@ public class GameService {
         // 4. Round and clamp to [0, 1000]
         int finalScore = (int) Math.min(1000, Math.max(0, Math.round(rawScore)));
         System.out.println("finalScore=" + finalScore);
+
+        double absoluteKm = guessDistance / 1000.0; // EPSG:3857 meters → km
+        final double lambda = 0.01; // tune this: higher = harsher absolute penalty
+        double dampener = Math.exp(-lambda * absoluteKm);
+
+        finalScore = (int)(finalScore * dampener);
+
         return finalScore;
     }
 
