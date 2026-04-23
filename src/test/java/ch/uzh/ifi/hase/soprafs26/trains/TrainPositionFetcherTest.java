@@ -1,25 +1,160 @@
 package ch.uzh.ifi.hase.soprafs26.trains;
 
+import ch.uzh.ifi.hase.soprafs26.objects.LineString;
+import ch.uzh.ifi.hase.soprafs26.objects.Station;
+import ch.uzh.ifi.hase.soprafs26.objects.Train;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.doReturn;
 
 class TrainPositionFetcherTest {
+    private TrainPositionFetcher trainPositionFetcher;
 
-    @Test
-    void fetchTrains() {
+    @BeforeEach
+    void setUp() {
+        trainPositionFetcher = new TrainPositionFetcher();
     }
 
     @Test
-    void fetchTrainsMock() {
+    void fetchTrains_mockModeEnabled_callsFetchTrainsMock() throws Exception {
+        TrainPositionFetcher spy = Mockito.spy(new TrainPositionFetcher());
+
+        ReflectionTestUtils.setField(spy, "useMock", true);
+
+            List<Train> mockTrains = List.of(new Train("1"));
+            doReturn(mockTrains).when(spy).fetchTrainsMock(1);
+            List<Train> result = spy.fetchTrains(1);
+            assertEquals(mockTrains, result);
+
     }
 
     @Test
-    void fetchTrainsLive() {
+    void fetchTrains_liveModeEnabled_callsFetchTrainsLive() throws Exception {
+        TrainPositionFetcher spy = Mockito.spy(new TrainPositionFetcher());
+
+        ReflectionTestUtils.setField(spy, "useMock", false);
+
+        List<Train> liveTrains = List.of(new Train("1"));
+        doReturn(liveTrains).when(spy).fetchTrainsLive(1);
+        List<Train> result = spy.fetchTrains(1);
+        assertEquals(liveTrains, result);
+
     }
 
     @Test
-    void interpolatePosition() {
+    void fetchTrainsMock_returnsNonNullList() throws Exception {
+        List<Train> result = trainPositionFetcher.fetchTrainsMock(2);
+        assertNotNull(result);
+    }
+
+    @Test
+    void fetchTrainsMock_respectsSubsetSize() throws Exception {
+        List<Train> result = trainPositionFetcher.fetchTrainsMock(2);
+        assertTrue(result.size() <= 2);
+    }
+
+    @Test
+    void fetchTrainsMock_returnsEnrichedTrains() throws Exception {
+        List<Train> result = trainPositionFetcher.fetchTrainsMock(1);
+        assertFalse(result.isEmpty());
+        assertNotNull(result.get(0).getTrainId());
+    }
+
+    @Test
+    void fetchTrainsMock_subsetSizeZero_returnsEmptyList() throws Exception {
+        List<Train> result = trainPositionFetcher.fetchTrainsMock(0);
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void interpolatePosition_midway_returnsMiddlePoint() {
+        Train train = new Train("1");
+
+        Station lastStation = new Station("A", 0, 0, 0, 100);
+        Station nextStation = new Station("B", 100, 100, 0, 100);
+        train.setLastLeavingStation(lastStation);
+        train.setNextPendingStation(nextStation);
+        train.setTimestamp(50); // midway
+
+        List<LineString.Point> points = List.of(
+                new LineString.Point(0, 0),
+                new LineString.Point(100, 100)
+        );
+        train.setLineString(new LineString(points));
+
+        trainPositionFetcher.interpolatePosition(train);
+
+        assertEquals(50, train.getCurrentX());
+        assertEquals(50, train.getCurrentY());
+    }
+
+    @Test
+    void interpolatePosition_emptyLineString_snapsToLastStation() {
+        Train train = new Train("1");
+
+        Station lastStation = new Station("A", 42, 99, 0, 100);
+        Station nextStation = new Station("B", 100, 100, 0, 100);
+        train.setLastLeavingStation(lastStation);
+        train.setNextPendingStation(nextStation);
+        train.setTimestamp(50);
+        train.setLineString(new LineString(new ArrayList<>()));
+
+        trainPositionFetcher.interpolatePosition(train);
+
+        assertEquals(42, train.getCurrentX());
+        assertEquals(99, train.getCurrentY());
+    }
+
+    @Test
+    void interpolatePosition_timestampBeforeDeparture_snapsToStart() {
+        Train train = new Train("1");
+
+        Station lastStation = new Station("A", 0, 0, 100, 200);
+        Station nextStation = new Station("B", 100, 100, 100, 200);
+        train.setLastLeavingStation(lastStation);
+        train.setNextPendingStation(nextStation);
+        train.setTimestamp(50); // before departureTime
+
+        List<LineString.Point> points = List.of(
+                new LineString.Point(0, 0),
+                new LineString.Point(100, 100)
+        );
+        train.setLineString(new LineString(points));
+
+        trainPositionFetcher.interpolatePosition(train);
+
+        assertEquals(0, train.getCurrentX());
+        assertEquals(0, train.getCurrentY());
+    }
+
+    @Test
+    void interpolatePosition_timestampAfterArrival_snapsToEnd() {
+        Train train = new Train("1");
+
+        Station lastStation = new Station("A", 0, 0, 0, 100);
+        Station nextStation = new Station("B", 100, 100, 0, 100);
+        train.setLastLeavingStation(lastStation);
+        train.setNextPendingStation(nextStation);
+        train.setTimestamp(200); // after arrivalTime
+
+        List<LineString.Point> points = List.of(
+                new LineString.Point(0, 0),
+                new LineString.Point(100, 100)
+        );
+        train.setLineString(new LineString(points));
+
+        trainPositionFetcher.interpolatePosition(train);
+
+        assertEquals(100, train.getCurrentX());
+        assertEquals(100, train.getCurrentY());
     }
 }
 
