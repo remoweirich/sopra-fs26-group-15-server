@@ -26,8 +26,6 @@ public class Lobby {
 
     private Map<Long, User> users;
 
-    private List<Round> rounds;
-
     private Integer currentRound;
 
     private Integer maxRounds;
@@ -62,9 +60,6 @@ public class Lobby {
     public void addUser(long userId, User user) {this.users.put(userId, user);}
     public void removeUser(Long userId) {this.users.remove(userId);}
     public boolean existsUser(Long userId) {return this.users.containsKey(userId);}
-
-    public List<Round> getRounds() {return rounds;}
-    public void setRounds(List<Round> rounds) {this.rounds = rounds;}
 
     public Integer getCurrentRound() {return currentRound;}
     public void setCurrentRound(Integer currentRound) {this.currentRound = currentRound;}
