@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.4.0...v1.4.1) (2026-04-24)
+
+
+### Reverts
+
+* Revert "fix(Tests): TrainPositionFetcherIntegrationTest does not use real api anymore" ([74882b4](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/74882b49432edb01366338abc1edfaa989d70aa0))
+
 # [1.4.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.3.0...v1.4.0) (2026-04-24)
 
 
