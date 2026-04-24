@@ -1,3 +1,10 @@
+## [1.4.2](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.4.1...v1.4.2) (2026-04-24)
+
+
+### Reverts
+
+* Revert "fix: cors originpatterns fix" ([b2bc86f](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/b2bc86f4fd22e0d7370d092be5e81e0d4eb9c904))
+
 # [1.3.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.2.0...v1.3.0) (2026-04-22)
 
 
