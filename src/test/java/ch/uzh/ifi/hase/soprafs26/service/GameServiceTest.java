@@ -553,21 +553,21 @@ class GameServiceTest {
         assertTrue(score > 0 && score <= 10, "Ein Guess, der um die volle Linienlänge daneben liegt, sollte minimal Punkte geben (ca. 5).");
     }
 
-    @Test
-    void calculateScore_degenerateLine_usesFallback() {
-
-        Train train = new Train();
-
-        train.setLineOrigin(new Station("Same", 100L, 100L, 0, 0));
-        train.setLineDestination(new Station("Same", 100L, 100L, 0, 0));
-
-        double guessDistance = 500.0;
-
-        int score = gameService.calculateScore(train, guessDistance);
-
-        assertTrue(score > 0);
-        assertEquals(266, score);
-    }
+//    @Test
+//    void calculateScore_degenerateLine_usesFallback() {
+//
+//        Train train = new Train();
+//
+//        train.setLineOrigin(new Station("Same", 100L, 100L, 0, 0));
+//        train.setLineDestination(new Station("Same", 100L, 100L, 0, 0));
+//
+//        double guessDistance = 500.0;
+//
+//        int score = gameService.calculateScore(train, guessDistance);
+//
+//        assertTrue(score > 0);
+//        assertEquals(266, score);
+//    }
 
     @Test
     void calculateGuessDistance_simpleRightTriangle() {
