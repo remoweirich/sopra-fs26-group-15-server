@@ -4,6 +4,10 @@
 runtime: java17
 instance_class: F2
 
+automatic_scaling:
+  min_num_instances: 1
+  max_num_instances: 1
+
 env_variables:
   # This is a placeholder that sed(tool to automatically replace string) will look for
   # In GitHub Actions, the actual value will be injected from the repository secrets

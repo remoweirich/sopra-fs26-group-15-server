@@ -71,7 +71,7 @@ public class TrainPositionFetcher {
             "BBOX 640000 5730000 1200000 6100000 10 tenant=sbb mots=rail"; //maximal zoom level for testing, use zoom level 7 to cover whole switzerland
 
     private static final long BBOX_COLLECT_TIMEOUT_MS  = 10_000; //prob need to set it higher
-    private static final long STOP_SEQUENCE_TIMEOUT_MS = 2_000;
+    private static final long STOP_SEQUENCE_TIMEOUT_MS = 200;
     private static final String WS_BASE_URL = "wss://api.geops.io/tracker-ws/v1/";
     private static final String MOCK_FILE   = "mock_train_messages.json";
 

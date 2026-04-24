@@ -31,6 +31,7 @@ import ch.uzh.ifi.hase.soprafs26.websocket.Message;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Transactional
@@ -163,10 +164,14 @@ public class LobbyService {
         lobby.addUser(userId, user);
 
         //if Lobby is now full: if game is public, start game, else wait for admin to start the game
-        if (lobby.getUsers().size() >= lobby.getSize() && lobby.getVisibility() == LobbyVisibility.PUBLIC && !lobby.getLobbyState().equals(LobbyState.IN_GAME)) {
-            //lobby.setLobbyState(LobbyState.IN_GAME);
-            startGame(lobby.getLobbyId());
-        }
+
+/*        TODO: currently does not work, sends start_Game message before everyone is subscribed.*/
+//
+//        if (lobby.getUsers().size() >= lobby.getSize() && lobby.getVisibility() == LobbyVisibility.PUBLIC && !lobby.getLobbyState().equals(LobbyState.IN_GAME)) {
+//            //lobby.setLobbyState(LobbyState.IN_GAME);
+//
+//            startGame(lobby.getLobbyId());
+//        }
 
         //send broadcast message to lobby that user has joined
         MyLobbyDTO myLobbyDTO = DTOMapper.INSTANCE.convertEntityToMyLobbyDTO(lobby);
