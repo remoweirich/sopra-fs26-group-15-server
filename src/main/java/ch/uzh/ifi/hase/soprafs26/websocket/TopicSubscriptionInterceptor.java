@@ -74,12 +74,23 @@ public class TopicSubscriptionInterceptor implements ChannelInterceptor {
     }
 
     private void handleConnect(StompHeaderAccessor accessor) {
-        Long userId = Long.parseLong(accessor.getFirstNativeHeader("userId"));
-        String token = accessor.getFirstNativeHeader("token");
+        System.out.println("Handling CONNECT command for WebSocket connection...");
 
-        if (!authService.authUser(new AuthHeader(userId, token))){
-            throw new IllegalArgumentException("Cannot connect: Invalid credentials");
-        }
+        //Commented out since we now allow lobbies to be fetched with websocket connection, without being a User yet.
+//        try {
+//            Long userId = Long.parseLong(accessor.getFirstNativeHeader("userId"));
+//            String token = accessor.getFirstNativeHeader("token");
+//
+//            if (!authService.authUser(new AuthHeader(userId, token))){
+//                System.out.println("Authentication failed for userId: " + userId);
+//                throw new IllegalArgumentException("Cannot connect: Invalid credentials");
+//            }
+//        } catch (NumberFormatException e) {
+//            System.out.println("Invalid userId format in CONNECT headers");
+//            throw new IllegalArgumentException("Cannot connect: Invalid userId format");
+//        }
+
+
     }
 
 
