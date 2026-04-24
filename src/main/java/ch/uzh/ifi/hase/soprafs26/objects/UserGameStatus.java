@@ -6,6 +6,8 @@ public class UserGameStatus {
 
     private Boolean isReady;
 
+    public UserGameStatus() {}
+
     public UserGameStatus(Long userId,  Boolean isReady) {
         this.userId = userId;
         this.isReady = isReady;

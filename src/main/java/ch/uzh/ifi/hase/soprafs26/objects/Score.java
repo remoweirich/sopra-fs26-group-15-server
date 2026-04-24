@@ -6,7 +6,9 @@ public class Score {
 
     private Integer points;
 
-        public Score(Long userId) {
+    public Score() {}
+
+    public Score(Long userId) {
             this.userId = userId;
         }
 
