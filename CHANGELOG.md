@@ -31,6 +31,54 @@
 
 * Changed Trainpositionfetcher to also include departure and final arrival times at line destintation and origin ([165e150](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/165e150968d5678b6a54f3437325302767fd6382))
 * **Game Leaderboard:** Game Leaderboard now exists and shows, player scores and distances to Train ([d6acd26](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/d6acd268622826df711a33affeee821c5f69f8ed))
+* **GameService:** cleanup methods ([326f87a](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/326f87a1aaf6fb00fd71e8ce3cab350fe98ded2d))
+* **GameService:** if clause in gameTearDown ([0fdeabf](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/0fdeabf1ced3084912abf3296eb56710828398bb))
+* **GameServiceTest:** tests from branch ([c5d6d73](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/c5d6d7396c5bf2405f017be1d8754e981e1b420d))
+* **gameTearDown, LobbyTearDown:** Tearing down our games ([f0b648f](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/f0b648fc926f349ff96194d94d63e21b96f47162))
+* implement lobby creation logic and websocket infrastructure ([5049e6a](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/5049e6ab92aa6f2a874258a01eef5ac36ed40689))
+* Improved robustness of TrainPositionFetcher for use with real API: enrichment of trains is retried if unsuccessful ([4814e11](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/4814e11d3ff847e832024031b79979759a685d72))
+* **JoinLobby:** sendMessage GAME_START ([7d6217a](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/7d6217ab461c4a79dae13de84e49a2e2826d7f67))
+* **PostGameResult:** Game Results are now persisted. corresponding id with game and lobby. ([250d410](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/250d410626e44d4c030d67af602151e3446ad895))
+* **PostGameResult:** Game Results are now persisted. corresponding id with game and lobby. ([e770fbf](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/e770fbf1a934f9aeb8dcbff1d34ebfc89792dcc1))
+* Testing TrainPositionFetcher ([4978d36](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/4978d36a8b56988c91fc98eb164c7f253448eca0))
+* Testing-Tree initialization ([0c6955c](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/0c6955c7df9e7618d5dad1754e9bf843bf540d85))
+* Tests for game-, lobbyrest-, lobbywebsockets- & usercontroller ([daa7e69](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/daa7e69aafbfa5a0cdddc9f9b8366081b6207168))
+* **WebSocket:** add WebsocketInterceptors that intercept websocket publishes and subscriptions to check for authorization. Also refactor users list in lobby to be a Map<userId, user> so checking if a user is part of a lobby is easier (: ([35839f0](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/35839f0292b0bd462a646ee6fe19ab591c30b0c3))
+* **WebSocket:** implement connect auth through authUser since even guests have a user by then ([2edc539](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/2edc5391f61625c91047e2d57db57ac132f107a9))
+
+# [1.3.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.2.0...v1.3.0) (2026-04-24)
+
+
+### Bug Fixes
+
+* **DTOMapper:** MyLobbyDTO sanitizes users to UserDTO ([29badf9](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/29badf9ddc7513c07ab9ff74b5cf4ce46fc716ea))
+* **DTOMapper:** remove UserPostDTO from template ([6d1ff10](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/6d1ff10fb459c2c2e32b8236df74358938499b50))
+* **GameResult entity persistence:** fix Round getters and setters to work with Jackson ([bcb46e5](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/bcb46e5a7c9657aa4c9e907df4bdf23526be3679))
+* **GameService:** ScoresPublished is now gameSpecific, gameTeardown now exists. ([3043bba](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/3043bba09de292dfb8157a92759876a3ba3fb4ce))
+* **Google app engine:** app yml and WebSocketConfig update ([f6da0e6](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/f6da0e6dfcd542b7860fec63fd3971fb933a596b))
+* **JoinLobby:** CreateGuestUser ([a932987](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/a932987086dc4b94117dc4bd87d1b192099a3d85))
+* **JoinLobby:** CreateGuestUser ([1a82204](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/1a822049e62492f5f2eebeb28f4ec0e823fef059))
+* **LobbyController:** changed ")" to "}" ([9e554b5](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/9e554b5e24f7d3057ef450ee984f66c20c9ceb71))
+* **lobby:** enable rejoin ([c92b096](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/c92b096a221e4f655a8c5aa6d4b69fde134bb7d0))
+* **lobbyService,lobbyRESTController:** Removing id and token from DTO and put it in header ([284314a](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/284314acef3cb2eb0337101667de94220d083ba4))
+* **LobbyWebSocketController:** debug messages & Empty constructor added for objectMapper ([0445d17](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/0445d17906c7f1dba4d8f759a27f4b4e58134cf0))
+* **LobbyWebSocketController:** UserAuth and AdminAuth hold back GAME_START message (decision to be made about messageBody) ([ccd7eff](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/ccd7eff90fcc2d641d33e3af95978b66eecbfa0a))
+* **processGuess:** save guess as km rounded. ([a2e728e](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/a2e728ea4638fcbb715623741c1b6a23e9ae9e10))
+* removed test mode, added userGetDTO ([6743c4b](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/6743c4bdc0da6bcc101ae4881b0c3444a3a8c4ac))
+* **Scoring Logic:** Change how guesses are scored ([92564fd](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/92564fdc3246850e126222e81abd4e72899e998f))
+* **Scoring Logic:** Include an absolute distance dampener, so both absolute and relative (to start and end station) distances are part of scoring ([8bb2445](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/8bb2445a0fec7dfa2d32674b5e816cc9d5952712))
+* **StartGame:** reimplement Auth on startGame message ([7254a53](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/7254a531a319826508f06501ea968775bf869552))
+* temp fix ([2847fd6](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/2847fd6e5ab4621b69b305874f34efdab6e674a4))
+* timer is now removed from activeTimers correctly, scores are saved and retrieved from updated game instance, train is copied instead of altered for sending incomplete version in Roundstart message, fixed UserGameStatus constructor ([5627ef0](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/5627ef064185eb0a3410ba29cb47fa0164246254))
+* **WebSocket:** add AuthService to TopicSubscriptionInterceptor ([edb9784](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/edb9784037f28e848fb7effcb1bfe83cddb8d312))
+* **WebSocket:** Handle circular Dependency I created (sorry) ([9f96b45](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/9f96b459115265ba0fb10692107340c0979236ad))
+* **WebSocketInterceptor:** fixed logic. I threw exception if user is authenticated (sorry) ([286de1b](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/286de1bb74591ae57d0352787bb6423bb5a09094))
+
+
+### Features
+
+* Changed Trainpositionfetcher to also include departure and final arrival times at line destintation and origin ([165e150](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/165e150968d5678b6a54f3437325302767fd6382))
+* **Game Leaderboard:** Game Leaderboard now exists and shows, player scores and distances to Train ([d6acd26](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/d6acd268622826df711a33affeee821c5f69f8ed))
 * **gameTearDown, LobbyTearDown:** Tearing down our games ([f0b648f](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/f0b648fc926f349ff96194d94d63e21b96f47162))
 * implement lobby creation logic and websocket infrastructure ([5049e6a](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/5049e6ab92aa6f2a874258a01eef5ac36ed40689))
 * Improved robustness of TrainPositionFetcher for use with real API: enrichment of trains is retried if unsuccessful ([4814e11](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/4814e11d3ff847e832024031b79979759a685d72))
