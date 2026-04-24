@@ -1,7 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
 import ch.uzh.ifi.hase.soprafs26.entity.GameResult;
-import ch.uzh.ifi.hase.soprafs26.objects.Admin;
 import ch.uzh.ifi.hase.soprafs26.repository.GameRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
 
@@ -147,9 +146,7 @@ public class LobbyRESTController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Please log in");
         }
         Lobby lobby = lobbyService.getLobby(lobbyId, userId);
-        MyLobbyDTO myLobbyDTO = DTOMapper.INSTANCE.convertEntityToMyLobbyDTO(lobby);
-        myLobbyDTO.setAdmin(new Admin(lobby.getAdmin().getUserId(), ""));
-        return myLobbyDTO;
+        return DTOMapper.INSTANCE.convertEntityToMyLobbyDTO(lobby);
     }
 
     @GetMapping("/game/{gameId}/leaderboard")

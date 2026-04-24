@@ -4,6 +4,7 @@ import ch.uzh.ifi.hase.soprafs26.constant.LobbyState;
 import ch.uzh.ifi.hase.soprafs26.constant.LobbyVisibility;
 import ch.uzh.ifi.hase.soprafs26.objects.Admin;
 import ch.uzh.ifi.hase.soprafs26.objects.Score;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
 
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class MyLobbyDTO {
 
     private LobbyVisibility visibility;
 
-    private List<UserDTO> users;
+    private List<UserGetDTO> users;
 
     private Integer currentRound;
 
@@ -49,8 +50,8 @@ public class MyLobbyDTO {
     public LobbyVisibility getVisibility() {return visibility;}
     public void setVisibility(LobbyVisibility visibility) {this.visibility = visibility;}
 
-    public List<UserDTO> getUsers() {return users;}
-    public void setUsers(List<UserDTO> users) {this.users = users;}
+    public List<UserGetDTO> getUsers() {return users;}
+    public void setUsers(List<UserGetDTO> users) {this.users = users;}
 
     public Integer getCurrentRound() {return currentRound;}
     public void setCurrentRound(Integer currentRound) {this.currentRound = currentRound;}

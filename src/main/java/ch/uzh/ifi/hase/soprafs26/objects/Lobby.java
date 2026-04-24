@@ -26,11 +26,11 @@ public class Lobby {
 
     private Map<Long, User> users;
 
+    private List<Round> rounds;
+
     private Integer currentRound;
 
     private Integer maxRounds;
-
-    private List<Round> rounds;
 
     private Map<Long, Score> scores;
 
@@ -63,14 +63,14 @@ public class Lobby {
     public void removeUser(Long userId) {this.users.remove(userId);}
     public boolean existsUser(Long userId) {return this.users.containsKey(userId);}
 
+    public List<Round> getRounds() {return rounds;}
+    public void setRounds(List<Round> rounds) {this.rounds = rounds;}
+
     public Integer getCurrentRound() {return currentRound;}
     public void setCurrentRound(Integer currentRound) {this.currentRound = currentRound;}
 
     public Integer getMaxRounds() {return maxRounds;}
     public void setMaxRounds(Integer maxRounds) {this.maxRounds = maxRounds;}
-
-    public List<Round> getRounds() {return this.rounds;}
-    public void setRounds(List<Round> rounds) {this.rounds = rounds;}
 
     public List<Score> getScores() {return new ArrayList<>(scores.values());}
     public void setScore(long userId, Score score) {this.scores.put(userId, score);}
