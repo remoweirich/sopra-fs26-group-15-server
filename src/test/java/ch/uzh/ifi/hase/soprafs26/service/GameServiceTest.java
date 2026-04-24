@@ -554,7 +554,7 @@ class GameServiceTest {
     }
 
     @Test
-    void calculateScore_degenerateLine_usesFallback() {
+    void calculateScore_degenerateLine_usesFallback_withDampener() {
 
         Train train = new Train();
 
@@ -565,8 +565,7 @@ class GameServiceTest {
 
         int score = gameService.calculateScore(train, guessDistance);
 
-        assertTrue(score > 0);
-        assertEquals(266, score);
+        assertEquals(199, score, "Sollte bei errorRatio 0.5 mit der neuen p=1.5 Formel und Dampener ca. 199 ergeben.");
     }
 
     @Test
