@@ -1,34 +1,3 @@
-## [1.4.1](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.4.0...v1.4.1) (2026-04-24)
-
-
-### Reverts
-
-* Revert "fix(Tests): TrainPositionFetcherIntegrationTest does not use real api anymore" ([74882b4](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/74882b49432edb01366338abc1edfaa989d70aa0))
-
-# [1.4.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.3.0...v1.4.0) (2026-04-24)
-
-
-### Bug Fixes
-
-* cors originpatterns fix ([5434a8e](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/5434a8e7b117a30c479cdd7c24c781598a49223d))
-* **GameServiceTest&MyLobbyDTO:** fix publishScore test & UserGetDTO to UserDTO ([2b8d092](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/2b8d0923e0ba4190e3dd71bb1a524bfdf2e7afe6))
-* **GameServiceTest:** fixed test after calculation formula changed ([d96d7e4](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/d96d7e402d654d236c9560b3d8647099414efbd0))
-* **Scoring Logic:** Change how guesses are scored ([92564fd](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/92564fdc3246850e126222e81abd4e72899e998f))
-* **Scoring Logic:** Include an absolute distance dampener, so both absolute and relative (to start and end station) distances are part of scoring ([8bb2445](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/8bb2445a0fec7dfa2d32674b5e816cc9d5952712))
-* **Tests:** TrainPositionFetcherIntegrationTest does not use real api anymore ([4077f7e](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/4077f7ea14c2b1e5b1cec99b9ceeb3de515bef8e))
-* **UserServiceTest:** add missing newline at end of file ([21adc51](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/21adc5140e1c8d00e6e9b32ad4e0f1f58725e9ce))
-* **WebSocket:** allow server url as origin ([6fdd815](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/6fdd815170ab3d79edaf827f12e52e50ccdf259b))
-* **WebSocketConfig:** removed trailing / ([9fdefb1](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/9fdefb1e8f050664f46385c2e7dd1ba077bfc23a))
-
-
-### Features
-
-* **GameServiceTest&AuthService:** added many tests ([a35c424](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/a35c424684a59658309bbeed0f389768b5fa64a4))
-* **GameServiceTest:** three tests in total added for setupGame and processGuessMessage ([be3378c](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/be3378c43a4e033f3c24c0349bbd765d7a3d468e))
-* Testing TrainPositionFetcher ([4978d36](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/4978d36a8b56988c91fc98eb164c7f253448eca0))
-* Testing-Tree initialization ([0c6955c](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/0c6955c7df9e7618d5dad1754e9bf843bf540d85))
-* Tests for game-, lobbyrest-, lobbywebsockets- & usercontroller ([daa7e69](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/daa7e69aafbfa5a0cdddc9f9b8366081b6207168))
-
 # [1.3.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.2.0...v1.3.0) (2026-04-22)
 
 

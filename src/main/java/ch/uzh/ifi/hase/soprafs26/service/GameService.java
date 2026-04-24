@@ -74,7 +74,7 @@ public class GameService {
             
         
         try {
-            List<Train> trains = trainPositionFetcher.fetchTrainsMock(currentLobby.getMaxRounds());
+            List<Train> trains = trainPositionFetcher.fetchTrains(currentLobby.getMaxRounds());
 
             for (Train train : trains) {
                 trainPositionFetcher.interpolatePosition(train);
@@ -361,11 +361,6 @@ public class GameService {
      * Decay constant k is chosen so that errorRatio = 1.0 (guess is off by a full
      * line length) yields a score of ~5, giving a near-zero floor for bad guesses.
      *
-     *   errorRatio = 0.00 → 1000 pts  (perfect)
-     *   errorRatio = 0.10 →  742 pts  (great)
-     *   errorRatio = 0.25 →  214 pts  (decent)
-     *   errorRatio = 0.50 →   21 pts  (poor)
-     *   errorRatio = 1.00 →    5 pts  (terrible)
      */
     public int calculateScore(Train train, double guessDistance) {
         // 1. Total length of the train line (origin → destination)
@@ -389,17 +384,25 @@ public class GameService {
         // 2. Relative error ratio (clamped — can't do worse than a full line length)
         double errorRatio = guessDistance / totalLineLength;
 
-        // 3. Gaussian decay: k = ln(1000/5) ≈ 5.298
-        //    Chosen so that errorRatio = 1.0 → score ≈ 5 (near-zero, not exactly 0)
-        final double k = Math.log(1000.0 / 5.0); // ≈ 5.298
-
-        double rawScore = 1000.0 * Math.exp(-k * Math.pow(errorRatio, 2));
-
-        System.out.println("errorRatio=" + errorRatio + ", k=" + k + ", rawScore=" + rawScore);
+        // 3. Power-modified exponential decay
+        //    p controls curve shape: lower p = steeper near 0, flatter tail
+        //    k is anchored so that errorRatio = 0.5 → exactly 100 pts
+        //    k = ln(10) / 0.5^p
+        final double p = 1.5;
+        final double k = Math.log(5.0) / Math.pow(0.5, p);
+        double rawScore = 1000.0 * Math.exp(-k * Math.pow(errorRatio, p));
+        System.out.println("errorRatio=" + errorRatio + ", p=" + p + ", k=" + k + ", rawScore=" + rawScore);
 
         // 4. Round and clamp to [0, 1000]
         int finalScore = (int) Math.min(1000, Math.max(0, Math.round(rawScore)));
         System.out.println("finalScore=" + finalScore);
+
+        double absoluteKm = guessDistance / 1000.0; // EPSG:3857 meters → km
+        final double lambda = 0.01; // tune this: higher = harsher absolute penalty
+        double dampener = Math.exp(-lambda * absoluteKm);
+
+        finalScore = (int)(finalScore * dampener);
+
         return finalScore;
     }
 
@@ -418,6 +421,11 @@ public class GameService {
         List<Round> rounds = game.getRounds();
         Long gameId = game.getGameId();
         GameResult gameResult = gameRepository.findByGameId(gameId);
+
+        if (gameResult == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not found");
+        }
+
         gameResult.setRounds(rounds);
         gameResult.setScores(currentScores);
         Map<Long, String> usernames = new HashMap<>();
@@ -440,5 +448,19 @@ public class GameService {
         currentLobby.setGame(null);
         System.out.println("Game " + game.getGameId() + " has ended and been removed from active games.");
 
+    }
+
+    public void cleanupAllTimers() {
+
+        activeTimers.forEach((gameId, timer) -> {
+            if (timer != null) {
+                timer.cancel(false);
+            }
+        });
+
+        activeTimers.clear();
+    }
+    public void cleanupGames() {
+        activeGames.clear();
     }
 }
