@@ -6,6 +6,7 @@ import ch.uzh.ifi.hase.soprafs26.objects.Train;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
@@ -15,6 +16,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doReturn;
 
 class TrainPositionFetcherTest {
+
+    @MockitoBean
     private TrainPositionFetcher trainPositionFetcher;
 
     @BeforeEach

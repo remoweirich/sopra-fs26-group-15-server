@@ -103,8 +103,8 @@ class GameServiceTest {
             trains.add(mockTrain);
         }
 
-        lenient().when(trainPositionFetcher.fetchTrainsLive(anyInt())).thenReturn(trains);
-        lenient().when(trainPositionFetcher.fetchTrainsMock(anyInt())).thenReturn(trains);
+        lenient().when(trainPositionFetcher.fetchTrains(anyInt())).thenReturn(trains);
+        lenient().when(trainPositionFetcher.fetchTrains(anyInt())).thenReturn(trains);
         lenient().doNothing().when(trainPositionFetcher).interpolatePosition(any(Train.class));
 
 
@@ -159,8 +159,8 @@ class GameServiceTest {
         mockTrain.setLineOrigin(new Station("Start", 0L, 0L, 0, 0));
         mockTrain.setLineDestination(new Station("End", 200L, 200L, 10, 10));
 
-        lenient().when(trainPositionFetcher.fetchTrainsLive(anyInt())).thenReturn(List.of(mockTrain));
-        lenient().when(trainPositionFetcher.fetchTrainsMock(anyInt())).thenReturn(List.of(mockTrain));
+        lenient().when(trainPositionFetcher.fetchTrains(anyInt())).thenReturn(List.of(mockTrain));
+        lenient().when(trainPositionFetcher.fetchTrains(anyInt())).thenReturn(List.of(mockTrain));
         lenient().doNothing().when(trainPositionFetcher).interpolatePosition(any(Train.class));
 
 
