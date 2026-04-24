@@ -418,6 +418,11 @@ public class GameService {
         List<Round> rounds = game.getRounds();
         Long gameId = game.getGameId();
         GameResult gameResult = gameRepository.findByGameId(gameId);
+
+        if (gameResult == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not found");
+        }
+
         gameResult.setRounds(rounds);
         gameResult.setScores(currentScores);
         Map<Long, String> usernames = new HashMap<>();

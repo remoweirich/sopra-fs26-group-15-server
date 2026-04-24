@@ -30,6 +30,8 @@ public class Lobby {
 
     private Integer maxRounds;
 
+    private List<Round> rounds;
+
     private Map<Long, Score> scores;
 
     private LobbyState lobbyState;
@@ -66,6 +68,9 @@ public class Lobby {
 
     public Integer getMaxRounds() {return maxRounds;}
     public void setMaxRounds(Integer maxRounds) {this.maxRounds = maxRounds;}
+
+    public List<Round> getRounds() {return this.rounds;}
+    public void setRounds(List<Round> rounds) {this.rounds = rounds;}
 
     public List<Score> getScores() {return new ArrayList<>(scores.values());}
     public void setScore(long userId, Score score) {this.scores.put(userId, score);}
