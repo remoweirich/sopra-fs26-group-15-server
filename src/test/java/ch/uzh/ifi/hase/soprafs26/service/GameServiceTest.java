@@ -428,26 +428,27 @@ class GameServiceTest {
         assertTrue(messageCaptor.getAllValues().stream().anyMatch(message -> message.getType() == MessageType.SCORES), "Scores message was not sent");
     }
 
-//    @Test
-//    void allowedToPublish_doesNothing() throws Exception {
-//        Lobby lobby =  getLobby();
-//        Game game = getGame(lobby);
-//        lobby.setGame(game);
-//        lobby.setCurrentRound(1);
-//
-//        GameResult mockResult = new GameResult();
-//        when(gameRepository.findByGameId(game.getGameId())).thenReturn(mockResult);
-//        User user = new User(); user.setUserId(1L);
-//        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-//
-//        gameService.allowedToPublish(lobby);
-//
-//        Mockito.clearInvocations(messagingTemplate);
-//
-//        gameService.allowedToPublish(lobby);
-//
-//        verify(messagingTemplate, never()).convertAndSend(anyString(), any(Message.class));
-//    }
+    @Test
+    void allowedToPublish_doesNothing() throws Exception {
+        Lobby lobby =  getLobby();
+        lobby.setMaxRounds(2);
+        Game game = getGame(lobby);
+        lobby.setGame(game);
+        lobby.setCurrentRound(1);
+
+        GameResult mockResult = new GameResult();
+        lenient().when(gameRepository.findByGameId(game.getGameId())).thenReturn(mockResult);
+        User user = new User(); user.setUserId(1L);
+        lenient().when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+
+        gameService.allowedToPublish(lobby);
+
+        Mockito.clearInvocations(messagingTemplate);
+
+        gameService.allowedToPublish(lobby);
+
+        verify(messagingTemplate, never()).convertAndSend(anyString(), any(Message.class));
+    }
 
     @Test
     void publishScores_success_middleRound() throws Exception {
