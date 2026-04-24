@@ -421,6 +421,11 @@ public class GameService {
         List<Round> rounds = game.getRounds();
         Long gameId = game.getGameId();
         GameResult gameResult = gameRepository.findByGameId(gameId);
+
+        if (gameResult == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not found");
+        }
+
         gameResult.setRounds(rounds);
         gameResult.setScores(currentScores);
         Map<Long, String> usernames = new HashMap<>();
@@ -443,5 +448,19 @@ public class GameService {
         currentLobby.setGame(null);
         System.out.println("Game " + game.getGameId() + " has ended and been removed from active games.");
 
+    }
+
+    public void cleanupAllTimers() {
+
+        activeTimers.forEach((gameId, timer) -> {
+            if (timer != null) {
+                timer.cancel(false);
+            }
+        });
+
+        activeTimers.clear();
+    }
+    public void cleanupGames() {
+        activeGames.clear();
     }
 }
