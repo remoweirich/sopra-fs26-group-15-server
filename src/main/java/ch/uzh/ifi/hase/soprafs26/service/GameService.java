@@ -444,4 +444,18 @@ public class GameService {
         System.out.println("Game " + game.getGameId() + " has ended and been removed from active games.");
 
     }
+
+    public void cleanupAllTimers() {
+
+        activeTimers.forEach((gameId, timer) -> {
+            if (timer != null) {
+                timer.cancel(false);
+            }
+        });
+
+        activeTimers.clear();
+    }
+    public void cleanupGames() {
+        activeGames.clear();
+    }
 }
