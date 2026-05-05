@@ -4,6 +4,14 @@
 ### Bug Fixes
 
 * change Application file ([a0c9816](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/a0c98166a340cbe6e2084962ef48022a01c76aff))
+* semantic release ([90383f8](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/90383f8f47135a4dbedbded4457486e3f4a42d08))
+
+## [1.4.2](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.4.1...v1.4.2) (2026-05-05)
+
+
+### Bug Fixes
+
+* change Application file ([a0c9816](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/a0c98166a340cbe6e2084962ef48022a01c76aff))
 
 ## [1.4.1](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.4.0...v1.4.1) (2026-05-05)
 
