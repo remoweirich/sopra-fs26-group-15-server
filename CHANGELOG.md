@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.4.0...v1.4.1) (2026-05-05)
+
+
+### Bug Fixes
+
+* update urls ([717cc7e](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/717cc7ec6c7d7493882046706e8154860c465eba))
+
 # [1.4.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.3.0...v1.4.0) (2026-05-05)
 
 
