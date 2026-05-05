@@ -34,7 +34,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns(
                         "http://localhost:3000",
-                        "https://sopra-client-self.vercel.app")
+                        "https://sopra-fs26-group-15-client.vercel.app")
                 .withSockJS();
     }
 
