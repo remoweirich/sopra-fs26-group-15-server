@@ -1,27 +1,26 @@
 package ch.uzh.ifi.hase.soprafs26.trains;
 
+import ch.uzh.ifi.hase.soprafs26.objects.LineString;
 import ch.uzh.ifi.hase.soprafs26.objects.Station;
 import ch.uzh.ifi.hase.soprafs26.objects.Train;
-import ch.uzh.ifi.hase.soprafs26.objects.LineString;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.*;
-import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
-import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
-import org.springframework.core.io.ClassPathResource;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-
 
 import java.net.URI;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Fetches real-time train positions from the geOps Realtime WebSocket API.

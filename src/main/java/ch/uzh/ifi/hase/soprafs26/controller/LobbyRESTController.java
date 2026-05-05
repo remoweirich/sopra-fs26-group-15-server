@@ -1,22 +1,15 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
-import ch.uzh.ifi.hase.soprafs26.entity.GameResult;
-import ch.uzh.ifi.hase.soprafs26.objects.Admin;
-import ch.uzh.ifi.hase.soprafs26.repository.GameRepository;
+import ch.guessbb.sopraserver.constant.*;
+import ch.uzh.ifi.hase.soprafs26.constant.LobbyVisibility;
+import ch.uzh.ifi.hase.soprafs26.entity.Lobby;
+import ch.guessbb.sopraserver.rest.dto.*;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
-
-import ch.uzh.ifi.hase.soprafs26.constant.*;
-
-import ch.uzh.ifi.hase.soprafs26.service.LobbyService;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs26.security.AuthHeader;
 import ch.uzh.ifi.hase.soprafs26.security.AuthService;
-
-import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
-import ch.uzh.ifi.hase.soprafs26.objects.Lobby;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.LobbyCodePostDTO;
-
+import ch.uzh.ifi.hase.soprafs26.service.LobbyService;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -28,42 +21,39 @@ public class LobbyRESTController {
 
     public final LobbyService lobbyService;
     public final AuthService authService;
-    private final GameRepository gameRepository;
 
-    public LobbyRESTController(LobbyService lobbyService, AuthService authService, GameRepository gameRepository) {
+    public LobbyRESTController(LobbyService lobbyService, AuthService authService) {
         this.lobbyService = lobbyService;
         this.authService = authService;
-        this.gameRepository = gameRepository;
     }
 
     @PostMapping("/lobbies")
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
-    public LobbyAccessDTO createLobby(@RequestHeader ("token") String token, @RequestHeader("userId") Long userId, @RequestBody CreateLobbyPostDTO createLobbyPostDTO){
+    public LobbyAccessDTO createLobby(
+            @RequestHeader(value = "token", required = false) String token,
+            @RequestHeader(value = "userId", required = false) Long userId,
+            @RequestBody CreateLobbyPostDTO createLobbyPostDTO) {
+
         boolean isGuest;
-        LobbyAccessDTO lobbyAccessDTO = null;
+        LobbyAccessDTO lobbyAccessDTO;
 
         AuthHeader authHeader = new AuthHeader(userId, token);
-        try{
+        try {
             boolean isAuthenticated = authService.authUser(authHeader);
-
-            if(!isAuthenticated){
+            if (!isAuthenticated) {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
             }
             isGuest = false;
             lobbyAccessDTO = lobbyService.createLobby(createLobbyPostDTO, isGuest, userId, token);
-
-        } catch (ResponseStatusException e){
+        } catch (ResponseStatusException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 isGuest = true;
                 lobbyAccessDTO = lobbyService.createLobby(createLobbyPostDTO, isGuest, null, null);
-
             } else {
                 throw e;
             }
-
         }
-
         return lobbyAccessDTO;
     }
 
@@ -78,6 +68,7 @@ public class LobbyRESTController {
 
         for (Lobby lobby : lobbies) {
             LobbyDTO lobbyDTO = DTOMapper.INSTANCE.convertEntityToLobbyDTO(lobby);
+            lobbyDTO.setCurrentPlayers(lobby.getPlayers().size());
             if (lobby.getVisibility() == LobbyVisibility.PRIVATE) {
                 lobbyDTO.setLobbyCode("");
             }
@@ -92,46 +83,31 @@ public class LobbyRESTController {
     @ResponseBody
     public LobbyAccessDTO joinLobby(
             @PathVariable("id") Long lobbyId,
-            @RequestHeader("token") String token,
-            @RequestHeader("userId") Long userId,
+            @RequestHeader(value = "token", required = false) String token,
+            @RequestHeader(value = "userId", required = false) Long userId,
             @RequestBody LobbyCodePostDTO lobbyCodePostDTO) {
 
         boolean isGuest;
-        LobbyAccessDTO lobbyAccessDTO = null;
+        LobbyAccessDTO lobbyAccessDTO;
 
         AuthHeader authHeader = new AuthHeader(userId, token);
-        try{
+        try {
             boolean isAuthenticated = authService.authUser(authHeader);
-
-            if(!isAuthenticated){
+            if (!isAuthenticated) {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
             }
             isGuest = false;
             lobbyAccessDTO = lobbyService.joinLobby(userId, token, lobbyId, lobbyCodePostDTO.getLobbyCode(), isGuest);
-        } catch (ResponseStatusException e){
+        } catch (ResponseStatusException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 isGuest = true;
-                lobbyAccessDTO = lobbyService.joinLobby(null,null, lobbyId, lobbyCodePostDTO.getLobbyCode(), isGuest);
-
+                lobbyAccessDTO = lobbyService.joinLobby(null, null, lobbyId, lobbyCodePostDTO.getLobbyCode(), isGuest);
             } else {
                 throw e;
             }
-
         }
-        // 3. Mapping (Wichtig: lobbyAccessDTO darf nicht null sein!)
-        //lobbyAccessDTO = DTOMapper.INSTANCE.convertLobbyToLobbyAccessDTO(lobby);
-
-        return lobbyAccessDTO;    }
-
-    @GetMapping("/lobbies/debug")
-    @ResponseStatus(HttpStatus.OK)
-        @ResponseBody
-    public List<Lobby> getLobbiesDebug() {
-        List<Lobby> lobbies = lobbyService.getAllLobbies();
-
-        return lobbies;
+        return lobbyAccessDTO;
     }
-
 
     @GetMapping("/lobbies/{lobbyId}")
     @ResponseStatus(HttpStatus.OK)
@@ -148,7 +124,7 @@ public class LobbyRESTController {
         }
         Lobby lobby = lobbyService.getLobby(lobbyId, userId);
         MyLobbyDTO myLobbyDTO = DTOMapper.INSTANCE.convertEntityToMyLobbyDTO(lobby);
-        myLobbyDTO.setAdmin(new Admin(lobby.getAdmin().getUserId(), ""));
+        myLobbyDTO.setCurrentPlayers(lobby.getPlayers().size());
         return myLobbyDTO;
     }
 
@@ -161,13 +137,10 @@ public class LobbyRESTController {
             @RequestHeader("userId") Long userId) {
 
         AuthHeader authHeader = new AuthHeader(userId, token);
-        boolean isAuthenticated = authService.authUser(authHeader);
-        if (!isAuthenticated) {
+        if (!authService.authUser(authHeader)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Please log in");
         }
 
-        GameResult gameResult = gameRepository.findByGameId(gameId);
-
-        return DTOMapper.INSTANCE.convertGameResultToGameResultDTO(gameResult);
+        return lobbyService.getGameResult(gameId);
     }
 }

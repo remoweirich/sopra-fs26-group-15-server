@@ -1,111 +1,67 @@
 package ch.uzh.ifi.hase.soprafs26.rest.mapper;
 
-import ch.uzh.ifi.hase.soprafs26.objects.Lobby;
-import org.mapstruct.*;
+import ch.guessbb.sopraserver.entity.*;
+import ch.guessbb.sopraserver.rest.dto.*;
+import ch.uzh.ifi.hase.soprafs26.entity.Lobby;
+import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-import ch.uzh.ifi.hase.soprafs26.entity.*;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
 
-/**
- * DTOMapper
- * This class is responsible for generating classes that will automatically
- * transform/map the internal representation
- * of an entity (e.g., the User) to the external/API representation (e.g.,
- * UserGetDTO for getting, UserPostDTO for creating)
- * and vice versa.
- * Additional mappers can be defined for new entities.
- * Always created one mapper for getting information (GET) and one mapper for
- * creating information (POST).
- */
 @Mapper
 public interface DTOMapper {
 
 	DTOMapper INSTANCE = Mappers.getMapper(DTOMapper.class);
 
-    @Mapping(target = "userId", ignore = true)
+    @Mapping(target = "userProfile.username", source = "username")
+    @Mapping(target = "userProfile.email", source = "email")
+    @Mapping(target = "userProfile.password", source = "password")
+    @Mapping(target = "userProfile.userBio", source = "userBio")
     @Mapping(target = "userScoreboard", ignore = true)
     @Mapping(target = "creationDate", ignore = true)
     @Mapping(target = "token", ignore = true)
-    @Mapping(target = "status", ignore = true)
-    @Mapping(target = "friends", ignore = true)
+    @Mapping(target = "isOnline", ignore = true)
+    @Mapping(target = "userId", ignore = true)
     User convertRegisterPostDTOtoUser(RegisterPostDTO registerPostDTO);
 
-	UserAuthDTO convertUsertoUserAuthDTO(User user);
+    UserAuthDTO convertUsertoUserAuthDTO(User user);
+
+    @Mapping(source = "userProfile.username", target = "username")
+    @Mapping(source = "userProfile.userBio", target = "userBio")
+    UserDTO convertUserToUserDTO(User user);
+
+    @Mapping(source = "userProfile.username", target = "username")
+    @Mapping(source = "userProfile.email", target = "email")
+    @Mapping(source = "userProfile.userBio", target = "userBio")
+    @Mapping(source = "userScoreboard.totalPoints", target = "userScoreboard.totalPoints")
+    @Mapping(source = "userScoreboard.playedGames", target = "userScoreboard.playedGames")
+    @Mapping(source = "userScoreboard.playedRounds", target = "userScoreboard.playedRounds")
+    @Mapping(source = "userScoreboard.bestRoundPoints", target = "userScoreboard.bestRoundPoints")
+    @Mapping(source = "userScoreboard.guessingPrecision", target = "userScoreboard.guessingPrecision")
+    @Mapping(target = "friends", ignore = true)
+    MyUserDTO convertUserToMyUserDTO(User user);
 
     @Mapping(source = "lobbyId", target = "lobbyId")
+    @Mapping(source = "lobbyName", target = "lobbyName")
+    @Mapping(source = "maxPlayers", target = "maxPlayers")
+    @Mapping(source = "visibility", target = "visibility")
+    @Mapping(source = "maxRounds", target = "maxRounds")
+    @Mapping(source = "lobbyState", target = "lobbyState")
     @Mapping(source = "lobbyCode", target = "lobbyCode")
-    @Mapping(target = "userId", ignore = true) // Neu hinzufügen
-    @Mapping(target = "token", ignore = true)  // Neu hinzufügen
-    LobbyAccessDTO convertLobbyToLobbyAccessDTO(Lobby lobby);
+    @Mapping(target = "currentPlayers", ignore = true)
+    LobbyDTO convertEntityToLobbyDTO(Lobby lobby);
 
-	@Mapping(source = "userId", target = "userId")
-	@Mapping(source = "username", target = "username")
-	@Mapping(source = "token", target = "token")
-	@Mapping(source = "status", target = "status")
-	UserGetDTO convertUserToUserGetDTO(User user);
-
-    @Mapping(source = "gameId", target = "gameId")
-    @Mapping(source = "rounds", target = "rounds")
-    @Mapping(source = "scores", target = "scores")
-    @Mapping(source = "usernames", target = "usernames")
-    GameResultDTO convertGameResultToGameResultDTO(GameResult gameResult);
-
-    @Mapping(source = "userScoreboard", target = "userScoreboard")
-	@Mapping(source = "username", target = "username")
-	@Mapping(source = "email", target = "email")
-	@Mapping(source = "userBio", target = "userBio")
-	@Mapping(source = "creationDate", target = "creationDate")
-	@Mapping(source = "friends", target = "friends")
-	MyUserDTO convertUserToMyUserDTO(User user);
-
-	@Mapping(source = "userScoreboard", target = "userScoreboard")
-	@Mapping(source = "username", target = "username")
-	@Mapping(source = "userBio", target = "userBio")
-	@Mapping(source = "creationDate", target = "creationDate")
-	@Mapping(source = "friends", target = "friends")
-	UserDTO convertUserToUserDTO(User user);
+    @Mapping(source = "admin.userId", target = "adminId")
+    @Mapping(source = "players", target = "players")
+    @Mapping(target = "currentPlayers", ignore = true)
+    MyLobbyDTO convertEntityToMyLobbyDTO(Lobby lobby);
 
 
 
-	@Mapping(source = "lobbyName", target = "lobbyName")
-	@Mapping(source = "size", target = "size")
-	@Mapping(source = "visibility", target = "visibility")
-	@Mapping(source = "maxRounds", target = "maxRounds")
-	@Mapping(source = "lobbyState", target = "lobbyState")
-	@Mapping(source = "lobbyCode", target = "lobbyCode")
-	@Mapping(source = "lobbyId", target = "lobbyId")
 
-	LobbyDTO convertEntityToLobbyDTO(Lobby lobby);
 
-	@Mapping(source = "lobbyId", target = "lobbyId")
-	@Mapping(source = "lobbyCode", target = "lobbyCode")
-	@Mapping(source = "lobbyName", target = "lobbyName")
-	@Mapping(source = "admin", target = "admin")
-	@Mapping(source = "size", target = "size")
-	@Mapping(source = "visibility", target = "visibility")
-	@Mapping(source = "currentRound", target = "currentRound")
-	@Mapping(source = "users", target = "users")
-	@Mapping(source = "maxRounds", target = "maxRounds")
-	@Mapping(source = "scores", target = "scores")
-	@Mapping(source = "lobbyState", target = "lobbyState")
-
-	MyLobbyDTO convertEntityToMyLobbyDTO(Lobby lobby);
-
-    @Mapping(source = "lobbyCode", target = "lobbyCode")
-    @Mapping(target = "lobbyId", ignore = true)
-    @Mapping(target = "lobbyName", ignore = true)
-    @Mapping(target = "admin", ignore = true)
-    @Mapping(target = "size", ignore = true)
-    @Mapping(target = "visibility", ignore = true)
-    @Mapping(target = "users", ignore = true)
-    @Mapping(target = "rounds", ignore = true)
-    @Mapping(target = "currentRound", ignore = true)
-    @Mapping(target = "maxRounds", ignore = true)
-    @Mapping(target = "scores", ignore = true)
-    @Mapping(target = "lobbyState", ignore = true)
-    @Mapping(target = "game", ignore = true)
-    Lobby convertLobbyCodePostDTOtoEntity(LobbyCodePostDTO lobbyCodePostDTO);
 
 
 

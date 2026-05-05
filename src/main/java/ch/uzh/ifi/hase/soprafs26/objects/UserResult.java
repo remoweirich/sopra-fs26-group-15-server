@@ -1,33 +1,16 @@
 package ch.uzh.ifi.hase.soprafs26.objects;
 
-import lombok.Getter;
+import lombok.*;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserResult {
-    @Getter
-    private long userId;
-
-    @Getter
-    private int totalPoints;
-
-    @Getter
-    private int roundPoints;
-
-    @Getter
-    private long xCoordinate;
-
-    @Getter
-    private long yCoordinate;
-
-    @Getter
-    private double distance;
-
-    public UserResult(long userId, int totalPoints, int roundPoints, long xCoordinate, long yCoordinate, double distance) {
-        this.userId = userId;
-        this.totalPoints = totalPoints;
-        this.roundPoints = roundPoints;
-        this.xCoordinate = xCoordinate;
-        this.yCoordinate = yCoordinate;
-        this.distance = distance;
-    }
-
+    private Long userId;
+    private Integer totalPoints;
+    private Integer roundPoints;
+    private Long xCoordinate;
+    private Long yCoordinate;
+    private Double distance;
 }

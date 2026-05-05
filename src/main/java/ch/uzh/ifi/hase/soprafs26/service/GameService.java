@@ -3,30 +3,25 @@ package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.constant.LobbyState;
 import ch.uzh.ifi.hase.soprafs26.constant.MessageType;
-import ch.uzh.ifi.hase.soprafs26.entity.GameResult;
-import ch.uzh.ifi.hase.soprafs26.events.GameEndedEvent;
-import ch.uzh.ifi.hase.soprafs26.objects.Game;
-import ch.uzh.ifi.hase.soprafs26.entity.User;
-import ch.uzh.ifi.hase.soprafs26.objects.*;
-import ch.uzh.ifi.hase.soprafs26.repository.GameRepository;
-import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
+import ch.guessbb.sopraserver.entity.*;
+import ch.guessbb.sopraserver.objects.*;
+import ch.guessbb.sopraserver.repository.*;
+import ch.uzh.ifi.hase.soprafs26.entity.*;
+import ch.uzh.ifi.hase.soprafs26.objects.Train;
+import ch.uzh.ifi.hase.soprafs26.objects.UserGameStatus;
+import ch.uzh.ifi.hase.soprafs26.objects.UserResult;
+import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GuessMessageDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.MyLobbyDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.ResultDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoundStartDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs26.trains.TrainPositionFetcher;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.http.HttpStatus;
 import ch.uzh.ifi.hase.soprafs26.websocket.Message;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
-
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -35,216 +30,140 @@ import java.util.concurrent.*;
 @Service
 @Transactional
 public class GameService {
+    private final TrainPositionFetcher trainPositionFetcher;
+    private final RoundRepository roundRepository;
+    private final GuessRepository guessRepository;
+    private final LobbyRepository lobbyRepository;
     private final UserRepository userRepository;
-    //private AuthService authService;
-
-    private List<Game> activeGames;
-
-    private TrainPositionFetcher trainPositionFetcher;
-    private final GameRepository gameRepository;
     private final Map<Long, ScheduledFuture<?>> activeTimers = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
-    private final ApplicationEventPublisher eventPublisher;
     private final SimpMessagingTemplate messagingTemplate;
+    private final Map<Long, Boolean> scoresPublished = new ConcurrentHashMap<>();
+    private final ObjectMapper objectMapper;
+    private final RoundHistoryRepository roundHistoryRepository;
 
-    private Map<Long, Boolean> scoresPublished = new HashMap<>();
-
-    public GameService(/*AuthService authService,*/ TrainPositionFetcher trainPositionFetcher, GameRepository gameRepository, SimpMessagingTemplate messagingTemplate, ApplicationEventPublisher eventPublisher, UserRepository userRepository) {
-        //this.authService = authService;
-        this.eventPublisher = eventPublisher;
+    public GameService(TrainPositionFetcher trainPositionFetcher, RoundRepository roundRepository, GuessRepository guessRepository, LobbyRepository lobbyRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate, ObjectMapper objectMapper, RoundHistoryRepository roundHistoryRepository) {
         this.trainPositionFetcher = trainPositionFetcher;
-        this.gameRepository = gameRepository;
-        this.messagingTemplate = messagingTemplate;
-        this.activeGames = new ArrayList<>();
+        this.roundRepository = roundRepository;
+        this.guessRepository = guessRepository;
+        this.lobbyRepository = lobbyRepository;
         this.userRepository = userRepository;
+        this.messagingTemplate = messagingTemplate;
+        this.objectMapper = objectMapper;
+        this.roundHistoryRepository = roundHistoryRepository;
     }
 
-    public Game getGameById(Long gameId) {
-        for (Game game : activeGames) {
-            if (game.getGameId().equals(gameId)) {
-                return game;
-            }
-        }
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not found");
-    }
-
-    public Game setupGame(Lobby currentLobby) {
-
-        
-            
-        
+    public void setupGame(Lobby currentLobby) {
         try {
             List<Train> trains = trainPositionFetcher.fetchTrains(currentLobby.getMaxRounds());
-
             for (Train train : trains) {
                 trainPositionFetcher.interpolatePosition(train);
             }
 
-        List<Round> rounds = new ArrayList<>();
+            Long lobbyId = currentLobby.getLobbyId();
+            scoresPublished.put(lobbyId, false);
 
-        List<User> players = currentLobby.getUsers();
+            for (int i = 0; i < currentLobby.getMaxRounds(); i++) {
+                Round round = new Round();
+                round.setLobby(currentLobby);
+                round.setRoundNumber(i + 1);
+                round.setTrainData(objectMapper.writeValueAsString(trains.get(i)));
+                roundRepository.save(round);
 
-        Map<Long, UserGameStatus> connectedPlayers = new HashMap<>();
-        Long gameId = currentLobby.getLobbyId();
-        scoresPublished.put(gameId, false);
-
-        for (int i = 0; i < currentLobby.getMaxRounds(); i++) {
-            Map<Long, UserGameStatus> roundUserStatus = new HashMap<>();
-            Map<Long, GuessMessageDTO> roundGuesses = new HashMap<>();
-            Map<Long, Score> roundScores = new HashMap<>();
-            Map<Long, Double> roundDistances = new HashMap<>();
-
-            for (User user : players) {
-                Long userId = user.getUserId();
-                Score score = new Score(userId);
-                roundDistances.put(userId, 0.0);
-                score.setPoints(0);
-                currentLobby.setScore(userId, score);
-                roundUserStatus.put(userId, new UserGameStatus(userId, false));
-                roundGuesses.put(userId, new GuessMessageDTO(gameId, userId));
-                roundScores.put(userId, new Score(userId));
+                for (User player : currentLobby.getPlayers()) {
+                    Guess guess = new Guess();
+                    guess.setRound(round);
+                    guess.setUser(player);
+                    guess.setHasGuessed(false);
+                    guessRepository.save(guess);
+                }
             }
 
-            rounds.add(new Round(i+1, trains.get(i), roundGuesses, roundUserStatus, roundScores, roundDistances));
-        }
-
-        Game newGame = new Game(gameId, rounds, trains, connectedPlayers);
-
-        activeGames.add(newGame);
-
-        MyLobbyDTO myLobbyDTO = DTOMapper.INSTANCE.convertEntityToMyLobbyDTO(currentLobby);
-        Message message = new Message(MessageType.GAME_START, myLobbyDTO);
-        messagingTemplate.convertAndSend("/topic/lobby/" + currentLobby.getLobbyId(), message);
-
-        return newGame;
-
-        //DoneTODO: call Round start, allow for Frontend to subscribe to Round start messages, and trigger the timer for the first round
+            roundRepository.flush();
+            guessRepository.flush();
 
         } catch (Exception e) {
-            throw new Error("Failed to fetch mock trains", e);
+            throw new RuntimeException("Failed to fetch trains", e);
         }
     }
-    
 
-
-
-    /**
-     * Process Player guess, save score and send back userGameStatus to frontend subscribers
-     */
-    public void processGuessMessage(GuessMessageDTO guessMessage, Lobby currentLobby){
-        Long gameId = guessMessage.getLobbyId();
+    public void processGuessMessage(GuessMessageDTO guessMessage, Lobby currentLobby) {
+        Long lobbyId = currentLobby.getLobbyId();
         Long userId = guessMessage.getUserId();
-        
-        System.out.println("received guess message for game " + gameId + " from user " + userId + " with coordinates: " + guessMessage.getXcoordinate() + ", " + guessMessage.getYcoordinate());
 
-        if (!canSubmitGuess(gameId)){
-            System.out.println("User " + userId + " submitted guess too late - round already ended");
+        if (!canSubmitGuess(lobbyId)) {
             return;
         }
 
-        // Ensure the lobby has the game attached (in case a fresh lobby was retrieved from DB)
-        if (currentLobby.getGame() == null) {
-            currentLobby.setGame(getGameById(gameId));
+        List<Round> rounds = roundRepository.findByLobbyOrderByRoundNumberAsc(currentLobby);
+        int currentRoundNumber = currentLobby.getCurrentRound();
+        Round currentRound = rounds.get(currentRoundNumber - 1);
+
+        Train currentTrain;
+        try {
+            currentTrain = objectMapper.readValue(currentRound.getTrainData(), Train.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to deserialize train data", e);
         }
 
-        Game currentGame = currentLobby.getGame();
-        int roundNumber = currentLobby.getCurrentRound() -1;
-        List<Round> rounds = currentGame.getRounds();
-
-        if (roundNumber < 0 || roundNumber >= rounds.size()) {
-            System.out.println("Invalid round number: " + roundNumber);
-            return;
-        }
-
-        Round currentRound = rounds.get(roundNumber);
-        Train currentTrain = currentRound.getTrain();
-        Long playerGuessX = guessMessage.getXcoordinate();
-        Long playerGuessY = guessMessage.getYcoordinate();
-
-        double guessDistance = calculateGuessDistance(currentTrain, playerGuessX, playerGuessY);
+        double guessDistance = calculateGuessDistance(currentTrain, guessMessage.getXCoordinate(), guessMessage.getYCoordinate());
         int points = calculateScore(currentTrain, guessDistance);
-
-        currentRound.setScore(userId, points);
-        currentRound.setGuessMessage(userId, guessMessage);
         double roundedDistanceKm = Math.round((guessDistance / 1000.0) * 100.0) / 100.0;
-        currentRound.setDistances(userId, roundedDistanceKm);
 
-        System.out.println("Processed guess for user " + userId + " in round " + (roundNumber + 1) + ": distance=" + guessDistance + ", points=" + points);
+        Guess guess = guessRepository.findByRoundAndUserUserId(currentRound, userId);
+        guess.setLat(guessMessage.getXCoordinate().floatValue());
+        guess.setLon(guessMessage.getYCoordinate().floatValue());
+        guess.setPoints(points);
+        guess.setDistanceToTrain((float) roundedDistanceKm);
+        guess.setHasGuessed(true);
+        guessRepository.save(guess);
 
-        updateLobbyTotalScore(currentLobby, userId, points);
-
-        UserGameStatus userGameStatus = new UserGameStatus(userId, true);
-        Boolean allAreReady = updateUserGameStatus(userGameStatus, currentLobby);
-
-        if (allAreReady) {
-            ScheduledFuture<?> timer = activeTimers.get(gameId);
-            if (timer != null){
-                timer.cancel(false);
-            }
-            allowedToPublish(currentLobby);
+        boolean allGuessed = checkAllGuessed(currentRound);
+        if (allGuessed) {
+            ScheduledFuture<?> timer = activeTimers.get(lobbyId);
+            if (timer != null) timer.cancel(false);
+            allowedToPublish(lobbyId);
         }
+
         Message message = new Message(MessageType.GAME_STATE, userId);
-        messagingTemplate.convertAndSend("/topic/game/" + gameId, message);
-
-
+        messagingTemplate.convertAndSend("/topic/game/" + lobbyId, message);
     }
 
-    private void updateLobbyTotalScore(Lobby lobby, Long userId, int pointsToAdd) {
-        Score score = lobby.getScore(userId);
-        score.setPoints(score.getPoints() + pointsToAdd);
-        lobby.setScore(userId, score);
+    private boolean checkAllGuessed(Round round) {
+        return guessRepository.findByRound(round)
+                .stream()
+                .allMatch(Guess::getHasGuessed);
     }
 
-    public void readyForNextRound(UserGameStatus userGameStatus, Lobby currentLobby){
-        // Ensure the lobby has the game attached (in case a fresh lobby was retrieved from DB)
-        if (currentLobby.getGame() == null) {
-            currentLobby.setGame(getGameById(currentLobby.getLobbyId()));
-        }
-        
+    public void readyForNextRound(UserGameStatus userGameStatus, Lobby currentLobby) {
+        System.out.println("updateUserGameStatus called for user " + userGameStatus.getUserId());
         Boolean allAreReady = updateUserGameStatus(userGameStatus, currentLobby);
-        
+        System.out.println("allAreReady: " + allAreReady);
         if (allAreReady) {
-            System.out.println("all users ready, roundStart()");
+            System.out.println("All ready! Starting round...");
             roundStart(currentLobby);
         }
     }
 
-    public Boolean updateUserGameStatus(UserGameStatus userGameStatus, Lobby currentLobby) {
-        Game currentGame = currentLobby.getGame();
-        List<Round> rounds = currentGame.getRounds();
-        int currentRoundNumber = currentLobby.getCurrentRound();
-        if (currentRoundNumber == 0){
-            currentGame.setConnectedPlayers(userGameStatus.getUserId(), userGameStatus);
-            List<UserGameStatus> connectedPlayers = currentGame.getConnectedPlayers();
-            int totalUsersInLobby = currentLobby.getUsers().size();
-            
-            // Check if all users in the lobby have connected
-            if (connectedPlayers.size() != totalUsersInLobby) {
-                System.out.println("Not all users connected yet. Connected: " + connectedPlayers.size() + "/" + totalUsersInLobby);
-                return false;
-            }
-            
-            // Check if all connected players are ready
-            for (UserGameStatus connectedPlayer : connectedPlayers) {
-                if (connectedPlayer.getIsReady() == false) {
-                    System.out.println("User " + connectedPlayer.getUserId() + " is not ready");
-                    return false;
-                }
-            }
-            System.out.println("All users ready! Total: " + totalUsersInLobby);
-            return true;
-        }
-        Round currentRound =  rounds.get(currentRoundNumber-1);
-        
-        currentRound.setUserGameStatus(userGameStatus.getUserId(), userGameStatus.getIsReady());
-        
-        List<UserGameStatus> allUsersGameStatuses = currentRound.getAllUserGameStatusesList();
+    private final Map<Long, Map<Long, Boolean>> roundReadyStatus = new ConcurrentHashMap<>();
 
-        for (UserGameStatus usGaSt : allUsersGameStatuses) {
-            if (usGaSt.getIsReady() == false) {
+    public Boolean updateUserGameStatus(UserGameStatus userGameStatus, Lobby currentLobby) {
+        Long lobbyId = currentLobby.getLobbyId();
+        Long userId = userGameStatus.getUserId();
+
+        roundReadyStatus.computeIfAbsent(lobbyId, k -> new ConcurrentHashMap<>())
+                .put(userId, userGameStatus.getIsReady());
+
+        Map<Long, Boolean> readyMap = roundReadyStatus.get(lobbyId);
+
+        for (User player : currentLobby.getPlayers()) {
+            Boolean isReady = readyMap.get(player.getUserId());
+            if (isReady == null || !isReady) {
                 return false;
             }
         }
+
+        roundReadyStatus.remove(lobbyId);
         return true;
     }
 
@@ -253,162 +172,152 @@ public class GameService {
     }
 
     public void roundStart(Lobby currentLobby) {
-        int currentRoundNumber =  currentLobby.getCurrentRound()+1;
+        Long lobbyId = currentLobby.getLobbyId();
+        System.out.println("[roundStart] Called for lobby " + lobbyId);
+
+        List<Round> rounds = roundRepository.findByLobbyOrderByRoundNumberAsc(currentLobby);
+        System.out.println("[roundStart] Found " + rounds.size() + " rounds");
+
+        int currentRoundNumber = currentLobby.getCurrentRound() + 1;
         currentLobby.setCurrentRound(currentRoundNumber);
+        lobbyRepository.save(currentLobby);
+        System.out.println("[roundStart] Current round number: " + currentRoundNumber);
 
-        Game currentGame = currentLobby.getGame();
-        Long gameId = currentGame.getGameId();
-        scoresPublished.put(gameId, false);
+        scoresPublished.put(lobbyId, false);
 
-        Train trainWithoutCoordinates = new Train(currentGame.getTrains().get(currentRoundNumber-1));
-        trainWithoutCoordinates.setCurrentX(0);
-        trainWithoutCoordinates.setCurrentY(0);
+        Round currentRound = rounds.get(currentRoundNumber - 1);
 
-        int maxRounds = currentLobby.getMaxRounds();
+        Train trainWithoutCoordinates;
+        try {
+            trainWithoutCoordinates = objectMapper.readValue(currentRound.getTrainData(), Train.class);
+            trainWithoutCoordinates.setCurrentX(0);
+            trainWithoutCoordinates.setCurrentY(0);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to deserialize train data", e);
+        }
 
-        RoundStartDTO roundStartDTO = new RoundStartDTO(currentRoundNumber, maxRounds, trainWithoutCoordinates);
+        RoundStartDTO roundStartDTO = new RoundStartDTO(currentRoundNumber, currentLobby.getMaxRounds(), trainWithoutCoordinates);
         Message message = new Message(MessageType.ROUND_START, roundStartDTO);
-        messagingTemplate.convertAndSend("/topic/game/" + gameId, message);
-        System.out.println("sent round start message for game " + gameId + " and round " + currentRoundNumber + message);
+        System.out.println("[roundStart] Sending ROUND_START to /topic/game/" + lobbyId);
+        messagingTemplate.convertAndSend("/topic/game/" + lobbyId, message);
+        System.out.println("[roundStart] ROUND_START sent!");
 
         ScheduledFuture<?> timer = scheduler.schedule(
-                () -> roundEnd(currentLobby),
-                45, //might be longer depending on front end timer implementation
+                () -> roundEnd(lobbyId),
+                45,
                 TimeUnit.SECONDS
         );
-
-        activeTimers.put(gameId, timer);
+        activeTimers.put(lobbyId, timer);
+        System.out.println("[roundStart] Timer scheduled for 45 seconds");
     }
 
-    public void roundEnd(Lobby currentLobby) {
-        Long gameId = currentLobby.getLobbyId();
-
-        messagingTemplate.convertAndSend("/topic/game/"+ gameId,
+    public void roundEnd(Long lobbyId) {
+        System.out.println("[roundEnd] Called for lobby " + lobbyId);
+        messagingTemplate.convertAndSend("/topic/game/" + lobbyId,
                 new Message(MessageType.ROUND_END, null));
 
-
-
         ScheduledFuture<?> lastMessagesTimer = scheduler.schedule(
-                () -> allowedToPublish(currentLobby),
+                () -> allowedToPublish(lobbyId),
                 3,
                 TimeUnit.SECONDS
         );
-
-        activeTimers.put(gameId, lastMessagesTimer);
+        activeTimers.put(lobbyId, lastMessagesTimer);
     }
 
-    public void allowedToPublish(Lobby currentLobby) {
-        if (!scoresPublished.get(currentLobby.getLobbyId())) {
-            publishScores(currentLobby);
+    public void allowedToPublish(Long lobbyId) {
+        if (!scoresPublished.get(lobbyId)) {
+            Lobby freshLobby = lobbyRepository.findById(lobbyId)
+                    .orElseThrow(() -> new RuntimeException("Lobby not found"));
+            publishScores(freshLobby);
         }
     }
 
     public void publishScores(Lobby currentLobby) {
-        activeTimers.remove(currentLobby.getLobbyId());
-        Game currentGame =  currentLobby.getGame();
-        Long gameId = currentGame.getGameId();
-        scoresPublished.put(gameId, true);
-        int currentRoundNumber = currentLobby.getCurrentRound();
-        Train train = currentGame.getTrains().get(currentRoundNumber-1);
-        Round currentRound =  currentGame.getRounds().get(currentRoundNumber-1);
+        Lobby freshLobby = lobbyRepository.findById(currentLobby.getLobbyId())
+                .orElseThrow(() -> new RuntimeException("Lobby not found"));
 
-        List<Score> totalScores =  currentLobby.getScores();
+        Long lobbyId = freshLobby.getLobbyId();
+        System.out.println("[publishScores] Called for lobby " + lobbyId);
 
-        Map<Long, Score> roundScores = currentRound.getScores();
-        Map<Long, Double> distances = currentRound.getDistances();
-        List<UserResult> userResults = new ArrayList<>();
+        activeTimers.remove(lobbyId);
+        scoresPublished.put(lobbyId, true);
 
-        for (Score totalScore : totalScores) {
-            long userId = totalScore.getUserId();
-            int totalPoints = totalScore.getPoints();
-            Integer roundPoints = roundScores.get(userId).getPoints();
-            if(roundPoints == null){
-                roundPoints = 0;
-            }
-            GuessMessageDTO guessMessage = currentRound.getGuessMessages().get(userId);
-            long xCoordinate = 0;
-            long yCoordinate = 0;
-            if (guessMessage != null && guessMessage.getXcoordinate() != null && guessMessage.getYcoordinate() != null) {
-                xCoordinate = guessMessage.getXcoordinate().longValue();
-                yCoordinate = guessMessage.getYcoordinate().longValue();
-            }
-            double distance = distances.get(userId);
-            if (distance == 0.0 && guessMessage == null) {
-                distance = Double.MAX_VALUE; // User didn't submit a guess
-            }
-            userResults.add(new UserResult(userId, totalPoints, roundPoints, xCoordinate, yCoordinate, distance));
+        List<Round> rounds = roundRepository.findByLobbyOrderByRoundNumberAsc(freshLobby);
+        System.out.println("[publishScores] Found " + rounds.size() + " rounds");
+
+        int currentRoundNumber = freshLobby.getCurrentRound();
+        System.out.println("[publishScores] currentRoundNumber: " + currentRoundNumber);
+
+        if (currentRoundNumber == 0) {
+            System.out.println("[publishScores] ERROR: currentRoundNumber is 0!");
+            return;
         }
 
+        Round currentRound = rounds.get(currentRoundNumber - 1);
+
+        Train train;
+        try {
+            train = objectMapper.readValue(currentRound.getTrainData(), Train.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to deserialize train data", e);
+        }
+
+        List<Guess> guesses = guessRepository.findByRound(currentRound);
+        System.out.println("[publishScores] Found " + guesses.size() + " guesses");
+
+        List<UserResult> userResults = new ArrayList<>();
+        for (Guess guess : guesses) {
+            Long userId = guess.getUser().getUserId();
+            int totalPoints = roundRepository.findByLobbyOrderByRoundNumberAsc(freshLobby)
+                    .stream()
+                    .flatMap(r -> guessRepository.findByRound(r).stream())
+                    .filter(g -> g.getUser().getUserId().equals(userId))
+                    .mapToInt(g -> g.getPoints() != null ? g.getPoints() : 0)
+                    .sum();
+            int roundPoints = guess.getPoints() != null ? guess.getPoints() : 0;
+            long xCoordinate = guess.getLat() != null ? guess.getLat().longValue() : 0;
+            long yCoordinate = guess.getLon() != null ? guess.getLon().longValue() : 0;
+            double distance = guess.getDistanceToTrain() != null ? guess.getDistanceToTrain() : Double.MAX_VALUE;
+            userResults.add(new UserResult(userId, totalPoints, roundPoints, xCoordinate, yCoordinate, distance));
+            System.out.println("[publishScores] UserResult: userId=" + userId + " roundPoints=" + roundPoints + " totalPoints=" + totalPoints);
+        }
 
         ResultDTO resultDTO = new ResultDTO(currentRoundNumber, userResults, train);
         Message message = new Message(MessageType.SCORES, resultDTO);
-        messagingTemplate.convertAndSend("/topic/game/" + gameId, message);
+        System.out.println("[publishScores] Sending SCORES to /topic/game/" + lobbyId);
+        messagingTemplate.convertAndSend("/topic/game/" + lobbyId, message);
+        System.out.println("[publishScores] SCORES sent!");
 
-
-        if (currentLobby.getMaxRounds() == currentRoundNumber){
-            System.out.println("call GameTearDown for game  " + gameId);
-            gameTearDown(currentLobby);
+        if (freshLobby.getMaxRounds() == currentRoundNumber) {
+            gameTearDown(freshLobby);
         }
-
     }
 
-    /**
-     * Calculates a score (0–1000) for a player's train position guess.
-     *
-     * Uses Gaussian decay: score = 1000 * e^(-k * errorRatio²)
-     * where errorRatio = guessDistance / totalLineLength
-     *
-     * Decay constant k is chosen so that errorRatio = 1.0 (guess is off by a full
-     * line length) yields a score of ~5, giving a near-zero floor for bad guesses.
-     *
-     */
     public int calculateScore(Train train, double guessDistance) {
-        // 1. Total length of the train line (origin → destination)
         double ldx = train.getLineDestination().getXCoordinate()
                 - train.getLineOrigin().getXCoordinate();
         double ldy = train.getLineDestination().getYCoordinate()
                 - train.getLineOrigin().getYCoordinate();
         double totalLineLength = Math.sqrt(Math.pow(ldx, 2) + Math.pow(ldy, 2));
 
-        System.out.println("calculateScore: origin=(" + train.getLineOrigin().getXCoordinate() + "," + train.getLineOrigin().getYCoordinate() + 
-                           "), dest=(" + train.getLineDestination().getXCoordinate() + "," + train.getLineDestination().getYCoordinate() +
-                           "), lineLength=" + totalLineLength + ", guessDistance=" + guessDistance);
-
-        // Edge case: degenerate line (origin == destination)
-        // Fall back to a fixed reference distance of 1 km in EPSG:3857 meters
         if (totalLineLength < 1.0) {
             totalLineLength = 1000.0;
-            System.out.println("Using fallback line length: 1000");
         }
 
-        // 2. Relative error ratio (clamped — can't do worse than a full line length)
         double errorRatio = guessDistance / totalLineLength;
-
-        // 3. Power-modified exponential decay
-        //    p controls curve shape: lower p = steeper near 0, flatter tail
-        //    k is anchored so that errorRatio = 0.5 → exactly 100 pts
-        //    k = ln(10) / 0.5^p
         final double p = 1.5;
         final double k = Math.log(5.0) / Math.pow(0.5, p);
         double rawScore = 1000.0 * Math.exp(-k * Math.pow(errorRatio, p));
-        System.out.println("errorRatio=" + errorRatio + ", p=" + p + ", k=" + k + ", rawScore=" + rawScore);
 
-        // 4. Round and clamp to [0, 1000]
         int finalScore = (int) Math.min(1000, Math.max(0, Math.round(rawScore)));
-        System.out.println("finalScore=" + finalScore);
-
-        double absoluteKm = guessDistance / 1000.0; // EPSG:3857 meters → km
-        final double lambda = 0.01; // tune this: higher = harsher absolute penalty
+        double absoluteKm = guessDistance / 1000.0;
+        final double lambda = 0.01;
         double dampener = Math.exp(-lambda * absoluteKm);
-
         finalScore = (int)(finalScore * dampener);
 
         return finalScore;
     }
 
-    /**
-     * Helper method to calculate the distance between the player's guess and the train's actual position.
-     */
     public double calculateGuessDistance(Train train, Long playerX, Long playerY) {
         double dx = playerX - train.getCurrentX();
         double dy = playerY - train.getCurrentY();
@@ -416,51 +325,54 @@ public class GameService {
     }
 
     public void gameTearDown(Lobby currentLobby) {
-        List<Score> currentScores = currentLobby.getScores();
-        Game game = currentLobby.getGame();
-        List<Round> rounds = game.getRounds();
-        Long gameId = game.getGameId();
-        GameResult gameResult = gameRepository.findByGameId(gameId);
+        Long lobbyId = currentLobby.getLobbyId();
 
-        if (gameResult == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not found");
+        List<Round> rounds = roundRepository.findByLobbyOrderByRoundNumberAsc(currentLobby);
+        for (Round round : rounds) {
+            List<Guess> guesses = guessRepository.findByRound(round);
+            for (Guess guess : guesses) {
+                RoundHistory roundHistory = new RoundHistory();
+                roundHistory.setLobby(currentLobby);
+                roundHistory.setUser(guess.getUser());
+                roundHistory.setRoundNumber(round.getRoundNumber());
+                roundHistory.setPoints(guess.getPoints() != null ? guess.getPoints() : 0);
+                roundHistory.setDistanceToTrain(guess.getDistanceToTrain() != null ? guess.getDistanceToTrain() : 0f);
+                roundHistoryRepository.save(roundHistory);
+            }
         }
 
-        gameResult.setRounds(rounds);
-        gameResult.setScores(currentScores);
-        Map<Long, String> usernames = new HashMap<>();
-        for (Score score : currentScores) {
-            long userId = score.getUserId();
-            String username = userRepository.findById(score.getUserId()).get().getUsername();
-            usernames.put(userId, username);
+        for (User player : currentLobby.getPlayers()) {
+            Long userId = player.getUserId();
+            List<RoundHistory> playerHistory = roundHistoryRepository.findByUserUserId(userId);
+
+            UserScoreboard scoreboard = player.getUserScoreboard();
+            scoreboard.setPlayedGames(scoreboard.getPlayedGames() + 1);
+            scoreboard.setPlayedRounds(scoreboard.getPlayedRounds() + rounds.size());
+            scoreboard.setTotalPoints(playerHistory.stream().mapToLong(r -> r.getPoints()).sum());
+            scoreboard.setBestRoundPoints(playerHistory.stream().mapToLong(r -> r.getPoints()).max().orElse(0));
+            scoreboard.setGuessingPrecision((float) playerHistory.stream().mapToDouble(r -> r.getDistanceToTrain()).average().orElse(0));
+            player.setUserScoreboard(scoreboard);
+            userRepository.save(player);
         }
-        gameResult.setUsernames(usernames);
 
-        gameRepository.save(gameResult);
-        gameRepository.flush();
-        activeTimers.remove(gameId);
-        scoresPublished.remove(gameId);
+        currentLobby.setLobbyState(LobbyState.FINISHED);
+        lobbyRepository.save(currentLobby);
 
-        eventPublisher.publishEvent(new GameEndedEvent(this, gameId));
+        for (Round round : rounds) {
+            guessRepository.deleteByRound(round);
+        }
+        roundRepository.deleteByLobby(currentLobby);
 
-
-        activeGames.remove(game);
-        currentLobby.setGame(null);
-        System.out.println("Game " + game.getGameId() + " has ended and been removed from active games.");
-
+        activeTimers.remove(lobbyId);
+        scoresPublished.remove(lobbyId);
     }
 
     public void cleanupAllTimers() {
-
         activeTimers.forEach((gameId, timer) -> {
             if (timer != null) {
                 timer.cancel(false);
             }
         });
-
         activeTimers.clear();
-    }
-    public void cleanupGames() {
-        activeGames.clear();
     }
 }

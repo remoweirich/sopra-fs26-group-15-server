@@ -1,11 +1,10 @@
 package ch.uzh.ifi.hase.soprafs26.security;
 
-import ch.uzh.ifi.hase.soprafs26.service.LobbyService;
+import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
-import ch.uzh.ifi.hase.soprafs26.entity.User;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -13,15 +12,13 @@ import org.springframework.web.server.ResponseStatusException;
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final LobbyService lobbyService;
 
-    public AuthService(UserRepository userRepository, LobbyService lobbyService) {
+    public AuthService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.lobbyService = lobbyService;
     }
 
     public Boolean authUser(AuthHeader authHeader) {
-        if(authHeader.getUserId() == null){
+        if (authHeader.getUserId() == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This user could not be found");
         }
         User user = userRepository.findById(authHeader.getUserId()).orElse(null);
@@ -32,12 +29,5 @@ public class AuthService {
             return false;
         }
         return user.getToken().equals(authHeader.getToken());
-    }
-
-    public Boolean isUserInLobby(Long userId, String token, Long lobbyId) {
-        if (!authUser(new AuthHeader(userId, token))) {
-            return false;
-        }
-        return lobbyService.getLobbyById(lobbyId).existsUser(userId);
     }
 }

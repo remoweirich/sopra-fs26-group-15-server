@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class LoginPostDTO {
-    private String username;
-    private String password;
+public class ScoreDTO {
+    private Long userId;
+    private Integer points;
 }

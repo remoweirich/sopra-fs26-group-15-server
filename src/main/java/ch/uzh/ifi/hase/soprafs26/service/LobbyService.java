@@ -1,260 +1,164 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
-import ch.uzh.ifi.hase.soprafs26.constant.LobbyVisibility;
-import ch.uzh.ifi.hase.soprafs26.objects.Admin;
-import ch.uzh.ifi.hase.soprafs26.objects.Game;
-import ch.uzh.ifi.hase.soprafs26.objects.Lobby;
-import ch.uzh.ifi.hase.soprafs26.objects.Score;
+import ch.guessbb.sopraserver.constant.*;
+import ch.uzh.ifi.hase.soprafs26.constant.LobbyState;
+import ch.guessbb.sopraserver.entity.*;
+import ch.uzh.ifi.hase.soprafs26.constant.MessageType;
+import ch.uzh.ifi.hase.soprafs26.entity.Lobby;
+import ch.uzh.ifi.hase.soprafs26.entity.RoundHistory;
+import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.repository.LobbyRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.RoundHistoryRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
-import ch.uzh.ifi.hase.soprafs26.repository.GameRepository;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.CreateLobbyPostDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.LobbyAccessDTO;
+import ch.guessbb.sopraserver.rest.dto.*;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
+import ch.uzh.ifi.hase.soprafs26.websocket.Message;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import ch.uzh.ifi.hase.soprafs26.constant.LobbyState;
-import org.springframework.context.event.EventListener;
-import ch.uzh.ifi.hase.soprafs26.events.GameEndedEvent;
-
 
 import java.security.SecureRandom;
-
-import ch.uzh.ifi.hase.soprafs26.entity.*;
-
-import ch.uzh.ifi.hase.soprafs26.rest.dto.MyLobbyDTO;
-
-import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
-
-import ch.uzh.ifi.hase.soprafs26.constant.*;
-import ch.uzh.ifi.hase.soprafs26.websocket.Message;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-
 import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class LobbyService {
 
-    private List<Lobby> activeLobbies = new ArrayList<>();
-    //private final AuthService authService;
     private final UserService userService;
     private final GameService gameService;
     private final SimpMessagingTemplate messagingTemplate;
-    private long newLobbyId = 1L;
-    private final GameRepository gameRepository;
-
-    public LobbyService(/*AuthService authService,*/ UserService userService, GameService gameService, SimpMessagingTemplate messagingTemplate, UserRepository userRepository, GameRepository gameRepository) {
-        //this.authService = authService;
-        this.userService = userService;
-        this.gameService = gameService;
-        this.messagingTemplate = messagingTemplate;
-        this.userRepository = userRepository;
-        this.gameRepository = gameRepository;
-    }
-
-    @EventListener
-    public void onGameEnded(GameEndedEvent event) {
-        activeLobbies.removeIf(l -> l.getLobbyId().equals(event.getGameId()));
-    }
-
-    public List<Lobby> getAllLobbies() {
-        return activeLobbies;
-    }
-
     private final UserRepository userRepository;
+    private final LobbyRepository lobbyRepository;
+    private final RoundHistoryRepository roundHistoryRepository;
 
     private final String CHARS = "ABCDEFGHJKLMNPQRSTUVWXY1Z23456789";
     private final SecureRandom RANDOM = new SecureRandom();
 
+    public LobbyService(UserService userService, GameService gameService, SimpMessagingTemplate messagingTemplate, UserRepository userRepository, LobbyRepository lobbyRepository, RoundHistoryRepository roundHistoryRepository)  {
+        this.userService = userService;
+        this.gameService = gameService;
+        this.messagingTemplate = messagingTemplate;
+        this.userRepository = userRepository;
+        this.lobbyRepository = lobbyRepository;
+        this.roundHistoryRepository = roundHistoryRepository;
+    }
+
     public LobbyAccessDTO createLobby(CreateLobbyPostDTO createLobbyPostDTO, boolean isGuest, Long userId, String token) {
         if (isGuest) {
-            User guestUser = createGuestUser();
-
+            User guestUser = userService.createGuestUser();
             userId = guestUser.getUserId();
             token = guestUser.getToken();
         }
 
+        User admin = userService.getUserById(userId);
+
         Lobby newLobby = new Lobby();
-
-        GameResult gameResult = new GameResult();
-
-        gameRepository.save(gameResult);
-        gameRepository.flush();
-
-        newLobby.setLobbyId(gameResult.getGameId());
-
         newLobby.setLobbyName(createLobbyPostDTO.getLobbyName());
-
-        String newLobbyCode = createLobbyCode(); // to be replaced by random code
-        newLobby.setLobbyCode(newLobbyCode);
-
-        Admin newAdmin = new Admin(userId, token);
-        newLobby.setAdmin(newAdmin);
-
-        newLobby.setSize(createLobbyPostDTO.getSize());
-
+        newLobby.setLobbyCode(createLobbyCode());
+        newLobby.setAdmin(admin);
+        newLobby.setMaxPlayers(createLobbyPostDTO.getMaxPlayers());
         newLobby.setVisibility(createLobbyPostDTO.getVisibility());
-
-//        Map<Long, User> users = new HashMap<>();
-//        User currentUser = userRepository.findById(createLobbyPostDTO.getUserId()).orElse(null);
-//        users.put(createLobbyPostDTO.getUserId(), currentUser);
-//        newLobby.setUsers(users);
-
-        newLobby.setCurrentRound(0);
-
         newLobby.setMaxRounds(createLobbyPostDTO.getMaxRounds());
-
-        Map<Long, Score> scores = new HashMap<>();
-        newLobby.setScores(scores);
-
-        newLobby.setUsers(new HashMap<>());
-
         newLobby.setLobbyState(LobbyState.WAITING);
+        newLobby.setPlayers(new ArrayList<>());
 
-        Game newGame = new Game();
-        newLobby.setGame(newGame);
+        newLobby = lobbyRepository.save(newLobby);
+        lobbyRepository.flush();
 
-        activeLobbies.add(newLobby);
-
-        LobbyAccessDTO dto = DTOMapper.INSTANCE.convertLobbyToLobbyAccessDTO(newLobby);
+        LobbyAccessDTO dto = new LobbyAccessDTO();
+        dto.setLobbyId(newLobby.getLobbyId());
+        dto.setLobbyCode(newLobby.getLobbyCode());
         dto.setUserId(userId);
         dto.setToken(token);
 
         return dto;
     }
 
-    public LobbyAccessDTO joinLobby(Long userId,String token, Long lobbyId, String lobbyCode, Boolean isGuest) {
-        LobbyAccessDTO lobbyAccessDTO = new LobbyAccessDTO(lobbyId, lobbyCode);
+    public List<Lobby> getAllLobbies() {
+        return lobbyRepository.findAll().stream()
+                .filter(l -> l.getLobbyState() != LobbyState.FINISHED)
+                .collect(Collectors.toList());
+    }
 
+    public LobbyAccessDTO joinLobby(Long userId, String token, Long lobbyId, String lobbyCode, Boolean isGuest) {
+        Long effectiveUserId = userId;
+        String effectiveToken = token;
 
         if (isGuest) {
-            User guestUser = createGuestUser();
-            userId = guestUser.getUserId();
-            token = guestUser.getToken();
+            User guestUser = userService.createGuestUser();
+            effectiveUserId = guestUser.getUserId();
+            effectiveToken = guestUser.getToken();
         }
 
+        final Long finalUserId = effectiveUserId;
+        final String finalToken = effectiveToken;
+
         Lobby lobby = getLobbyById(lobbyId);
+        User user = userService.getUserById(finalUserId);
 
-
-        User user = userService.getUserById(userId);
-
-        //Check whether the lobby code is correct
+        // Check whether the lobby code is correct
         if (!lobby.getLobbyCode().equals(lobbyCode)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Incorrect lobby code");
         }
 
-        //Check if user is already in lobby
-        if(lobby.existsUser(userId)) {
-            lobbyAccessDTO.setLobbyCode(lobbyCode);
-            lobbyAccessDTO.setLobbyId(lobbyId);
-            lobbyAccessDTO.setUserId(userId);
-            lobbyAccessDTO.setToken(token);
-
-            return lobbyAccessDTO;
+        // Check if user is already in lobby
+        boolean alreadyInLobby = lobby.getPlayers().stream()
+                .anyMatch(p -> p.getUserId().equals(finalUserId));
+        if (alreadyInLobby) {
+            LobbyAccessDTO dto = new LobbyAccessDTO();
+            dto.setLobbyId(lobbyId);
+            dto.setLobbyCode(lobbyCode);
+            dto.setUserId(finalUserId);
+            dto.setToken(finalToken);
+            return dto;
         }
-
 
         // Check whether the lobby is full
-        if (lobby.getUsers().size() >= lobby.getSize()) {
+        if (lobby.getPlayers().size() >= lobby.getMaxPlayers()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Lobby is full");
         }
-        // add user to lobby
-        lobby.addUser(userId, user);
 
-        //if Lobby is now full: if game is public, start game, else wait for admin to start the game
+        // Add user to lobby
+        lobby.getPlayers().add(user);
+        lobbyRepository.save(lobby);
+        lobbyRepository.flush();
 
-/*        TODO: currently does not work, sends start_Game message before everyone is subscribed.*/
-//
-//        if (lobby.getUsers().size() >= lobby.getSize() && lobby.getVisibility() == LobbyVisibility.PUBLIC && !lobby.getLobbyState().equals(LobbyState.IN_GAME)) {
-//            //lobby.setLobbyState(LobbyState.IN_GAME);
-//
-//            startGame(lobby.getLobbyId());
-//        }
-
-        //send broadcast message to lobby that user has joined
+        // Send broadcast message
         MyLobbyDTO myLobbyDTO = DTOMapper.INSTANCE.convertEntityToMyLobbyDTO(lobby);
+        myLobbyDTO.setCurrentPlayers(lobby.getPlayers().size());
         Message message = new Message(MessageType.LOBBY_STATE, myLobbyDTO);
         messagingTemplate.convertAndSend("/topic/lobby/" + lobby.getLobbyId(), message);
 
-        lobbyAccessDTO.setUserId(userId);
-        lobbyAccessDTO.setToken(token);
-
-        return lobbyAccessDTO;
-    }
-
-    public void startGame(Long lobbyId) {
-
-        Lobby lobby = getLobbyById(lobbyId);
-/* 
-        if (lobby.getLobbyState().equals(LobbyState.IN_GAME)) {
-        return;  // Already started, skip
-    }*/
-
-        //create a Game object and fetch the Train data
-        Game game = gameService.setupGame(lobby);
-
-        //update the Lobby object
-        lobby.setGame(game);
-        lobby.setLobbyState(LobbyState.IN_GAME);
-
-        Message startMessage = new Message(MessageType.GAME_START, null);
-        messagingTemplate.convertAndSend("/topic/lobby/" + lobbyId, startMessage);
-    }
-
-    public void leaveLobby(Long lobbyId, Long userId) {
-        System.out.println("In lobbyService");
-        Lobby lobby = getLobbyById(lobbyId);
-        //change from user based to userId since I (Shadi) changed users to be a map indexed by userId
-        //remove user from lobby
-        lobby.removeUser(userId);
-
-        //if user was admin, assign new admin
-        if (lobby.getAdmin().getUserId().equals(userId)) {
-            if (!lobby.getUsers().isEmpty()) {
-                User newAdminUser = lobby.getUsers().get(0);
-                Admin newAdmin = new Admin(newAdminUser.getUserId(), newAdminUser.getToken());
-                lobby.setAdmin(newAdmin);
-            } else {
-                //if no users are left in the lobby, delete the lobby
-                activeLobbies.remove(lobby);
-                return;
-            }
-        }
-
-        //send broadcast message to lobby that user has left
-        MyLobbyDTO myLobbyDTO = DTOMapper.INSTANCE.convertEntityToMyLobbyDTO(lobby);
-        Message message = new Message(MessageType.LOBBY_STATE, myLobbyDTO);
-        messagingTemplate.convertAndSend("/topic/lobby/" + lobby.getLobbyId(), message);
-        System.out.println("Message sent from lobbyService");
+        LobbyAccessDTO dto = new LobbyAccessDTO();
+        dto.setLobbyId(lobbyId);
+        dto.setLobbyCode(lobbyCode);
+        dto.setUserId(finalUserId);
+        dto.setToken(finalToken);
+        return dto;
     }
 
     public Lobby getLobby(Long lobbyId, Long userId) {
         Lobby lobby = getLobbyById(lobbyId);
-        if (!lobby.existsUser(userId)) {
+        boolean isInLobby = lobby.getPlayers().stream()
+                .anyMatch(p -> p.getUserId().equals(userId));
+        if (!isInLobby) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You must join the lobby first!");
-        } else {
-            return lobby;
         }
+        return lobby;
     }
 
     public Lobby getLobbyById(Long lobbyId) {
-        for (Lobby lobby : activeLobbies) {
-            if (lobby.getLobbyId().equals(lobbyId)) {
-                return lobby;
-            }
-        }
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Lobby not found");
+        return lobbyRepository.findById(lobbyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lobby not found"));
     }
 
     private Lobby getLobbyByCode(String lobbyCode) {
-        for (Lobby lobby : activeLobbies) {
-            if (lobby.getLobbyCode().equals(lobbyCode)) {
-                return lobby;
-            }
-        }
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Lobby not found");
+        return lobbyRepository.findByLobbyCode(lobbyCode)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lobby not found"));
     }
 
 
@@ -265,28 +169,103 @@ public class LobbyService {
             for (int i = 0; i < 4; i++) {
                 sb.append(CHARS.charAt(RANDOM.nextInt(CHARS.length())));
             }
-        }
-        while (existsByCode(sb.toString()));
-
-
+        } while (existsByCode(sb.toString()));
         return sb.toString();
     }
 
-
-    public boolean existsByCode(String code) {
-        return activeLobbies.stream()
-                .anyMatch(lobby -> lobby.getLobbyCode().equals(code));
+    private boolean existsByCode(String code) {
+        return lobbyRepository.existsByLobbyCode(code);
     }
 
-    public User createGuestUser() {
-        User guestUser = new User();
-        guestUser.setUsername("guest_" + UUID.randomUUID().toString().substring(0, 8));
-        guestUser.setPassword(UUID.randomUUID().toString()); // dummy password
-        guestUser.setEmail(UUID.randomUUID().toString() + "@guest.com"); // dummy email
-        guestUser.setIsGuest(true);
 
-        guestUser = userService.registerUser(guestUser);
-        User loggedInGuest = userService.loginUser(guestUser.getUsername(), guestUser.getPassword());
-        return loggedInGuest;
+    public void startGame(Long lobbyId) {
+        Lobby lobby = getLobbyById(lobbyId);
+
+        if (lobby.getLobbyState().equals(LobbyState.IN_GAME)) {
+            return; // Already started, skip
+        }
+
+        // Runden erstellen via GameService
+        gameService.setupGame(lobby);
+
+        // Lobby State updaten
+        lobby.setLobbyState(LobbyState.IN_GAME);
+        lobbyRepository.save(lobby);
+        lobbyRepository.flush();
+
+        // Alle Clients benachrichtigen
+        Message startMessage = new Message(MessageType.GAME_START, null);
+        messagingTemplate.convertAndSend("/topic/lobby/" + lobbyId, startMessage);
+    }
+
+    public void leaveLobby(Long lobbyId, Long userId) {
+        Lobby lobby = getLobbyById(lobbyId);
+
+        // Remove user from lobby
+        lobby.getPlayers().removeIf(p -> p.getUserId().equals(userId));
+
+        // If user was admin, assign new admin
+        if (lobby.getAdmin().getUserId().equals(userId)) {
+            if (!lobby.getPlayers().isEmpty()) {
+                lobby.setAdmin(lobby.getPlayers().get(0));
+            } else {
+                // No players left → delete lobby
+                lobbyRepository.delete(lobby);
+                return;
+            }
+        }
+
+        lobbyRepository.save(lobby);
+        lobbyRepository.flush();
+
+        // Send broadcast message
+        MyLobbyDTO myLobbyDTO = DTOMapper.INSTANCE.convertEntityToMyLobbyDTO(lobby);
+        myLobbyDTO.setCurrentPlayers(lobby.getPlayers().size());
+        Message message = new Message(MessageType.LOBBY_STATE, myLobbyDTO);
+        messagingTemplate.convertAndSend("/topic/lobby/" + lobby.getLobbyId(), message);
+    }
+
+    public GameResultDTO getGameResult(Long gameId) {
+        List<RoundHistory> roundHistories = roundHistoryRepository.findByLobbyLobbyId(gameId);
+
+        Map<Integer, RoundResultDTO> roundMap = new LinkedHashMap<>();
+        Map<Long, Integer> totalScores = new HashMap<>();
+        Map<Long, String> usernames = new HashMap<>();
+
+        for (RoundHistory rh : roundHistories) {
+            Long uid = rh.getUser().getUserId();
+            String username = rh.getUser().getUserProfile().getUsername();
+            usernames.put(uid, username);
+
+            totalScores.merge(uid, rh.getPoints(), Integer::sum);
+
+            RoundResultDTO roundDTO = roundMap.computeIfAbsent(rh.getRoundNumber(), n -> {
+                RoundResultDTO r = new RoundResultDTO();
+                r.setRoundNumber(n);
+                r.setScores(new HashMap<>());
+                r.setDistances(new HashMap<>());
+                return r;
+            });
+            roundDTO.getScores().put(uid, rh.getPoints());
+            roundDTO.getDistances().put(uid, (double) rh.getDistanceToTrain());
+        }
+
+        List<ScoreDTO> scores = totalScores.entrySet().stream()
+                .map(e -> {
+                    ScoreDTO s = new ScoreDTO();
+                    s.setUserId(e.getKey());
+                    s.setPoints(e.getValue());
+                    return s;
+                })
+                .sorted((a, b) -> b.getPoints() - a.getPoints())
+                .collect(Collectors.toList());
+
+        GameResultDTO result = new GameResultDTO();
+        result.setGameId(gameId);
+        result.setRounds(new ArrayList<>(roundMap.values()));
+        result.setScores(scores);
+        result.setUsernames(usernames);
+
+        return result;
     }
 }
