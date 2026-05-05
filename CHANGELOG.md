@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.4.0...v1.4.1) (2026-05-05)
+
+
+### Bug Fixes
+
+* update to flex ([7dc0a0e](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/7dc0a0ecd9c422792463a4dd1ae7680378d7de79))
+
 # [1.4.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.3.0...v1.4.0) (2026-05-05)
 
 
