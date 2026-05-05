@@ -1,4 +1,4 @@
-FROM gradle:9.2.1-jdk17 AS build
+FROM gradle:9.4.1-jdk17 AS build
 # Set container working directory to /app
 WORKDIR /app
 # Copy Gradle configuration files
