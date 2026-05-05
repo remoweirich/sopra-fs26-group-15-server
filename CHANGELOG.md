@@ -1,3 +1,36 @@
+# [1.4.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.3.0...v1.4.0) (2026-05-05)
+
+
+### Bug Fixes
+
+* change allowedOrigins ([cefa104](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/cefa104ff3266b86895ccad1acabfe2aebdbc195))
+* change Application file ([a0c9816](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/a0c98166a340cbe6e2084962ef48022a01c76aff))
+* Change Docker port mapping from 8080 to 8081 ([6c1db72](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/6c1db72aabc9c18ad89d61183dbb29a3345e6163))
+* change tag ([0414c0d](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/0414c0d347f3fe25fa4e1b4cb3f1cc103be5d1a2))
+* distribute workflows ([0d4c9a5](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/0d4c9a5d6bf930a0d20ea6bfd495206bc7f128c9))
+* eager load lobby players to prevent lazy loading exception ([35fcf4c](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/35fcf4c40f3bd7bf68e63ea01115b961fe2ee3a9))
+* lazy loading friendslist to eagerloading and CORS webconfig ([a556d5c](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/a556d5cd2644c306a92f7a44cc4b1acd60c0f890))
+* manage workflow triggers ([9dd743f](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/9dd743f939c1eded0a8207e3d84851cbdc3841d7))
+* semantic release ([4d630d3](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/4d630d37247c32630bf9ec11b510d8e041ff5eae))
+* semantic release ([90383f8](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/90383f8f47135a4dbedbded4457486e3f4a42d08))
+* set system login credentials for RabbitMQ relay ([f4058f5](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/f4058f5fac5572aaad225fa5bcfb69b9edab6338))
+* update urls ([f32d94b](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/f32d94b52b383bc27f3c91b61f62834ff3938ed9))
+* update urls ([717cc7e](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/717cc7ec6c7d7493882046706e8154860c465eba))
+
+
+### Features
+
+* Add GitHub Actions workflow for deployment ([b14e5eb](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/b14e5ebcce220447d11bc22e85f1fa8236c1e9b2))
+* Add GitHub Actions workflow for pull request testing ([f413ccc](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/f413ccccc55ebb4e03066753e52c1ed52281317b))
+* add sonar ([232201d](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/232201dcf009e01a64a2fc06bca1b5914e574bf0))
+* change to real API ([93adaca](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/93adaca6c03ff7afa2c0d762c3741fdf56977833))
+* copy all app logic into new setup ([dd03b04](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/dd03b04be9f01cbc1479a5fe7e87eb9bb7ceccdb))
+* Enhance CI workflow with SonarQube and Docker steps ([64b69ab](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/64b69ab7cb35b1dd214dd25edcc4f3fed501ac7c))
+* initial project setup ([d9ba067](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/d9ba067a4f3aa73697158f4bd78777b2f5027528))
+* migrate to DB-backed architecture with RabbitMQ ([a0245cd](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/a0245cd101c71be25df9c561c2b5ed964f5af7da))
+* replace src/main with new implementation ([549db5e](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/549db5e1a7f1c43bdaf4787416329458a666eafd))
+* Update GitHub Actions workflow for gradlew and conditions ([3b13767](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/3b137679c8f9865cbabac7371561fd63cd67790f))
+
 ## [1.4.2](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.4.1...v1.4.2) (2026-05-05)
 
 
