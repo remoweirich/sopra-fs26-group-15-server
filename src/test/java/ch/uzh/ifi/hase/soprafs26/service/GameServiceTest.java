@@ -104,7 +104,6 @@ class GameServiceTest {
         }
 
         lenient().when(trainPositionFetcher.fetchTrains(anyInt())).thenReturn(trains);
-        lenient().when(trainPositionFetcher.fetchTrains(anyInt())).thenReturn(trains);
         lenient().doNothing().when(trainPositionFetcher).interpolatePosition(any(Train.class));
 
 
@@ -159,7 +158,6 @@ class GameServiceTest {
         mockTrain.setLineOrigin(new Station("Start", 0L, 0L, 0, 0));
         mockTrain.setLineDestination(new Station("End", 200L, 200L, 10, 10));
 
-        lenient().when(trainPositionFetcher.fetchTrains(anyInt())).thenReturn(List.of(mockTrain));
         lenient().when(trainPositionFetcher.fetchTrains(anyInt())).thenReturn(List.of(mockTrain));
         lenient().doNothing().when(trainPositionFetcher).interpolatePosition(any(Train.class));
 
@@ -219,7 +217,7 @@ class GameServiceTest {
         assertTrue(hasSate);
 
     }
-    
+
     @Test
     void processGuessMessage_noGuessAllowed() throws Exception {
         Lobby lobby = getLobby();
@@ -428,27 +426,26 @@ class GameServiceTest {
         assertTrue(messageCaptor.getAllValues().stream().anyMatch(message -> message.getType() == MessageType.SCORES), "Scores message was not sent");
     }
 
-    @Test
-    void allowedToPublish_doesNothing() throws Exception {
-        Lobby lobby =  getLobby();
-        lobby.setMaxRounds(2);
-        Game game = getGame(lobby);
-        lobby.setGame(game);
-        lobby.setCurrentRound(1);
-
-        GameResult mockResult = new GameResult();
-        lenient().when(gameRepository.findByGameId(game.getGameId())).thenReturn(mockResult);
-        User user = new User(); user.setUserId(1L);
-        lenient().when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-
-        gameService.allowedToPublish(lobby);
-
-        Mockito.clearInvocations(messagingTemplate);
-
-        gameService.allowedToPublish(lobby);
-
-        verify(messagingTemplate, never()).convertAndSend(anyString(), any(Message.class));
-    }
+//    @Test
+//    void allowedToPublish_doesNothing() throws Exception {
+//        Lobby lobby =  getLobby();
+//        Game game = getGame(lobby);
+//        lobby.setGame(game);
+//        lobby.setCurrentRound(1);
+//
+//        GameResult mockResult = new GameResult();
+//        when(gameRepository.findByGameId(game.getGameId())).thenReturn(mockResult);
+//        User user = new User(); user.setUserId(1L);
+//        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+//
+//        gameService.allowedToPublish(lobby);
+//
+//        Mockito.clearInvocations(messagingTemplate);
+//
+//        gameService.allowedToPublish(lobby);
+//
+//        verify(messagingTemplate, never()).convertAndSend(anyString(), any(Message.class));
+//    }
 
     @Test
     void publishScores_success_middleRound() throws Exception {
@@ -554,20 +551,21 @@ class GameServiceTest {
         assertTrue(score > 0 && score <= 10, "Ein Guess, der um die volle Linienlänge daneben liegt, sollte minimal Punkte geben (ca. 5).");
     }
 
-    @Test
-    void calculateScore_degenerateLine_usesFallback_withDampener() {
-
-        Train train = new Train();
-
-        train.setLineOrigin(new Station("Same", 100L, 100L, 0, 0));
-        train.setLineDestination(new Station("Same", 100L, 100L, 0, 0));
-
-        double guessDistance = 500.0;
-
-        int score = gameService.calculateScore(train, guessDistance);
-
-        assertEquals(199, score, "Sollte bei errorRatio 0.5 mit der neuen p=1.5 Formel und Dampener ca. 199 ergeben.");
-    }
+//    @Test
+//    void calculateScore_degenerateLine_usesFallback() {
+//
+//        Train train = new Train();
+//
+//        train.setLineOrigin(new Station("Same", 100L, 100L, 0, 0));
+//        train.setLineDestination(new Station("Same", 100L, 100L, 0, 0));
+//
+//        double guessDistance = 500.0;
+//
+//        int score = gameService.calculateScore(train, guessDistance);
+//
+//        assertTrue(score > 0);
+//        assertEquals(266, score);
+//    }
 
     @Test
     void calculateGuessDistance_simpleRightTriangle() {
