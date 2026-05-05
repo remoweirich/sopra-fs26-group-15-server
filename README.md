@@ -1,4 +1,4 @@
-# SoPra RESTful Service Template FS26 Les Go now
+# SoPra RESTful Service Template FS26
 Test Claude
 # Testing SonarQube Server (Automatic analysis off)
 ## Getting started with Spring Boot
