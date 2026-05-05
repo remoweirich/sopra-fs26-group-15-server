@@ -1,7 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.rest.mapper;
 
-import ch.guessbb.sopraserver.entity.*;
-import ch.guessbb.sopraserver.rest.dto.*;
+import ch.uzh.ifi.hase.soprafs26.entity.*;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
 import ch.uzh.ifi.hase.soprafs26.entity.Lobby;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.*;

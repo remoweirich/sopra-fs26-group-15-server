@@ -1,7 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
 import ch.uzh.ifi.hase.soprafs26.entity.User;
-import ch.guessbb.sopraserver.rest.dto.*;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.LoginPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RegisterPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UpdateUserPutDTO;

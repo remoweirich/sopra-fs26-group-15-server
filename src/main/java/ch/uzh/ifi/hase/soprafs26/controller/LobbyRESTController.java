@@ -1,9 +1,9 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
-import ch.guessbb.sopraserver.constant.*;
+import ch.uzh.ifi.hase.soprafs26.constant.*;
 import ch.uzh.ifi.hase.soprafs26.constant.LobbyVisibility;
 import ch.uzh.ifi.hase.soprafs26.entity.Lobby;
-import ch.guessbb.sopraserver.rest.dto.*;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs26.security.AuthHeader;

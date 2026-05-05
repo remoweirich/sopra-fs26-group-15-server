@@ -3,9 +3,9 @@ package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.constant.LobbyState;
 import ch.uzh.ifi.hase.soprafs26.constant.MessageType;
-import ch.guessbb.sopraserver.entity.*;
-import ch.guessbb.sopraserver.objects.*;
-import ch.guessbb.sopraserver.repository.*;
+import ch.uzh.ifi.hase.soprafs26.entity.*;
+import ch.uzh.ifi.hase.soprafs26.objects.*;
+import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.objects.Train;
 import ch.uzh.ifi.hase.soprafs26.objects.UserGameStatus;
