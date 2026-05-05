@@ -1,13 +1,9 @@
-# https://cloud.google.com/appengine/docs/the-appengine-environments#comparing_high-level_features
-# https://cloud.google.com/appengine/docs/standard
-
 runtime: java17
 instance_class: B2
-
 manual_scaling:
   instances: 1
-
 env_variables:
-  # This is a placeholder that sed(tool to automatically replace string) will look for
-  # In GitHub Actions, the actual value will be injected from the repository secrets
   GEOPS_API_KEY: "GEOP_API_KEY_PLACEHOLDER"
+  BROKER_HOST: "BROKER_HOST_PLACEHOLDER"
+  BROKER_USER: "BROKER_USER_PLACEHOLDER"
+  BROKER_PASS: "BROKER_PASS_PLACEHOLDER"
