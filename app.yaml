@@ -2,7 +2,8 @@ runtime: java
 env: flex
 
 runtime_config:
-  jdk: openjdk21
+  operating_system: ubuntu24
+  runtime_version: "21"
 
 manual_scaling:
   instances: 1
