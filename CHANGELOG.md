@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.4.11...v1.5.0) (2026-05-06)
+
+
+### Features
+
+* real train data ([641f545](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/641f545268a9f7a04b4445d95246604702156bea))
+
 ## [1.4.11](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.4.10...v1.4.11) (2026-05-06)
 
 
