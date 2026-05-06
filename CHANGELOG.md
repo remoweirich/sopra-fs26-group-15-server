@@ -1,3 +1,10 @@
+## [1.4.4](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.4.3...v1.4.4) (2026-05-06)
+
+
+### Bug Fixes
+
+* change djava version ([ccfddd4](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/ccfddd47570f5aad1f223c71f5ec28fb38323c99))
+
 ## [1.4.3](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.4.2...v1.4.3) (2026-05-06)
 
 
