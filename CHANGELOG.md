@@ -1,3 +1,10 @@
+## [1.4.8](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.4.7...v1.4.8) (2026-05-06)
+
+
+### Bug Fixes
+
+* change app.yml ([95e70c9](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/95e70c97fd68477351835902b2e984154c60178e))
+
 ## [1.4.7](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.4.6...v1.4.7) (2026-05-06)
 
 
