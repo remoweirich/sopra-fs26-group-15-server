@@ -13,7 +13,7 @@ COPY src /app/src
 RUN ./gradlew clean build --no-daemon
 
 # make image smaller by using multi stage build
-FROM eclipse-temurin:25-jdk
+FROM eclipse-temurin:21-jdk
 # Set the env to "production"
 ENV SPRING_PROFILES_ACTIVE=production
 # get non-root user
