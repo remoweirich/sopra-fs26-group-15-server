@@ -1,4 +1,4 @@
-FROM gradle:9.4.1-jdk17 AS build
+FROM gradle:9.4.1-jdk21 AS build
 # Set container working directory to /app
 WORKDIR /app
 # Copy Gradle configuration files
@@ -13,7 +13,7 @@ COPY src /app/src
 RUN ./gradlew clean build --no-daemon
 
 # make image smaller by using multi stage build
-FROM eclipse-temurin:17-jdk
+FROM eclipse-temurin:21-jdk
 # Set the env to "production"
 ENV SPRING_PROFILES_ACTIVE=production
 # get non-root user
