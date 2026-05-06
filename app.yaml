@@ -1,9 +1,8 @@
-runtime: java21
+runtime: java
 env: flex
-resources:
-  cpu: 1
-  memory_gb: 1.3
-  disk_size_gb: 10
+runtime_config:
+  operating_system: "ubuntu24"
+  runtime_version: "25"
 manual_scaling:
   instances: 1
 env_variables:
