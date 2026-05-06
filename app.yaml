@@ -1,9 +1,6 @@
 runtime: java
 env: flex
 
-runtime_config:
-  jdk: openjdk21
-
 manual_scaling:
   instances: 1
 
