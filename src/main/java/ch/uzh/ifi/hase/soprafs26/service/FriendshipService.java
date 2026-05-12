@@ -136,8 +136,15 @@ public class FriendshipService {
             }
         }
         return pendingRequests;
-
-
     }
 
+    public void removeFriendship(long userId, long userIdToDelete) {
+        User user1 = userId < userIdToDelete ? userService.getUserById(userId) : userService.getUserById(userIdToDelete);
+        User user2 = userId < userIdToDelete ? userService.getUserById(userIdToDelete) : userService.getUserById(userId);
+
+        Friendship friendship = friendshipRepository.findByFriend1AndFriend2(user1, user2)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Friendship not found"));
+
+        friendshipRepository.delete(friendship);
+    }
 }

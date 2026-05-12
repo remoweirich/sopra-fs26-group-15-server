@@ -93,5 +93,15 @@ public class UserController {
 
         userService.updateUser(userId, updateUserPutDTO);
     }
+
+    @DeleteMapping("/users/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(@RequestHeader("token") String token, @PathVariable("userId") Long userId) {
+        AuthHeader authHeader = new AuthHeader(userId, token);
+        if (!authService.authUser(authHeader)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+        }
+        userService.deleteUser(userId);
+    }
 }
 

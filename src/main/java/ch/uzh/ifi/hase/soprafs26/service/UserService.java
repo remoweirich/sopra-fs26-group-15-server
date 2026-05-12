@@ -41,7 +41,9 @@ public class UserService {
 
         // Status setzen
         newUser.setIsOnline(false);
-        newUser.setIsGuest(false);
+        if (newUser.getIsGuest() == null) {
+            newUser.setIsGuest(false);
+        }
 
         // creationDate wird automatisch via @PrePersist gesetzt
 
@@ -145,5 +147,10 @@ public class UserService {
 
         guestUser = registerUser(guestUser);
         return loginUser(profile.getUsername(), password);
+    }
+
+    public void deleteUser(Long userId) {
+        User user = getUserById(userId);
+        userRepository.delete(user);
     }
 }
