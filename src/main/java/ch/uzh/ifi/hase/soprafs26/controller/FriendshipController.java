@@ -1,0 +1,122 @@
+package ch.uzh.ifi.hase.soprafs26.controller;
+
+import ch.uzh.ifi.hase.soprafs26.entity.Friendship;
+import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
+import ch.uzh.ifi.hase.soprafs26.security.AuthHeader;
+import ch.uzh.ifi.hase.soprafs26.security.AuthService;
+import ch.uzh.ifi.hase.soprafs26.service.FriendshipService;
+import ch.uzh.ifi.hase.soprafs26.service.UserService;
+import org.springframework.http.HttpStatus;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@RestController
+public class FriendshipController {
+
+    private final UserService userService;
+    private final FriendshipService friendshipService;
+    private final AuthService authService;
+
+    public FriendshipController(UserService userService,  FriendshipService friendshipService,  AuthService authService) {
+        this.userService = userService;
+        this.friendshipService = friendshipService;
+        this.authService = authService;
+    }
+
+    @PostMapping("/friends/request/{receivingUserId}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void sendFriendRequest(
+            @PathVariable("receivingUserId") Long receivingUserId,
+            @RequestHeader("userId") Long sendingUserId,
+            @RequestHeader("token") String token) {
+
+        AuthHeader authHeader = new AuthHeader(sendingUserId, token);
+        authService.authUser(authHeader);
+
+        if (userService.getUserById(sendingUserId).getIsGuest()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot add friends as a guest user.");
+        }
+
+        if (userService.getUserById(receivingUserId).getIsGuest()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot add a guest user as a friend.");
+        }
+
+        friendshipService.sendFriendRequest(sendingUserId, receivingUserId);
+    }
+
+    @PostMapping("/friends/accept/{friendshipId}")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public void acceptFriendship(
+            @PathVariable("friendshipId") Long friendshipId,
+            @RequestHeader("userId") Long acceptingUserId,
+            @RequestHeader("token") String token) {
+
+        AuthHeader authHeader = new AuthHeader(acceptingUserId, token);
+        authService.authUser(authHeader);
+
+        friendshipService.acceptFriendship(acceptingUserId, friendshipId);
+
+    }
+
+    @GetMapping("/friends/{userId}")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public List<UserDTO> getFriends(@PathVariable("userId") Long userId,
+                                    @RequestHeader("token") String token) {
+
+        AuthHeader authHeader = new AuthHeader(userId, token);
+        authService.authUser(authHeader);
+
+        List<UserDTO> sanitizedFriends = new ArrayList<>();
+
+        List<User> friends = friendshipService.getFriends(userId);
+        for (User friend : friends) {
+            sanitizedFriends.add(DTOMapper.INSTANCE.convertUserToUserDTO(friend));
+        }
+
+        return  sanitizedFriends;
+    }
+
+    @GetMapping("friends/{userId}/pendingReceived")
+    @ResponseStatus(HttpStatus.OK)
+    public List<UserDTO> getPendingRequestsReceived(@PathVariable("userId") Long userId,
+                                                    @RequestHeader("token") String token) {
+
+        AuthHeader authHeader = new AuthHeader(userId, token);
+        authService.authUser(authHeader);
+
+        List<UserDTO> sanitizedUsers = new ArrayList<>();
+
+        List<User> pendingRequestsReceived = friendshipService.getPendingRequestsReceived(userId);
+        for (User user : pendingRequestsReceived) {
+            sanitizedUsers.add(DTOMapper.INSTANCE.convertUserToUserDTO(user));
+        }
+
+        return  sanitizedUsers;
+    }
+
+    @GetMapping("friends/{userId}/pendingSent")
+    @ResponseStatus(HttpStatus.OK)
+    public List<UserDTO> getPendingRequestsSent(@PathVariable("userId") Long userId,
+                                                @RequestHeader("token") String token) {
+
+        AuthHeader authHeader = new AuthHeader(userId, token);
+        authService.authUser(authHeader);
+
+        List<UserDTO> sanitizedUsers = new ArrayList<>();
+        for (User user : friendshipService.getPendingRequestsSent(userId)) {
+            sanitizedUsers.add(DTOMapper.INSTANCE.convertUserToUserDTO(user));
+        }
+
+        return  sanitizedUsers;
+    }
+}
