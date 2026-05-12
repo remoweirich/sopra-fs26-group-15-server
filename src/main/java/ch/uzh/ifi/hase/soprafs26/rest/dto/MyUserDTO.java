@@ -16,4 +16,5 @@ public class MyUserDTO {
     private Boolean isOnline;
     private UserScoreboardDTO userScoreboard;
     private List<UserDTO> friends;
+    private List<AchievementDTO> achievements;
 }

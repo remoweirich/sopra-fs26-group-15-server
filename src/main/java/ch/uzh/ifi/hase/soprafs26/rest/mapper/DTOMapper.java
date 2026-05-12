@@ -8,6 +8,9 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
+import org.springframework.cache.interceptor.AbstractCacheInvoker;
+
+import java.util.List;
 
 
 @Mapper
@@ -40,6 +43,7 @@ public interface DTOMapper {
     @Mapping(source = "userScoreboard.playedRounds", target = "userScoreboard.playedRounds")
     @Mapping(source = "userScoreboard.bestRoundPoints", target = "userScoreboard.bestRoundPoints")
     @Mapping(source = "userScoreboard.guessingPrecision", target = "userScoreboard.guessingPrecision")
+    @Mapping(source = "userAchievement"
     @Mapping(target = "friends", ignore = true)
     MyUserDTO convertUserToMyUserDTO(User user);
 
@@ -58,7 +62,11 @@ public interface DTOMapper {
     @Mapping(target = "currentPlayers", ignore = true)
     MyLobbyDTO convertEntityToMyLobbyDTO(Lobby lobby);
 
+    AchievementDTO convertEntityToAchievementDTO(Achievement achievement);
 
+    UserAchievementDTO convertUserAchievementToUserAchievementDTO(UserAchievement userAchievement);
+
+    List<UserAchievementDTO> convertUserAchievementListToAchievementDTOList(List<UserAchievement> UserAchievements);
 
 
 
