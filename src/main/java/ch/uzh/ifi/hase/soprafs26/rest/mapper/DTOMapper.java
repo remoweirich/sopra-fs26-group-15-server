@@ -43,7 +43,6 @@ public interface DTOMapper {
     @Mapping(source = "userScoreboard.playedRounds", target = "userScoreboard.playedRounds")
     @Mapping(source = "userScoreboard.bestRoundPoints", target = "userScoreboard.bestRoundPoints")
     @Mapping(source = "userScoreboard.guessingPrecision", target = "userScoreboard.guessingPrecision")
-    @Mapping(source = "userAchievement"
     @Mapping(target = "friends", ignore = true)
     MyUserDTO convertUserToMyUserDTO(User user);
 
