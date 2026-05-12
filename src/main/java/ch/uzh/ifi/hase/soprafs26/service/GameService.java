@@ -33,6 +33,7 @@ public class GameService {
     private final TrainPositionFetcher trainPositionFetcher;
     private final RoundRepository roundRepository;
     private final GuessRepository guessRepository;
+    private final AchievementService achievementService;
     private final LobbyRepository lobbyRepository;
     private final UserRepository userRepository;
     private final Map<Long, ScheduledFuture<?>> activeTimers = new ConcurrentHashMap<>();
@@ -42,10 +43,11 @@ public class GameService {
     private final ObjectMapper objectMapper;
     private final RoundHistoryRepository roundHistoryRepository;
 
-    public GameService(TrainPositionFetcher trainPositionFetcher, RoundRepository roundRepository, GuessRepository guessRepository, LobbyRepository lobbyRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate, ObjectMapper objectMapper, RoundHistoryRepository roundHistoryRepository) {
+    public GameService(TrainPositionFetcher trainPositionFetcher, RoundRepository roundRepository, GuessRepository guessRepository, AchievementService achievementService, LobbyRepository lobbyRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate, ObjectMapper objectMapper, RoundHistoryRepository roundHistoryRepository) {
         this.trainPositionFetcher = trainPositionFetcher;
         this.roundRepository = roundRepository;
         this.guessRepository = guessRepository;
+        this.achievementService = achievementService;
         this.lobbyRepository = lobbyRepository;
         this.userRepository = userRepository;
         this.messagingTemplate = messagingTemplate;
@@ -354,7 +356,8 @@ public class GameService {
             player.setUserScoreboard(scoreboard);
             userRepository.save(player);
         }
-
+        achievementService.evaluateAchievementsForLobby(currentLobby);
+        System.out.println("[gameTearDown] Achievements evaluated for lobby " + lobbyId);
         currentLobby.setLobbyState(LobbyState.FINISHED);
         lobbyRepository.save(currentLobby);
 
