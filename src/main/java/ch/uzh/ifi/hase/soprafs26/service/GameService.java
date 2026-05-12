@@ -279,9 +279,11 @@ public class GameService {
             int roundPoints = guess.getPoints() != null ? guess.getPoints() : 0;
             long xCoordinate = guess.getLat() != null ? guess.getLat().longValue() : 0;
             long yCoordinate = guess.getLon() != null ? guess.getLon().longValue() : 0;
-            double distance = guess.getDistanceToTrain() != null ? guess.getDistanceToTrain() : Double.MAX_VALUE;
+            double distance = guess.getDistanceToTrain() != null
+                    ? Math.round(guess.getDistanceToTrain() * 100.0) / 100.0
+                    : Double.MAX_VALUE;
             userResults.add(new UserResult(userId, totalPoints, roundPoints, xCoordinate, yCoordinate, distance));
-            System.out.println("[publishScores] UserResult: userId=" + userId + " roundPoints=" + roundPoints + " totalPoints=" + totalPoints);
+            System.out.println("[publishScores] UserResult: userId=" + userId + " roundPoints=" + roundPoints + " totalPoints=" + totalPoints + " distanceToTrain=" + distance + "km");
         }
 
         ResultDTO resultDTO = new ResultDTO(currentRoundNumber, userResults, train);
