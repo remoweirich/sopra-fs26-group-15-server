@@ -61,8 +61,7 @@ public interface DTOMapper {
     @Mapping(target = "currentPlayers", ignore = true)
     MyLobbyDTO convertEntityToMyLobbyDTO(Lobby lobby);
 
-    AchievementDTO convertEntityToAchievementDTO(Achievement achievement);
-
+    @Mapping(source = "user.userId", target = "userId")
     UserAchievementDTO convertUserAchievementToUserAchievementDTO(UserAchievement userAchievement);
 
     List<UserAchievementDTO> convertUserAchievementListToAchievementDTOList(List<UserAchievement> UserAchievements);

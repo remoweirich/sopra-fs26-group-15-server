@@ -64,9 +64,13 @@ public class UserController {
 		User user = userService.getUserById(userId);
 
 		if (isAuthenticated) {
-			return DTOMapper.INSTANCE.convertUserToMyUserDTO(user);
+			MyUserDTO myUserDTO = DTOMapper.INSTANCE.convertUserToMyUserDTO(user);
+            myUserDTO.setUserAchievementDTOList(userService.getUserAchievements(user));
+            return myUserDTO;
 		} else {
-			return DTOMapper.INSTANCE.convertUserToUserDTO(user);
+			UserDTO userDTO = DTOMapper.INSTANCE.convertUserToUserDTO(user);
+            userDTO.setUserAchievementDTOList(userService.getUserAchievements(user));
+            return userDTO;
 		}
 	}
 

@@ -1,4 +1,5 @@
 package ch.uzh.ifi.hase.soprafs26.rest.dto;
+import ch.uzh.ifi.hase.soprafs26.entity.UserAchievement;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
@@ -16,5 +17,5 @@ public class MyUserDTO {
     private Boolean isOnline;
     private UserScoreboardDTO userScoreboard;
     private List<UserDTO> friends;
-    private List<AchievementDTO> achievements;
+    private List<UserAchievementDTO> userAchievementDTOList;
 }
