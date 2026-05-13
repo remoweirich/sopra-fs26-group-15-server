@@ -1,3 +1,20 @@
+# [1.6.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.5.0...v1.6.0) (2026-05-13)
+
+
+### Bug Fixes
+
+* **Achievements:** List of UserAchievementDTO gets sent at get request to user/id together with UserDTO/MyUserDTO ([9b3690e](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/9b3690e7731cbf7d432789444a8166231627cf11))
+* **distance:** fix faulty rounding when casting float to double ([294851f](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/294851f3a5fb9b98d698f4ba48585070ea4dfd9a))
+* **FriendshipController/Service:** User with false credentials could still make requests. Also changed endpoint for accept to /friends/accept/{requestingUserId} from /././{friendshipId} [#104](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/104) ([b6fdbfd](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/b6fdbfdfb59be1e3eb00846e7b6fd9660295a960))
+
+
+### Features
+
+* **Achievements:** implement and award achievements at end of game ([e8b8611](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/e8b8611355ff1df572e415908c0054672bb4d6a4))
+* **Friends:** added friend-adding logic [#104](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/104) ([722d40e](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/722d40eefe035cf42bc3c49255b016836d0149de))
+* **Tests:** Reintegrated AuthServiceTest [#103](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/103) ([2733767](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/2733767b79ff9aec4f48d415bfc510d7b4b03664))
+* **Tests:** Reintegrated controller tests [#103](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/103) ([50bc20b](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/50bc20bfb6a1670d44933e5675cfbc8c4927e0b3))
+
 # [1.5.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.4.11...v1.5.0) (2026-05-06)
 
 
