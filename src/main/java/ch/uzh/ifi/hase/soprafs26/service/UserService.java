@@ -156,4 +156,9 @@ public class UserService {
     public List<UserAchievementDTO> getUserAchievements(User user) {
         return DTOMapper.INSTANCE.convertUserAchievementListToAchievementDTOList(userAchievementRepository.findByUser(user));
     }
+
+    public List<User> searchUsers(String username) {
+        return userRepository.findByUserProfile_UsernameContainingIgnoreCase(username);
+
+    }
 }
