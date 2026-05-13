@@ -8,6 +8,9 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
+import org.springframework.cache.interceptor.AbstractCacheInvoker;
+
+import java.util.List;
 
 
 @Mapper
@@ -58,7 +61,10 @@ public interface DTOMapper {
     @Mapping(target = "currentPlayers", ignore = true)
     MyLobbyDTO convertEntityToMyLobbyDTO(Lobby lobby);
 
+    @Mapping(source = "user.userId", target = "userId")
+    UserAchievementDTO convertUserAchievementToUserAchievementDTO(UserAchievement userAchievement);
 
+    List<UserAchievementDTO> convertUserAchievementListToAchievementDTOList(List<UserAchievement> UserAchievements);
 
 
 

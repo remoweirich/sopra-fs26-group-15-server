@@ -63,12 +63,15 @@ public class UserController {
         boolean isAuthenticated = authService.authUser(authHeader);
 		User user = userService.getUserById(userId);
 
-            if (isAuthenticated) {
-                return DTOMapper.INSTANCE.convertUserToMyUserDTO(user);
-            }
-            else {
-                return DTOMapper.INSTANCE.convertUserToUserDTO(user);
-            }
+		if (isAuthenticated) {
+			MyUserDTO myUserDTO = DTOMapper.INSTANCE.convertUserToMyUserDTO(user);
+            myUserDTO.setUserAchievementDTOList(userService.getUserAchievements(user));
+            return myUserDTO;
+		} else {
+			UserDTO userDTO = DTOMapper.INSTANCE.convertUserToUserDTO(user);
+            userDTO.setUserAchievementDTOList(userService.getUserAchievements(user));
+            return userDTO;
+		}
 	}
 
 	@PostMapping("/users/{userId}/logout")

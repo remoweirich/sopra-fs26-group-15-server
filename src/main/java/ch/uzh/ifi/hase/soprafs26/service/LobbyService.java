@@ -247,7 +247,7 @@ public class LobbyService {
                 return r;
             });
             roundDTO.getScores().put(uid, rh.getPoints());
-            roundDTO.getDistances().put(uid, (double) rh.getDistanceToTrain());
+            roundDTO.getDistances().put(uid, (double) Math.round(rh.getDistanceToTrain()* 100)/100);
         }
 
         List<ScoreDTO> scores = totalScores.entrySet().stream()
