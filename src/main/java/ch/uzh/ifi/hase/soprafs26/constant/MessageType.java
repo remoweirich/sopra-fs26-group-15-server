@@ -11,5 +11,7 @@ public enum MessageType {
     READY_FOR_NEXT_ROUND,
     ROUND_START,
     ROUND_END,
-    SCORES
+    SCORES,
+    FRIEND_REQUEST,
+    FRIEND_ACCEPT
 }

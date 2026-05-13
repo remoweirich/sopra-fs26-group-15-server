@@ -49,7 +49,11 @@ public class LobbyWebSocketController {
             @Header("token") String token) {
 
         AuthHeader authHeader = new AuthHeader(Long.parseLong(userId), token);
-        if (!authService.authUser(authHeader)) {
+        try {
+            if (!authService.authUser(authHeader)) {
+                return;
+            }
+        } catch (ResponseStatusException ex) {
             return;
         }
 

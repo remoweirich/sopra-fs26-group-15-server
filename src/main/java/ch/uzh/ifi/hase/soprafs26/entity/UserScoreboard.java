@@ -19,6 +19,9 @@ public class UserScoreboard {
     private Long playedRounds;
 
     @Column
+    private Long gamesWon;
+
+    @Column
     private Long bestRoundPoints;
 
     @Column
