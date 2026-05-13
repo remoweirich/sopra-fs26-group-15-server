@@ -180,5 +180,4 @@ public class LobbyRESTController {
         }
         return lobbyAccessDTO;
     }
-
 }
