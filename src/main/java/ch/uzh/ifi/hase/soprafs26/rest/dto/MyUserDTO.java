@@ -1,5 +1,4 @@
 package ch.uzh.ifi.hase.soprafs26.rest.dto;
-import ch.uzh.ifi.hase.soprafs26.entity.UserAchievement;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;

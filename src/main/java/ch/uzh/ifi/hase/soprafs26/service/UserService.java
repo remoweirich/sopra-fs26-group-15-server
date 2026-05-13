@@ -1,6 +1,5 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
-import ch.uzh.ifi.hase.soprafs26.entity.UserAchievement;
 import ch.uzh.ifi.hase.soprafs26.entity.UserProfile;
 import ch.uzh.ifi.hase.soprafs26.entity.UserScoreboard;
 import ch.uzh.ifi.hase.soprafs26.repository.UserAchievementRepository;
