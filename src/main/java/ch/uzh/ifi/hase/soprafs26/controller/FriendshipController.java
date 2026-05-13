@@ -35,7 +35,11 @@ public class FriendshipController {
             @RequestHeader("token") String token) {
 
         AuthHeader authHeader = new AuthHeader(sendingUserId, token);
-        authService.authUser(authHeader);
+        boolean isvalid = authService.authUser(authHeader);
+
+        if (!isvalid) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong credentials.");
+        }
 
         if (userService.getUserById(sendingUserId).getIsGuest()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot add friends as a guest user.");
@@ -48,18 +52,22 @@ public class FriendshipController {
         friendshipService.sendFriendRequest(sendingUserId, receivingUserId);
     }
 
-    @PostMapping("/friends/accept/{friendshipId}")
+    @PostMapping("/friends/accept/{requestingUserId}")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public void acceptFriendship(
-            @PathVariable("friendshipId") Long friendshipId,
+            @PathVariable("requestingUserId") Long requestingUserId,
             @RequestHeader("userId") Long acceptingUserId,
             @RequestHeader("token") String token) {
 
         AuthHeader authHeader = new AuthHeader(acceptingUserId, token);
-        authService.authUser(authHeader);
+        boolean isvalid = authService.authUser(authHeader);
 
-        friendshipService.acceptFriendship(acceptingUserId, friendshipId);
+        if (!isvalid) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong credentials.");
+        }
+
+        friendshipService.acceptFriendship(acceptingUserId, requestingUserId);
 
     }
 
@@ -87,8 +95,11 @@ public class FriendshipController {
                                                     @RequestHeader("token") String token) {
 
         AuthHeader authHeader = new AuthHeader(userId, token);
-        authService.authUser(authHeader);
+        boolean isvalid = authService.authUser(authHeader);
 
+        if (!isvalid) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong credentials.");
+        }
         List<UserDTO> sanitizedUsers = new ArrayList<>();
 
         List<User> pendingRequestsReceived = friendshipService.getPendingRequestsReceived(userId);
@@ -105,8 +116,11 @@ public class FriendshipController {
                                                 @RequestHeader("token") String token) {
 
         AuthHeader authHeader = new AuthHeader(userId, token);
-        authService.authUser(authHeader);
+        boolean isvalid = authService.authUser(authHeader);
 
+        if (!isvalid) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong credentials.");
+        }
         List<UserDTO> sanitizedUsers = new ArrayList<>();
         for (User user : friendshipService.getPendingRequestsSent(userId)) {
             sanitizedUsers.add(DTOMapper.INSTANCE.convertUserToUserDTO(user));

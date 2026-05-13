@@ -61,16 +61,20 @@ public class FriendshipService {
         simpMessagingTemplate.convertAndSend("/topic/" + receivingUserId + "/friends", message);
     }
 
-    public void acceptFriendship(long acceptingUserId, long friendShipId) {
+    public void acceptFriendship(long acceptingUserId, long requestingUserId) {
+        User user1 = acceptingUserId < requestingUserId ? userService.getUserById(acceptingUserId) : userService.getUserById(requestingUserId);
+        User user2 = acceptingUserId < requestingUserId ? userService.getUserById(requestingUserId) : userService.getUserById(acceptingUserId);
+
+        Optional<Friendship> existing = friendshipRepository.findByFriend1AndFriend2(user1, user2);
+
+        if (existing.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Friendship already exists");
+        }
+
+        Friendship friendship = existing.get();
+
         User acceptingUser = userService.getUserById(acceptingUserId);
-
-        Friendship friendship = friendshipRepository.findByFriendshipId(friendShipId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Friendship not found"));
-
-        User requestingUser = friendship.getFriend1().getUserId().equals(acceptingUserId)
-                ? friendship.getFriend2()
-                : friendship.getFriend1();
-
+        User requestingUser = userService.getUserById(requestingUserId);
 
         //Check if User may accept
         if (friendship.getPendingInvitationReceivedBy() == null
