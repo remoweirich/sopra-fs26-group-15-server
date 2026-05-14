@@ -2,7 +2,10 @@ package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.entity.UserProfile;
 import ch.uzh.ifi.hase.soprafs26.entity.UserScoreboard;
+import ch.uzh.ifi.hase.soprafs26.repository.UserAchievementRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UpdateUserPutDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserAchievementDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs26.security.AuthHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -22,10 +26,12 @@ public class UserService {
 	private final Logger log = LoggerFactory.getLogger(UserService.class);
 
 	private final UserRepository userRepository;
+    private final UserAchievementRepository userAchievementRepository;
 
-	public UserService(UserRepository userRepository) {
+	public UserService(UserRepository userRepository, UserAchievementRepository userAchievementRepository) {
 		this.userRepository = userRepository;
-	}
+        this.userAchievementRepository = userAchievementRepository;
+    }
 
 
     public User registerUser(User newUser) {
@@ -145,5 +151,9 @@ public class UserService {
 
         guestUser = registerUser(guestUser);
         return loginUser(profile.getUsername(), password);
+    }
+
+    public List<UserAchievementDTO> getUserAchievements(User user) {
+        return DTOMapper.INSTANCE.convertUserAchievementListToAchievementDTOList(userAchievementRepository.findByUser(user));
     }
 }

@@ -34,6 +34,7 @@ public class GameService {
     private final TrainPositionFetcher trainPositionFetcher;
     private final RoundRepository roundRepository;
     private final GuessRepository guessRepository;
+    private final AchievementService achievementService;
     private final LobbyRepository lobbyRepository;
     private final UserRepository userRepository;
     private final Map<Long, ScheduledFuture<?>> activeTimers = new ConcurrentHashMap<>();
@@ -43,10 +44,11 @@ public class GameService {
     private final ObjectMapper objectMapper;
     private final RoundHistoryRepository roundHistoryRepository;
 
-    public GameService(TrainPositionFetcher trainPositionFetcher, RoundRepository roundRepository, GuessRepository guessRepository, LobbyRepository lobbyRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate, ObjectMapper objectMapper, RoundHistoryRepository roundHistoryRepository) {
+    public GameService(TrainPositionFetcher trainPositionFetcher, RoundRepository roundRepository, GuessRepository guessRepository, AchievementService achievementService, LobbyRepository lobbyRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate, ObjectMapper objectMapper, RoundHistoryRepository roundHistoryRepository) {
         this.trainPositionFetcher = trainPositionFetcher;
         this.roundRepository = roundRepository;
         this.guessRepository = guessRepository;
+        this.achievementService = achievementService;
         this.lobbyRepository = lobbyRepository;
         this.userRepository = userRepository;
         this.messagingTemplate = messagingTemplate;
@@ -278,9 +280,11 @@ public class GameService {
             int roundPoints = guess.getPoints() != null ? guess.getPoints() : 0;
             long xCoordinate = guess.getLat() != null ? guess.getLat().longValue() : 0;
             long yCoordinate = guess.getLon() != null ? guess.getLon().longValue() : 0;
-            double distance = guess.getDistanceToTrain() != null ? guess.getDistanceToTrain() : Double.MAX_VALUE;
+            double distance = guess.getDistanceToTrain() != null
+                    ? Math.round(guess.getDistanceToTrain() * 100.0) / 100.0
+                    : Double.MAX_VALUE;
             userResults.add(new UserResult(userId, totalPoints, roundPoints, xCoordinate, yCoordinate, distance));
-            System.out.println("[publishScores] UserResult: userId=" + userId + " roundPoints=" + roundPoints + " totalPoints=" + totalPoints);
+            System.out.println("[publishScores] UserResult: userId=" + userId + " roundPoints=" + roundPoints + " totalPoints=" + totalPoints + " distanceToTrain=" + distance + "km");
         }
 
         ResultDTO resultDTO = new ResultDTO(currentRoundNumber, userResults, train);
@@ -427,7 +431,8 @@ public class GameService {
             player.setUserScoreboard(scoreboard);
             userRepository.save(player);
         }
-
+        achievementService.evaluateAchievementsForLobby(currentLobby);
+        System.out.println("[gameTearDown] Achievements evaluated for lobby " + lobbyId);
         currentLobby.setLobbyState(LobbyState.FINISHED);
         lobbyRepository.save(currentLobby);
 
