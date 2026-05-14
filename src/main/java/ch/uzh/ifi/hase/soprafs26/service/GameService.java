@@ -14,6 +14,7 @@ import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GuessMessageDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.ResultDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoundStartDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.ResyncDTO;
 import ch.uzh.ifi.hase.soprafs26.trains.TrainPositionFetcher;
 import ch.uzh.ifi.hase.soprafs26.websocket.Message;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -291,6 +292,78 @@ public class GameService {
         if (freshLobby.getMaxRounds() == currentRoundNumber) {
             gameTearDown(freshLobby);
         }
+    }
+
+
+    public ResyncDTO resync(Lobby currentLobby) {
+        Boolean published = scoresPublished.get(currentLobby.getLobbyId());
+
+        if (published != null && published) {
+            ResultDTO results = convertToResultDTO(currentLobby);
+            return new ResyncDTO(MessageType.SCORES, results, 0, currentLobby.getMaxRounds());
+        }
+        else{
+            List<Round> rounds = roundRepository.findByLobbyOrderByRoundNumberAsc(currentLobby);
+            int currentRoundNumber = currentLobby.getCurrentRound();
+
+            Round currentRound = rounds.get(currentRoundNumber - 1);
+
+            Train trainWithoutCoordinates;
+            try {
+                trainWithoutCoordinates = objectMapper.readValue(currentRound.getTrainData(), Train.class);
+                trainWithoutCoordinates.setCurrentX(0);
+                trainWithoutCoordinates.setCurrentY(0);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to deserialize train data", e);
+            }
+            //get remaining time for current round
+            ScheduledFuture<?> timer = activeTimers.get(currentLobby.getLobbyId());
+            long remainingTime = 0;
+            if (timer != null) {
+                remainingTime = timer.getDelay(TimeUnit.SECONDS);
+            }
+            RoundStartDTO roundStartDTO = new RoundStartDTO(currentRoundNumber, currentLobby.getMaxRounds(), trainWithoutCoordinates);
+            return new ResyncDTO(MessageType.ROUND_START, roundStartDTO, remainingTime, currentLobby.getMaxRounds());}
+    }
+
+    private ResultDTO convertToResultDTO(Lobby currentLobby) {
+        Lobby freshLobby = lobbyRepository.findById(currentLobby.getLobbyId())
+                .orElseThrow(() -> new RuntimeException("Lobby not found"));
+
+        Long lobbyId = freshLobby.getLobbyId();
+        List<Round> rounds = roundRepository.findByLobbyOrderByRoundNumberAsc(freshLobby);
+        int currentRoundNumber = freshLobby.getCurrentRound();
+        Round currentRound = rounds.get(currentRoundNumber - 1);
+
+        List<Guess> guesses = guessRepository.findByRound(currentRound);
+        Train train;
+        try {
+            train = objectMapper.readValue(currentRound.getTrainData(), Train.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to deserialize train data", e);
+        }
+        List<UserResult> userResults = new ArrayList<>();
+
+        for (Guess guess : guesses) {
+            Long userId = guess.getUser().getUserId();
+            int totalPoints = roundRepository.findByLobbyOrderByRoundNumberAsc(freshLobby)
+                    .stream()
+                    .flatMap(r -> guessRepository.findByRound(r).stream())
+                    .filter(g -> g.getUser().getUserId().equals(userId))
+                    .mapToInt(g -> g.getPoints() != null ? g.getPoints() : 0)
+                    .sum();
+            int roundPoints = guess.getPoints() != null ? guess.getPoints() : 0;
+            long xCoordinate = guess.getLat() != null ? guess.getLat().longValue() : 0;
+            long yCoordinate = guess.getLon() != null ? guess.getLon().longValue() : 0;
+            double distance = guess.getDistanceToTrain() != null ? guess.getDistanceToTrain() : Double.MAX_VALUE;
+            userResults.add(new UserResult(userId, totalPoints, roundPoints, xCoordinate, yCoordinate, distance));
+            System.out.println("[publishScores] UserResult: userId=" + userId + " roundPoints=" + roundPoints + " totalPoints=" + totalPoints);
+        }
+
+        ResultDTO resultDTO = new ResultDTO(currentRoundNumber, userResults, train);
+
+        return resultDTO;
+
     }
 
     public int calculateScore(Train train, double guessDistance) {
