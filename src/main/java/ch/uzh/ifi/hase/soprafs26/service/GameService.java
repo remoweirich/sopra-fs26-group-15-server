@@ -143,6 +143,7 @@ public class GameService {
         System.out.println("allAreReady: " + allAreReady);
         if (allAreReady) {
             System.out.println("All ready! Starting round...");
+            activeTimers.remove(currentLobby.getLobbyId());
             roundStart(currentLobby);
         }
     }
@@ -177,6 +178,10 @@ public class GameService {
         Long lobbyId = currentLobby.getLobbyId();
         System.out.println("[roundStart] Called for lobby " + lobbyId);
 
+        ScheduledFuture<?> oldTimer = activeTimers.get(lobbyId);
+        if (oldTimer != null) {oldTimer.cancel(false);}
+        activeTimers.remove(lobbyId);
+
         List<Round> rounds = roundRepository.findByLobbyOrderByRoundNumberAsc(currentLobby);
         System.out.println("[roundStart] Found " + rounds.size() + " rounds");
 
@@ -206,11 +211,11 @@ public class GameService {
 
         ScheduledFuture<?> timer = scheduler.schedule(
                 () -> roundEnd(lobbyId),
-                45,
+                49,
                 TimeUnit.SECONDS
         );
         activeTimers.put(lobbyId, timer);
-        System.out.println("[roundStart] Timer scheduled for 45 seconds");
+        System.out.println("[roundStart] Timer scheduled for 49 seconds");
     }
 
     public void roundEnd(Long lobbyId) {
@@ -241,8 +246,10 @@ public class GameService {
         Long lobbyId = freshLobby.getLobbyId();
         System.out.println("[publishScores] Called for lobby " + lobbyId);
 
-        activeTimers.remove(lobbyId);
-        scoresPublished.put(lobbyId, true);
+        if (currentLobby.getCurrentRound() != currentLobby.getMaxRounds()) {
+            activeTimers.remove(lobbyId);
+            scoresPublished.put(lobbyId, true);
+        }
 
         List<Round> rounds = roundRepository.findByLobbyOrderByRoundNumberAsc(freshLobby);
         System.out.println("[publishScores] Found " + rounds.size() + " rounds");
@@ -291,6 +298,13 @@ public class GameService {
         System.out.println("[publishScores] Sending SCORES to /topic/game/" + lobbyId);
         messagingTemplate.convertAndSend("/topic/game/" + lobbyId, message);
         System.out.println("[publishScores] SCORES sent!");
+
+        ScheduledFuture<?> readyTimer = scheduler.schedule(
+                () -> roundStart(currentLobby),
+                20,
+                TimeUnit.SECONDS
+        );
+        activeTimers.put(lobbyId, readyTimer);
 
         if (freshLobby.getMaxRounds() == currentRoundNumber) {
             gameTearDown(freshLobby);
