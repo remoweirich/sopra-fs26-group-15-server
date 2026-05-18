@@ -40,14 +40,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-//        registry.enableStompBrokerRelay("/topic")
-//                .setRelayHost(brokerHost)
-//                .setRelayPort(61613)
-//                .setClientLogin(brokerUser)
-//                .setClientPasscode(brokerPass)
-//                .setSystemLogin(brokerUser)
-//                .setSystemPasscode(brokerPass)
-//                .setVirtualHost("/");
+        /*registry.enableStompBrokerRelay("/topic")
+                .setRelayHost(brokerHost)
+                .setRelayPort(61613)
+                .setClientLogin(brokerUser)
+                .setClientPasscode(brokerPass)
+                .setSystemLogin(brokerUser)
+                .setSystemPasscode(brokerPass)
+                .setVirtualHost("/");*/
         registry.enableSimpleBroker("/topic");
         registry.setApplicationDestinationPrefixes("/app");
     }
