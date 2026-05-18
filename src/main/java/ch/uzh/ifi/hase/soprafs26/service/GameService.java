@@ -38,6 +38,7 @@ public class GameService {
     private final LobbyRepository lobbyRepository;
     private final UserRepository userRepository;
     private final Map<Long, ScheduledFuture<?>> activeTimers = new ConcurrentHashMap<>();
+    private final Map<Long, ScheduledFuture<?>> readyTimers = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
     private final SimpMessagingTemplate messagingTemplate;
     private final Map<Long, Boolean> scoresPublished = new ConcurrentHashMap<>();
@@ -144,6 +145,9 @@ public class GameService {
         System.out.println("allAreReady: " + allAreReady);
         if (allAreReady) {
             System.out.println("All ready! Starting round...");
+            ScheduledFuture<?> old = readyTimers.get(currentLobby.getLobbyId());
+            if (old != null) {old.cancel(true);}
+            readyTimers.remove(currentLobby.getLobbyId());
             roundStart(currentLobby);
         }
     }
@@ -178,6 +182,10 @@ public class GameService {
         Long lobbyId = currentLobby.getLobbyId();
         System.out.println("[roundStart] Called for lobby " + lobbyId);
 
+        ScheduledFuture<?> oldTimer = readyTimers.get(lobbyId);
+        if (oldTimer != null) {oldTimer.cancel(false);}
+        readyTimers.remove(lobbyId);
+
         List<Round> rounds = roundRepository.findByLobbyOrderByRoundNumberAsc(currentLobby);
         System.out.println("[roundStart] Found " + rounds.size() + " rounds");
 
@@ -207,11 +215,11 @@ public class GameService {
 
         ScheduledFuture<?> timer = scheduler.schedule(
                 () -> roundEnd(lobbyId),
-                45,
+                49,
                 TimeUnit.SECONDS
         );
         activeTimers.put(lobbyId, timer);
-        System.out.println("[roundStart] Timer scheduled for 45 seconds");
+        System.out.println("[roundStart] Timer scheduled for 49 seconds");
     }
 
     public void roundEnd(Long lobbyId) {
@@ -242,7 +250,14 @@ public class GameService {
         Long lobbyId = freshLobby.getLobbyId();
         System.out.println("[publishScores] Called for lobby " + lobbyId);
 
-        activeTimers.remove(lobbyId);
+        if (!freshLobby.getCurrentRound().equals(freshLobby.getMaxRounds())) {
+            ScheduledFuture<?> old = readyTimers.get(lobbyId);
+            if (old != null) {
+                old.cancel(false);
+            }
+            readyTimers.remove(lobbyId);
+        }
+
         scoresPublished.put(lobbyId, true);
 
         List<Round> rounds = roundRepository.findByLobbyOrderByRoundNumberAsc(freshLobby);
@@ -292,6 +307,19 @@ public class GameService {
         System.out.println("[publishScores] Sending SCORES to /topic/game/" + lobbyId);
         messagingTemplate.convertAndSend("/topic/game/" + lobbyId, message);
         System.out.println("[publishScores] SCORES sent!");
+
+
+        if (!freshLobby.getCurrentRound().equals(freshLobby.getMaxRounds())) {
+            ScheduledFuture<?> readyTimer = scheduler.schedule(
+                    () -> {
+                        Lobby fresh = lobbyRepository.findById(lobbyId)
+                                .orElseThrow(() -> new RuntimeException("Lobby not found"));
+                        roundStart(fresh);
+                    },
+                    20, TimeUnit.SECONDS
+            );
+            readyTimers.put(lobbyId, readyTimer);
+        }
 
         if (freshLobby.getMaxRounds() == currentRoundNumber) {
             gameTearDown(freshLobby);
@@ -441,7 +469,11 @@ public class GameService {
         }
         roundRepository.deleteByLobby(currentLobby);
 
-        activeTimers.remove(lobbyId);
+        ScheduledFuture<?> t1 = activeTimers.remove(lobbyId);
+        if (t1 != null) t1.cancel(false);
+        ScheduledFuture<?> t2 = readyTimers.remove(lobbyId);
+        if (t2 != null) t2.cancel(false);
+
         scoresPublished.remove(lobbyId);
     }
 
@@ -452,5 +484,13 @@ public class GameService {
             }
         });
         activeTimers.clear();
+
+        readyTimers.forEach((gameId, timer) -> {
+            if (timer != null) {
+                timer.cancel(false);
+            }
+        });
+        readyTimers.clear();
+
     }
 }
