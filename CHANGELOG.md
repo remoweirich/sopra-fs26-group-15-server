@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.7.2...v1.8.0) (2026-05-19)
+
+
+### Features
+
+* **Achievements:** notify user specific topic about achievments closes [#122](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/122) ([a59f65e](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/a59f65e7dd0193ad62bb3bfe85d0b345454d41e0))
+
 ## [1.7.2](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.7.1...v1.7.2) (2026-05-19)
 
 
