@@ -47,7 +47,9 @@ public class UserService {
 
         // Status setzen
         newUser.setIsOnline(false);
-        newUser.setIsGuest(false);
+        if (newUser.getIsGuest() == null) {
+            newUser.setIsGuest(false);
+        }
 
         // creationDate wird automatisch via @PrePersist gesetzt
 
@@ -155,5 +157,10 @@ public class UserService {
 
     public List<UserAchievementDTO> getUserAchievements(User user) {
         return DTOMapper.INSTANCE.convertUserAchievementListToAchievementDTOList(userAchievementRepository.findByUser(user));
+    }
+
+    public void deleteUser(Long userId) {
+        User user = getUserById(userId);
+        userRepository.delete(user);
     }
 }

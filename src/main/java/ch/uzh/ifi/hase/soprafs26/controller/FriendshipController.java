@@ -128,4 +128,20 @@ public class FriendshipController {
 
         return  sanitizedUsers;
     }
+
+    @DeleteMapping("friends/remove/{userIdToDelete}")
+    @ResponseStatus(HttpStatus.OK)
+    public void removeFriendship(
+            @PathVariable("userIdToDelete") Long userIdToDelete,
+            @RequestHeader("userId") Long userId,
+            @RequestHeader("token") String token){
+        AuthHeader authHeader = new AuthHeader(userId, token);
+        boolean isAuthenticated = authService.authUser(authHeader);
+        if (!isAuthenticated) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Please log in");
+        }
+
+        friendshipService.removeFriendship(userId,userIdToDelete);
+    }
+
 }
