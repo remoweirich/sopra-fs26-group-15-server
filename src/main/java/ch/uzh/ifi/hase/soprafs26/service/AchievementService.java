@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
+import ch.uzh.ifi.hase.soprafs26.constant.MessageType;
 import ch.uzh.ifi.hase.soprafs26.entity.Achievement;
 import ch.uzh.ifi.hase.soprafs26.entity.Guess;
 import ch.uzh.ifi.hase.soprafs26.entity.Lobby;
@@ -14,7 +15,10 @@ import ch.uzh.ifi.hase.soprafs26.repository.RoundHistoryRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.RoundRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserAchievementRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
+import ch.uzh.ifi.hase.soprafs26.websocket.Message;
 import jakarta.transaction.Transactional;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -31,19 +35,22 @@ public class AchievementService {
     private final RoundRepository roundRepository;
     private final GuessRepository guessRepository;
     private final UserRepository userRepository;
+    private final SimpMessagingTemplate simpMessagingTemplate;
+
 
     public AchievementService(AchievementRepository achievementRepository,
                               UserAchievementRepository userAchievementRepository,
                               RoundHistoryRepository roundHistoryRepository,
                               RoundRepository roundRepository,
                               GuessRepository guessRepository,
-                              UserRepository userRepository) {
+                              UserRepository userRepository, SimpMessagingTemplate simpMessagingTemplate) {
         this.achievementRepository = achievementRepository;
         this.userAchievementRepository = userAchievementRepository;
         this.roundHistoryRepository = roundHistoryRepository;
         this.roundRepository = roundRepository;
         this.guessRepository = guessRepository;
         this.userRepository = userRepository;
+        this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
     public void evaluateAchievementsForLobby(Lobby lobby) {
@@ -200,6 +207,8 @@ public class AchievementService {
         userAchievement.setUser(user);
         userAchievement.setAchievement(achievement);
         userAchievementRepository.save(userAchievement);
+        Message message = new Message(MessageType.ACHIEVEMENT, DTOMapper.INSTANCE.convertEntityToAchievementDTO(achievement));
+        simpMessagingTemplate.convertAndSend("/topic/" + user.getUserId() + "/notifications", message);
         System.out.println("[AchievementService]Awarded achievement '" + achievementName + "' to user '" + user.getUserProfile().getUsername() + "'");
         earnedAchievementIds.add(achievement.getAchievementId());
     }

@@ -64,6 +64,8 @@ public interface DTOMapper {
     @Mapping(source = "user.userId", target = "userId")
     UserAchievementDTO convertUserAchievementToUserAchievementDTO(UserAchievement userAchievement);
 
+    AchievementDTO convertEntityToAchievementDTO(Achievement achievement);
+
     List<UserAchievementDTO> convertUserAchievementListToAchievementDTOList(List<UserAchievement> UserAchievements);
 
 
