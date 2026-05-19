@@ -14,6 +14,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @RestController
 public class UserController {
@@ -105,6 +108,19 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
         userService.deleteUser(userId);
+    }
+
+    @GetMapping("/users/search")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public List<UserDTO> searchUsers(@RequestParam("username") String username) {
+        List<UserDTO> sanitizedUsers = new ArrayList<>();
+
+        List<User> users = userService.searchUsers(username);
+        for  (User user : users) {
+            sanitizedUsers.add(DTOMapper.INSTANCE.convertUserToUserDTO(user));
+        }
+        return sanitizedUsers;
     }
 }
 

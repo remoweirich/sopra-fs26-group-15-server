@@ -58,7 +58,7 @@ public class FriendshipService {
         friendRequestDTO.setFriendShipId(friendship.getFriendshipId());
 
         Message message = new Message(MessageType.FRIEND_REQUEST, friendRequestDTO);
-        simpMessagingTemplate.convertAndSend("/topic/" + receivingUserId + "/friends", message);
+        simpMessagingTemplate.convertAndSend("/topic/" + receivingUserId + "/notifications", message);
     }
 
     public void acceptFriendship(long acceptingUserId, long requestingUserId) {
@@ -68,7 +68,7 @@ public class FriendshipService {
         Optional<Friendship> existing = friendshipRepository.findByFriend1AndFriend2(user1, user2);
 
         if (existing.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Friendship already exists");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Friendship doesn't exists");
         }
 
         Friendship friendship = existing.get();
@@ -91,7 +91,7 @@ public class FriendshipService {
         friendRequestDTO.setFriendShipId(friendship.getFriendshipId());
 
         Message message = new Message(MessageType.FRIEND_ACCEPT, friendRequestDTO);
-        simpMessagingTemplate.convertAndSend("/topic/" + requestingUser.getUserId() + "/friends", message);
+        simpMessagingTemplate.convertAndSend("/topic/" + requestingUser.getUserId() + "/notifications", message);
     }
 
     public List<User> getFriends(Long userId) {
@@ -151,4 +151,37 @@ public class FriendshipService {
 
         friendshipRepository.delete(friendship);
     }
+
+    public void rejectFriendRequest(Long rejectingUserId, Long requestingUserId) {
+        User user1 = rejectingUserId < requestingUserId ? userService.getUserById(rejectingUserId) : userService.getUserById(requestingUserId);
+        User user2 = rejectingUserId < requestingUserId ? userService.getUserById(requestingUserId) : userService.getUserById(rejectingUserId);
+
+        Optional<Friendship> existing = friendshipRepository.findByFriend1AndFriend2(user1, user2);
+
+        if (existing.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Friendship doesn't exists");
+        }
+
+        Friendship friendship = existing.get();
+
+        User rejectingUser = userService.getUserById(rejectingUserId);
+        User requestingUser = userService.getUserById(requestingUserId);
+
+        if (!friendship.getPendingInvitationReceivedBy().equals(rejectingUser)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You have not received this request");
+        }
+
+        friendshipRepository.deleteByFriendshipId(friendship.getFriendshipId());
+
+        FriendRequestDTO friendRequestDTO = new  FriendRequestDTO();
+        friendRequestDTO.setUserId(rejectingUserId);
+        friendRequestDTO.setUsername(rejectingUser.getUserProfile().getUsername());
+        friendRequestDTO.setFriendShipId(friendship.getFriendshipId());
+
+        Message message = new Message(MessageType.FRIEND_REJECT, friendRequestDTO);
+        simpMessagingTemplate.convertAndSend("/topic/" + requestingUser.getUserId() + "/notifications", message);
+
+
+    }
+
 }

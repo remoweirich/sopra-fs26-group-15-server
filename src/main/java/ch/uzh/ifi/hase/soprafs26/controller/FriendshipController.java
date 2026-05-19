@@ -71,6 +71,26 @@ public class FriendshipController {
 
     }
 
+    @PostMapping("/friends/reject/{requestingUserId}")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public void rejectFriendRequest(
+            @PathVariable("requestingUserId") Long requestingUserId,
+            @RequestHeader("userId") Long rejectingUserId,
+            @RequestHeader("token") String token) {
+
+        AuthHeader authHeader = new AuthHeader(rejectingUserId, token);
+        boolean isvalid = authService.authUser(authHeader);
+
+        if (!isvalid) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong credentials.");
+        }
+
+        friendshipService.rejectFriendRequest(rejectingUserId, requestingUserId);
+
+    }
+
+
     @GetMapping("/friends/{userId}")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public List<UserDTO> getFriends(@PathVariable("userId") Long userId,

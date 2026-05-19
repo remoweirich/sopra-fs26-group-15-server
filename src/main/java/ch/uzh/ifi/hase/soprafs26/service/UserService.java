@@ -163,4 +163,9 @@ public class UserService {
         User user = getUserById(userId);
         userRepository.delete(user);
     }
+
+    public List<User> searchUsers(String username) {
+        return userRepository.findByUserProfile_UsernameContainingIgnoreCase(username);
+
+    }
 }

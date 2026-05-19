@@ -1,637 +1,535 @@
-//package ch.uzh.ifi.hase.soprafs26.service;
-//import ch.uzh.ifi.hase.soprafs26.constant.LobbyState;
-//import ch.uzh.ifi.hase.soprafs26.constant.LobbyVisibility;
-//import ch.uzh.ifi.hase.soprafs26.constant.MessageType;
-//import ch.uzh.ifi.hase.soprafs26.entity.GameResult;
-//import ch.uzh.ifi.hase.soprafs26.events.GameEndedEvent;
-//import ch.uzh.ifi.hase.soprafs26.objects.Lobby;
-//import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
-//import ch.uzh.ifi.hase.soprafs26.websocket.Message;
-//import org.junit.jupiter.api.AfterEach;
-//import org.junit.jupiter.api.Test;
-//import static org.junit.jupiter.api.Assertions.*;
-//import ch.uzh.ifi.hase.soprafs26.entity.User;
-//import ch.uzh.ifi.hase.soprafs26.objects.*;
-//import ch.uzh.ifi.hase.soprafs26.repository.GameRepository;
-//import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
-//import ch.uzh.ifi.hase.soprafs26.trains.TrainPositionFetcher;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.mockito.ArgumentCaptor;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.Mockito;
-//import org.mockito.junit.jupiter.MockitoExtension;
-//import org.springframework.context.ApplicationEventPublisher;
-//import org.springframework.http.HttpStatus;
-//import org.springframework.messaging.simp.SimpMessagingTemplate;
-//import org.springframework.web.server.ResponseStatusException;
-//import tools.jackson.databind.ObjectMapper;
-//
-//
-//import java.util.*;
-//
-//import static org.junit.jupiter.api.Assertions.*;
-//import static org.mockito.Mockito.*;
-//
-//@ExtendWith(MockitoExtension.class)
-//class GameServiceTest {
-//
-//    @Mock
-//    private UserRepository userRepository;
-//    @Mock
-//    private TrainPositionFetcher trainPositionFetcher;
-//    @Mock
-//    private GameRepository gameRepository;
-//    @Mock
-//    private SimpMessagingTemplate messagingTemplate;
-//    @Mock
-//    private ApplicationEventPublisher eventPublisher;
-//
-//    private ObjectMapper objectMapper;
-//
-//    @InjectMocks
-//    private GameService gameService;
-//
-//    private static Lobby getLobby() {
-//        User user1 = new User();
-//        user1.setUserId(1L);
-//        User user2 = new User();
-//        user2.setUserId(2L);
-//
-//        Lobby lobby = new Lobby();
-//        lobby.setLobbyId(1L);
-//        lobby.setLobbyName("TestLobby");
-//        lobby.setLobbyCode("valid-lobbyCode");
-//
-//        Admin newAdmin = new Admin(user1.getUserId(), "valid-token");
-//        lobby.setAdmin(newAdmin);
-//
-//        lobby.setSize(2);
-//        lobby.setVisibility(LobbyVisibility.PRIVATE);
-//
-//        Map<Long, User> users = new HashMap<>();
-//        users.put(user1.getUserId(), user1);
-//        users.put(user2.getUserId(), user2);
-//        lobby.setUsers(users);
-//
-//        lobby.setCurrentRound(0);
-//        lobby.setMaxRounds(1);
-//
-//        lobby.setScores(new HashMap<>());
-//        Score score1 = new Score(user1.getUserId());
-//        score1.setPoints(0);
-//        lobby.setScore(user1.getUserId(), score1);
-//        Score score2 = new Score(user2.getUserId());
-//        score2.setPoints(0);
-//        lobby.setScore(user2.getUserId(), score2);
-//
-//        lobby.setLobbyState(LobbyState.WAITING);
-//        return lobby;
-//    }
-//
-//    private Game getGame(Lobby lobby) throws Exception {
-//        Train mockTrain = new Train();
-//        mockTrain.setCurrentX(100L);
-//        mockTrain.setCurrentY(100L);
-//        mockTrain.setLineOrigin(new Station("Start", 0L, 0L, 0, 0));
-//        mockTrain.setLineDestination(new Station("End", 200L, 200L, 10, 10));
-//        List<Train> trains = new ArrayList<>();
-//
-//        for(int i=0; i<lobby.getMaxRounds(); i++) {
-//            trains.add(mockTrain);
-//        }
-//
-//        lenient().when(trainPositionFetcher.fetchTrains(anyInt())).thenReturn(trains);
-//        lenient().doNothing().when(trainPositionFetcher).interpolatePosition(any(Train.class));
-//
-//
-//        return gameService.setupGame(lobby);
-//    }
-//
-//    @AfterEach
-//    void tearDown() {
-//        gameService.cleanupAllTimers();
-//        gameService.cleanupGames();
-//    }
-//
-//
-//    @Test
-//    void getGameById_success() throws Exception {
-//
-//        Lobby lobby = getLobby();
-//
-//        Game game = getGame(lobby);
-//        lobby.setGame(game);
-//
-//        Long gameId = game.getGameId();
-//
-//        Game foundGame = gameService.getGameById(gameId);
-//
-//        assertNotNull(foundGame);
-//        assertEquals(gameId, foundGame.getGameId());
-//        assertEquals(game, foundGame);
-//    }
-//
-//    @Test
-//    void getGameById_notFound_throwsException() {
-//
-//        Long nonExistentId = 999L;
-//
-//        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-//            gameService.getGameById(nonExistentId);
-//        });
-//
-//        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-//        assertEquals("Game not found", exception.getReason());
-//    }
-//
-//    @Test
-//    void setupGame_success() throws Exception {
-//
-//        Lobby lobby = getLobby();
-//
-//        Train mockTrain = new Train();
-//        mockTrain.setCurrentX(100L);
-//        mockTrain.setCurrentY(100L);
-//        mockTrain.setLineOrigin(new Station("Start", 0L, 0L, 0, 0));
-//        mockTrain.setLineDestination(new Station("End", 200L, 200L, 10, 10));
-//
-//        lenient().when(trainPositionFetcher.fetchTrains(anyInt())).thenReturn(List.of(mockTrain));
-//        lenient().doNothing().when(trainPositionFetcher).interpolatePosition(any(Train.class));
-//
-//
-//        Game game = gameService.setupGame(lobby);
-//        lobby.setGame(game);
-//
-//
-//        assertNotNull(game);
-//        assertEquals(1L, game.getGameId());
-//        assertEquals(1, game.getRounds().size());
-//
-//        Round firstRound = game.getRounds().get(0);
-//        assertNotNull(firstRound.getScores().get(1L));
-//        assertNotNull(firstRound.getAllUserGameStatuses().get(2L));
-//
-//
-//        ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-//        verify(messagingTemplate).convertAndSend(eq("/topic/lobby/1"), messageCaptor.capture());
-//
-//        Message sentMessage = messageCaptor.getValue();
-//
-//        assertEquals(MessageType.GAME_START, sentMessage.getType());
-//
-//        MyLobbyDTO payload = (MyLobbyDTO) sentMessage.getPayload();
-//        assertEquals(lobby.getAdmin(), payload.getAdmin());
-//        assertEquals(lobby.getLobbyId(), payload.getLobbyId());
-//
-//    }
-//
-//    @Test
-//    void processGuessMessage_success() throws Exception {
-//        Lobby lobby = getLobby();
-//
-//        Game game = getGame(lobby);
-//        lobby.setGame(game);
-//
-//        gameService.roundStart(lobby);
-//
-//        GuessMessageDTO guessMessage = new GuessMessageDTO(1L, 1L);
-//        guessMessage.setXcoordinate(100L); guessMessage.setYcoordinate(100L);
-//
-//        gameService.processGuessMessage(guessMessage, lobby);
-//
-//        assertEquals(1000, game.getRounds().get(0).getScores().get(1L).getPoints(), "ist es hier?");
-//        assertEquals(1000, lobby.getScore(1L).getPoints(), "oder ist es hier?");
-//
-//        assertTrue(game.getRounds().get(0).getAllUserGameStatuses().get(1L).getIsReady());
-//
-//
-//        ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-//        verify(messagingTemplate, atLeastOnce()).convertAndSend(eq("/topic/game/1"), messageCaptor.capture());
-//
-//        List<Message> capturedMessages = messageCaptor.getAllValues();
-//
-//        boolean hasSate = capturedMessages.stream().anyMatch(message -> message.getType() == MessageType.GAME_STATE);
-//        assertTrue(hasSate);
-//
-//    }
-//
-//    @Test
-//    void processGuessMessage_noGuessAllowed() throws Exception {
-//        Lobby lobby = getLobby();
-//
-//        Game game  = getGame(lobby);
-//        lobby.setGame(game);
-//
-//        GuessMessageDTO guessMessage = new GuessMessageDTO(1L, 1L);
-//        guessMessage.setXcoordinate(100L); guessMessage.setYcoordinate(100L);
-//
-//        Mockito.clearInvocations(messagingTemplate);
-//        gameService.processGuessMessage(guessMessage, lobby);
-//
-//
-//        Score roundScore = game.getRounds().get(0).getScores().get(1L);
-//        assertNull(roundScore.getPoints());
-//
-//        verify(messagingTemplate, never()).convertAndSend(anyString(), any(Message.class));
-//    }
-//
-//    @Test
-//    void readyForNextRound_noGame_notAllReady() throws Exception {
-//        Lobby lobby =  getLobby();
-//
-//        Game game = getGame(lobby);
-//
-//        UserGameStatus userGameStatus = new UserGameStatus(1L, true);
-//
-//        assertNull(lobby.getGame());
-//        gameService.readyForNextRound(userGameStatus, lobby);
-//        assertEquals(gameService.getGameById(lobby.getLobbyId()), lobby.getGame());
-//
-//        Mockito.clearInvocations(messagingTemplate);
-//        verify(messagingTemplate, never()).convertAndSend(anyString(), any(Message.class));
-//
-//    }
-//
-//    @Test
-//    void readyForNextRound_allAreReady() throws Exception {
-//        Lobby lobby =  getLobby();
-//
-//        Game game  = getGame(lobby);
-//        lobby.setGame(game);
-//
-//        gameService.readyForNextRound(new UserGameStatus(1L, true),  lobby);
-//
-//        gameService.readyForNextRound(new UserGameStatus(2L, true),  lobby);
-//
-//        ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-//        verify(messagingTemplate, atLeastOnce()).convertAndSend(eq("/topic/game/1"), messageCaptor.capture());
-//
-//        List<Message> capturedMessages = messageCaptor.getAllValues();
-//
-//        boolean hasRoundStart = capturedMessages.stream().anyMatch(message -> message.getType() == MessageType.ROUND_START);
-//        assertTrue(hasRoundStart);
-//    }
-//
-//    @Test
-//    void updateUserGameStatus_roundZero_NotAllReady() throws Exception {
-//        Lobby lobby =  getLobby();
-//        Game game = getGame(lobby);
-//        lobby.setGame(game);
-//
-//        lobby.setCurrentRound(0);
-//        Boolean allAreReady = gameService.updateUserGameStatus(new UserGameStatus(1L, true), lobby);
-//        assertFalse(allAreReady);
-//        assertTrue(game.getConnectedPlayers().get(0).getIsReady(), "Player is still not ready");
-//    }
-//
-//    @Test
-//    void updateUserGameStatus_roundZero_AllReady() throws Exception {
-//        Lobby lobby =  getLobby();
-//        Game game = getGame(lobby);
-//        lobby.setGame(game);
-//
-//        lobby.setCurrentRound(0);
-//        Boolean firstPlayerReady = gameService.updateUserGameStatus(new UserGameStatus(1L, true),  lobby);
-//        Boolean allAreReady = gameService.updateUserGameStatus(new UserGameStatus(2L, true), lobby);
-//        assertTrue(allAreReady);
-//        assertTrue(game.getConnectedPlayers().stream().allMatch(UserGameStatus::getIsReady), "not all Players are connected");
-//        assertEquals(2, game.getConnectedPlayers().size());
-//    }
-//
-//    @Test
-//    void updateUserGameStatus_roundOne_NotAllReady() throws Exception {
-//        Lobby lobby =  getLobby();
-//        Game game = getGame(lobby);
-//        lobby.setGame(game);
-//
-//        lobby.setCurrentRound(1);
-//        Boolean allAreReady = gameService.updateUserGameStatus(new UserGameStatus(1L, true), lobby);
-//        assertFalse(allAreReady);
-//        assertTrue(game.getRounds().get(0).getAllUserGameStatuses().get(1L).getIsReady(), "Player is still not ready");
-//        assertFalse(game.getRounds().get(0).getAllUserGameStatusesList().stream().allMatch(UserGameStatus::getIsReady), "All Players are ready, which is false");
-//    }
-//
-//    @Test
-//    void updateUserGameStatus_roundOne_AllReady() throws Exception {
-//        Lobby lobby =  getLobby();
-//        Game game = getGame(lobby);
-//        lobby.setGame(game);
-//
-//        lobby.setCurrentRound(1);
-//        Boolean firstPlayerReady = gameService.updateUserGameStatus(new UserGameStatus(1L, true),  lobby);
-//        Boolean allAreReady = gameService.updateUserGameStatus(new UserGameStatus(2L, true), lobby);
-//        assertTrue(allAreReady);
-//        assertTrue(game.getRounds().get(0).getAllUserGameStatusesList().stream().allMatch(UserGameStatus::getIsReady), "not all Players are ready");
-//    }
-//
-//    @Test
-//    void canSubmitGuess_success() throws Exception {
-//        Lobby lobby =  getLobby();
-//        Game game = getGame(lobby);
-//        lobby.setGame(game);
-//
-//        gameService.roundStart(lobby);
-//        boolean canSubmit = gameService.canSubmitGuess(game.getGameId());
-//        assertTrue(canSubmit);
-//    }
-//
-//    @Test
-//    void canSubmitGuess_fail() throws Exception {
-//        Lobby lobby =  getLobby();
-//        Game game = getGame(lobby);
-//        lobby.setGame(game);
-//
-//        boolean canSubmit = gameService.canSubmitGuess(game.getGameId());
-//        assertFalse(canSubmit);
-//    }
-//
-//    @Test
-//    void roundStart_success() throws Exception {
-//        Lobby lobby =  getLobby();
-//        Game game = getGame(lobby);
-//        lobby.setGame(game);
-//
-//        assertEquals(0, lobby.getCurrentRound());
-//        Long gameId = game.getGameId();
-//
-//        Mockito.clearInvocations(messagingTemplate);
-//        gameService.roundStart(lobby);
-//
-//        assertEquals(1, lobby.getCurrentRound(), "Round was not incremented correctly");
-//        assertTrue(gameService.canSubmitGuess(gameId), "No timer initialized");
-//
-//        ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-//        verify(messagingTemplate).convertAndSend(eq("/topic/game/1"),  messageCaptor.capture());
-//
-//        Message sentMessage = messageCaptor.getValue();
-//        assertEquals(MessageType.ROUND_START, sentMessage.getType());
-//
-//        RoundStartDTO payload = (RoundStartDTO) sentMessage.getPayload();
-//        assertEquals(1, payload.getRoundNumber());
-//        assertEquals(lobby.getMaxRounds(), payload.getMaxRounds());
-//
-//        assertEquals(0, payload.getTrain().getCurrentX());
-//        assertEquals(0, payload.getTrain().getCurrentY());
-//    }
-//
-//    @Test
-//    void roundEnd_success() throws Exception {
-//        Lobby lobby =  getLobby();
-//        Game game = getGame(lobby);
-//        lobby.setGame(game);
-//
-//        lobby.setCurrentRound(1);
-//        gameService.roundEnd(lobby);
-//
-//        ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-//        verify(messagingTemplate).convertAndSend(eq("/topic/game/1"),  messageCaptor.capture());
-//
-//        Message sentMessage = messageCaptor.getValue();
-//        assertEquals(MessageType.ROUND_END, sentMessage.getType());
-//        assertNull(sentMessage.getPayload());
-//
-//        assertTrue(gameService.canSubmitGuess(game.getGameId()),  "No timer initialized");
-//    }
-//
-//    @Test
-//    void allowedToPublish_callsPublish() throws Exception {
-//        Lobby lobby =  getLobby();
-//        Game game = getGame(lobby);
-//        lobby.setGame(game);
-//        lobby.setCurrentRound(1);
-//
-//        GameResult gameResult = new GameResult();
-//        gameResult.setGameId(game.getGameId());
-//        gameResult.setRounds(game.getRounds());
-//        gameResult.setScores(lobby.getScores());
-//
-//        when(gameRepository.findByGameId(game.getGameId())).thenReturn(gameResult);
-//
-//        User user1 = new User();
-//        user1.setUserId(1L);
-//        User user2 = new User();
-//        user2.setUserId(2L);
-//
-//        when(userRepository.findById(1L)).thenReturn(Optional.of(user1));
-//        when(userRepository.findById(2L)).thenReturn(Optional.of(user2));
-//
-//        gameService.allowedToPublish(lobby);
-//
-//        ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-//        verify(messagingTemplate, atLeastOnce()).convertAndSend(eq("/topic/game/1"),  messageCaptor.capture());
-//
-//        assertTrue(messageCaptor.getAllValues().stream().anyMatch(message -> message.getType() == MessageType.SCORES), "Scores message was not sent");
-//    }
-//
-////    @Test
-////    void allowedToPublish_doesNothing() throws Exception {
-////        Lobby lobby =  getLobby();
-////        Game game = getGame(lobby);
-////        lobby.setGame(game);
-////        lobby.setCurrentRound(1);
-////
-////        GameResult mockResult = new GameResult();
-////        when(gameRepository.findByGameId(game.getGameId())).thenReturn(mockResult);
-////        User user = new User(); user.setUserId(1L);
-////        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-////
-////        gameService.allowedToPublish(lobby);
-////
-////        Mockito.clearInvocations(messagingTemplate);
-////
-////        gameService.allowedToPublish(lobby);
-////
-////        verify(messagingTemplate, never()).convertAndSend(anyString(), any(Message.class));
-////    }
-//
-//    @Test
-//    void publishScores_success_middleRound() throws Exception {
-//        Lobby lobby = getLobby();
-//
-//        lobby.setMaxRounds(2);
-//
-//        Game game = getGame(lobby);
-//        lobby.setGame(game);
-//        lobby.setCurrentRound(1);
-//
-//
-//        Round currentRound = game.getRounds().get(0);
-//        GuessMessageDTO guess = new GuessMessageDTO(1L, 1L);
-//        guess.setXcoordinate(100L);
-//        guess.setYcoordinate(100L);
-//        currentRound.setGuessMessage(1L, guess);
-//        currentRound.setDistances(1L, 0.0);
-//        currentRound.setScore(1L, 1000);
-//
-//
-//        gameService.publishScores(lobby);
-//
-//
-//        ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-//        verify(messagingTemplate).convertAndSend(eq("/topic/game/1"), messageCaptor.capture());
-//
-//        Message sentMessage = messageCaptor.getValue();
-//        assertEquals(MessageType.SCORES, sentMessage.getType());
-//
-//        ResultDTO payload = (ResultDTO) sentMessage.getPayload();
-//        assertEquals(1, payload.getCurrentRound());
-//
-//        assertEquals(2, payload.getUserResults().size());
-//
-//
-//        verify(gameRepository, never()).save(any(GameResult.class));
-//    }
-//
-//    @Test
-//    void publishScores_triggersTearDown_lastRound() throws Exception {
-//
-//        Lobby lobby = getLobby();
-//        lobby.setMaxRounds(1);
-//
-//        Game game = getGame(lobby);
-//        lobby.setGame(game);
-//        lobby.setCurrentRound(1);
-//
-//
-//        GameResult mockResult = new GameResult();
-//        when(gameRepository.findByGameId(anyLong())).thenReturn(mockResult);
-//
-//        User u1 = new User(); u1.setUsername("User1");
-//        User u2 = new User(); u2.setUsername("User2");
-//        when(userRepository.findById(1L)).thenReturn(Optional.of(u1));
-//        when(userRepository.findById(2L)).thenReturn(Optional.of(u2));
-//
-//
-//        gameService.publishScores(lobby);
-//
-//
-//        verify(messagingTemplate).convertAndSend(eq("/topic/game/1"), any(Message.class));
-//
-//
-//        verify(gameRepository).save(any(GameResult.class));
-//        verify(eventPublisher).publishEvent(any(GameEndedEvent.class));
-//
-//
-//        assertNull(lobby.getGame());
-//    }
-//
-//    @Test
-//    void calculateScore_perfectGuess_returns1000() {
-//
-//        Train train = new Train();
-//
-//        train.setLineOrigin(new Station("Start", 0L, 0L, 0, 0));
-//        train.setLineDestination(new Station("End", 100L, 100L, 10, 10));
-//
-//        double guessDistance = 0.0; // Perfekt getroffen
-//
-//
-//        int score = gameService.calculateScore(train, guessDistance);
-//
-//
-//        assertEquals(1000, score, "Ein perfekter Guess muss 1000 Punkte geben.");
-//    }
-//
-//    @Test
-//    void calculateScore_badGuess_returnsLowPoints() {
-//
-//        Train train = new Train();
-//
-//        train.setLineOrigin(new Station("Start", 0L, 0L, 0, 0));
-//        train.setLineDestination(new Station("End", 100L, 0L, 10, 10));
-//
-//        double guessDistance = 100.0;
-//
-//        int score = gameService.calculateScore(train, guessDistance);
-//
-//
-//        assertTrue(score > 0 && score <= 10, "Ein Guess, der um die volle Linienlänge daneben liegt, sollte minimal Punkte geben (ca. 5).");
-//    }
-//
-////    @Test
-////    void calculateScore_degenerateLine_usesFallback() {
-////
-////        Train train = new Train();
-////
-////        train.setLineOrigin(new Station("Same", 100L, 100L, 0, 0));
-////        train.setLineDestination(new Station("Same", 100L, 100L, 0, 0));
-////
-////        double guessDistance = 500.0;
-////
-////        int score = gameService.calculateScore(train, guessDistance);
-////
-////        assertTrue(score > 0);
-////        assertEquals(266, score);
-////    }
-//
-//    @Test
-//    void calculateGuessDistance_simpleRightTriangle() {
-//
-//        Train train = new Train();
-//        train.setCurrentX(0L);
-//        train.setCurrentY(0L);
-//
-//        Long playerX = 3L;
-//        Long playerY = 4L;
-//
-//        double distance = gameService.calculateGuessDistance(train, playerX, playerY);
-//
-//        assertEquals(5.0, distance, 0.001);
-//    }
-//
-//    @Test
-//    void calculateGuessDistance_zeroDistance() {
-//        Train train = new Train();
-//        train.setCurrentX(100L);
-//        train.setCurrentY(200L);
-//
-//        Long playerX = 100L;
-//        Long playerY = 200L;
-//
-//        double distance = gameService.calculateGuessDistance(train, playerX, playerY);
-//
-//        assertEquals(0.0, distance, 0.001, "Bei identischen Koordinaten muss die Distanz 0 sein.");
-//    }
-//
-//    @Test
-//    void gameTearDown_success() {
-//        Lobby lobby = getLobby();
-//
-//        Game game = mock(Game.class);
-//        lobby.setGame(game);
-//
-//        Long gameId = 1L;
-//        when(game.getGameId()).thenReturn(gameId);
-//
-//        List<Round> rounds = new ArrayList<>();
-//        when(game.getRounds()).thenReturn(rounds);
-//
-//        GameResult mockResult = new GameResult();
-//        when(gameRepository.findByGameId(gameId)).thenReturn(mockResult);
-//
-//        User user1 = new User(); user1.setUserId(1L); user1.setUsername("Alice");
-//        User user2 = new User(); user2.setUserId(2L); user2.setUsername("Bob");
-//
-//        when(userRepository.findById(1L)).thenReturn(Optional.of(user1));
-//        when(userRepository.findById(2L)).thenReturn(Optional.of(user2));
-//
-//        gameService.gameTearDown(lobby);
-//
-//
-//        verify(gameRepository).save(any(GameResult.class));
-//        verify(gameRepository).flush();
-//
-//        verify(eventPublisher).publishEvent(any(GameEndedEvent.class));
-//
-//        assertNull(lobby.getGame(), "Das Game-Objekt sollte von der Lobby entkoppelt sein");
-//
-//        assertEquals("Alice", mockResult.getUsernames().get(1L));
-//        assertEquals("Bob", mockResult.getUsernames().get(2L));
-//
-//
-//        assertFalse(gameService.canSubmitGuess(gameId));
-//    }
-//}
+package ch.uzh.ifi.hase.soprafs26.service;
+
+import ch.uzh.ifi.hase.soprafs26.constant.LobbyState;
+import ch.uzh.ifi.hase.soprafs26.constant.LobbyVisibility;
+import ch.uzh.ifi.hase.soprafs26.constant.MessageType;
+import ch.uzh.ifi.hase.soprafs26.entity.*;
+import ch.uzh.ifi.hase.soprafs26.objects.Station;
+import ch.uzh.ifi.hase.soprafs26.objects.Train;
+import ch.uzh.ifi.hase.soprafs26.objects.UserGameStatus;
+import ch.uzh.ifi.hase.soprafs26.repository.*;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GuessMessageDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.ResultDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.RoundStartDTO;
+import ch.uzh.ifi.hase.soprafs26.trains.TrainPositionFetcher;
+import ch.uzh.ifi.hase.soprafs26.websocket.Message;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class GameServiceTest {
+
+    @Mock private TrainPositionFetcher trainPositionFetcher;
+    @Mock private RoundRepository roundRepository;
+    @Mock private GuessRepository guessRepository;
+    @Mock private AchievementService achievementService;
+    @Mock private LobbyRepository lobbyRepository;
+    @Mock private UserRepository userRepository;
+    @Mock private SimpMessagingTemplate messagingTemplate;
+    @Mock private RoundHistoryRepository roundHistoryRepository;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private GameService gameService;
+
+    private static final Long LOBBY_ID = 1L;
+    private User user1;
+    private User user2;
+    private Lobby lobby;
+
+    @BeforeEach
+    void setUp() {
+        gameService = new GameService(
+                trainPositionFetcher, roundRepository, guessRepository,
+                achievementService, lobbyRepository, userRepository,
+                messagingTemplate, objectMapper, roundHistoryRepository);
+
+        user1 = buildUser(1L, "Alice", "alice@uzh.ch");
+        user2 = buildUser(2L, "Bob",   "bob@uzh.ch");
+
+        lobby = new Lobby();
+        lobby.setLobbyId(LOBBY_ID);
+        lobby.setLobbyName("TestLobby");
+        lobby.setLobbyCode("ABCD");
+        lobby.setAdmin(user1);
+        lobby.setMaxPlayers(2);
+        lobby.setMaxRounds(1);
+        lobby.setVisibility(LobbyVisibility.PRIVATE);
+        lobby.setLobbyState(LobbyState.IN_GAME);
+        lobby.setCurrentRound(0);
+        lobby.getPlayers().add(user1);
+        lobby.getPlayers().add(user2);
+    }
+
+    @AfterEach
+    void tearDown() {
+        gameService.cleanupAllTimers();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // setupGame
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Prueft: setupGame speichert fuer jede Runde ein Round-Entity und
+     * fuer jeden Spieler einen leeren Guess-Eintrag.
+     * Faengt Bug: Wenn Rounds oder Guesses nicht persistiert werden,
+     * haette processGuessMessage keinen Guess zum Aktualisieren und
+     * wuerde mit NPE abstuerzen.
+     */
+    @Test
+    void setupGame_success() throws Exception {
+        Train train = buildTrain(100L, 100L);
+        when(trainPositionFetcher.fetchTrains(1)).thenReturn(List.of(train));
+        doNothing().when(trainPositionFetcher).interpolatePosition(any(Train.class));
+
+        gameService.setupGame(lobby);
+
+        ArgumentCaptor<Round> roundCaptor = ArgumentCaptor.forClass(Round.class);
+        verify(roundRepository).save(roundCaptor.capture());
+        assertEquals(1, roundCaptor.getValue().getRoundNumber());
+        assertEquals(lobby, roundCaptor.getValue().getLobby());
+
+        verify(guessRepository, times(2)).save(any(Guess.class));
+        verify(roundRepository).flush();
+        verify(guessRepository).flush();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // processGuessMessage
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Prueft: Ein valider Guess (perfekte Koordinaten) wird gespeichert,
+     * gibt 1000 Punkte und sendet eine GAME_STATE-Nachricht.
+     * Faengt Bug: Wenn der Query-Pfad "user_userId" im Guess-Repository
+     * falsch ist, wuerde guess null sein und NullPointerException folgen.
+     */
+    @Test
+    void processGuessMessage_success() throws Exception {
+        Train train = buildTrain(100L, 100L);
+        Round round = buildRound(1, train);
+        when(roundRepository.findByLobbyOrderByRoundNumberAsc(lobby)).thenReturn(List.of(round));
+        gameService.roundStart(lobby);
+        clearInvocations(messagingTemplate);
+
+        Guess g1 = buildGuess(round, user1, null, null, null, null);
+        Guess g2 = buildGuess(round, user2, null, null, null, null);
+        when(guessRepository.findByRoundAndUserUserId(round, user1.getUserId())).thenReturn(g1);
+        when(guessRepository.findByRound(round)).thenReturn(List.of(g1, g2));
+
+        gameService.processGuessMessage(new GuessMessageDTO(LOBBY_ID, 1L, 100L, 100L), lobby);
+
+        assertEquals(1000, g1.getPoints(), "Perfect guess (same coordinates as train) must give 1000 points");
+        assertTrue(g1.getHasGuessed());
+        verify(messagingTemplate, atLeastOnce())
+                .convertAndSend(eq("/topic/game/" + LOBBY_ID), any(Message.class));
+    }
+
+    /**
+     * Prueft: Wenn kein Timer aktiv ist (Runde noch nicht gestartet),
+     * wird der Guess still verworfen — kein Repository-Zugriff, keine Nachricht.
+     * Faengt Bug: Wuerde der Guard-Check fehlen, koennte ein User auch
+     * ausserhalb des Runden-Fensters Punkte erzielen.
+     */
+    @Test
+    void processGuessMessage_noGuessAllowed() {
+        gameService.processGuessMessage(new GuessMessageDTO(LOBBY_ID, 1L, 100L, 100L), lobby);
+
+        verify(guessRepository, never()).findByRoundAndUserUserId(any(), any());
+        verify(messagingTemplate, never()).convertAndSend(anyString(), any(Object.class));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // readyForNextRound / updateUserGameStatus
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Prueft: Wenn erst ein User bereit ist, wird roundStart NICHT ausgeloest.
+     * Faengt Bug: Ein zu frueh gestartetes roundStart wuerde den zweiten
+     * Spieler in einem laufenden Timer-Fenster ueberraschen.
+     */
+    @Test
+    void readyForNextRound_notAllReady_doesNotStartRound() {
+        gameService.readyForNextRound(new UserGameStatus(1L, true), lobby);
+
+        verify(roundRepository, never()).findByLobbyOrderByRoundNumberAsc(any());
+    }
+
+    /**
+     * Prueft: Sobald alle Spieler bereit sind, wird roundStart aufgerufen
+     * und eine ROUND_START-Nachricht versendet.
+     */
+    @Test
+    void readyForNextRound_allAreReady_startsRound() throws Exception {
+        Train train = buildTrain(50L, 50L);
+        Round round = buildRound(1, train);
+        when(roundRepository.findByLobbyOrderByRoundNumberAsc(lobby)).thenReturn(List.of(round));
+
+        gameService.readyForNextRound(new UserGameStatus(1L, true), lobby);
+        gameService.readyForNextRound(new UserGameStatus(2L, true), lobby);
+
+        ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
+        verify(messagingTemplate).convertAndSend(eq("/topic/game/" + LOBBY_ID), captor.capture());
+        assertEquals(MessageType.ROUND_START, captor.getValue().getType());
+    }
+
+    /**
+     * Prueft: updateUserGameStatus gibt false zurueck solange nicht alle bereit sind.
+     */
+    @Test
+    void updateUserGameStatus_notAllReady() {
+        Boolean result = gameService.updateUserGameStatus(new UserGameStatus(1L, true), lobby);
+        assertFalse(result);
+    }
+
+    /**
+     * Prueft: updateUserGameStatus gibt true zurueck sobald alle Spieler bereit sind.
+     */
+    @Test
+    void updateUserGameStatus_allReady() {
+        gameService.updateUserGameStatus(new UserGameStatus(1L, true), lobby);
+        Boolean result = gameService.updateUserGameStatus(new UserGameStatus(2L, true), lobby);
+        assertTrue(result);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // canSubmitGuess
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Prueft: Nach roundStart ist ein Timer aktiv und canSubmitGuess gibt true zurueck.
+     */
+    @Test
+    void canSubmitGuess_success() throws Exception {
+        Train train = buildTrain(10L, 10L);
+        Round round = buildRound(1, train);
+        when(roundRepository.findByLobbyOrderByRoundNumberAsc(lobby)).thenReturn(List.of(round));
+
+        gameService.roundStart(lobby);
+
+        assertTrue(gameService.canSubmitGuess(LOBBY_ID));
+    }
+
+    /**
+     * Prueft: Ohne aktiven Timer gibt canSubmitGuess false zurueck.
+     */
+    @Test
+    void canSubmitGuess_fail() {
+        assertFalse(gameService.canSubmitGuess(LOBBY_ID));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // roundStart
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Prueft: roundStart erhoet currentRound, sendet ROUND_START mit Zugnummer
+     * und null-Koordinaten, und setzt einen Timer.
+     * Faengt Bug: Wenn currentRound nicht erhoet wird, laedt processGuessMessage
+     * die falsche Runde; wenn Koordinaten nicht geloescht werden, sehen Clients
+     * die Zugposition vor dem Guess.
+     */
+    @Test
+    void roundStart_success() throws Exception {
+        Train train = buildTrain(100L, 200L);
+        Round round = buildRound(1, train);
+        when(roundRepository.findByLobbyOrderByRoundNumberAsc(lobby)).thenReturn(List.of(round));
+
+        assertEquals(0, lobby.getCurrentRound());
+        gameService.roundStart(lobby);
+
+        assertEquals(1, lobby.getCurrentRound());
+        assertTrue(gameService.canSubmitGuess(LOBBY_ID));
+
+        ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
+        verify(messagingTemplate).convertAndSend(eq("/topic/game/" + LOBBY_ID), captor.capture());
+        assertEquals(MessageType.ROUND_START, captor.getValue().getType());
+
+        RoundStartDTO payload = (RoundStartDTO) captor.getValue().getPayload();
+        assertEquals(1, payload.getRoundNumber());
+        assertEquals(1, payload.getMaxRounds());
+        assertEquals(0, payload.getTrain().getCurrentX(), "Train X must be zeroed out for clients");
+        assertEquals(0, payload.getTrain().getCurrentY(), "Train Y must be zeroed out for clients");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // roundEnd
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Prueft: roundEnd sendet ROUND_END ohne Payload und startet einen
+     * Folge-Timer fuer allowedToPublish.
+     * Faengt Bug: Ohne Folge-Timer wuerde publishScores nie aufgerufen
+     * wenn Spieler nicht selbst alle geraten haben.
+     */
+    @Test
+    void roundEnd_success() {
+        gameService.roundEnd(LOBBY_ID);
+
+        ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
+        verify(messagingTemplate).convertAndSend(eq("/topic/game/" + LOBBY_ID), captor.capture());
+        assertEquals(MessageType.ROUND_END, captor.getValue().getType());
+        assertNull(captor.getValue().getPayload());
+
+        assertTrue(gameService.canSubmitGuess(LOBBY_ID), "roundEnd must schedule the allowedToPublish timer");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // allowedToPublish
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Prueft: allowedToPublish ruft publishScores auf wenn die Scores noch
+     * nicht veroeffentlicht wurden, und eine SCORES-Nachricht wird gesendet.
+     * Faengt Bug: Ohne die scoresPublished-Guard wuerde publishScores doppelt
+     * aufgerufen und SCORES zweimal an die Clients gesendet.
+     */
+    @Test
+    void allowedToPublish_callsPublish() throws Exception {
+        Train train = buildTrain(100L, 100L);
+        Round round = buildRound(1, train);
+        lobby.setMaxRounds(2);
+        when(roundRepository.findByLobbyOrderByRoundNumberAsc(lobby)).thenReturn(List.of(round));
+        gameService.roundStart(lobby);
+        clearInvocations(messagingTemplate);
+
+        Guess g1 = buildGuess(round, user1, 80, 100f, 100f, 0.5f);
+        Guess g2 = buildGuess(round, user2, 60, 101f, 101f, 1.0f);
+        when(lobbyRepository.findById(LOBBY_ID)).thenReturn(Optional.of(lobby));
+        when(guessRepository.findByRound(round)).thenReturn(List.of(g1, g2));
+
+        gameService.allowedToPublish(LOBBY_ID);
+
+        ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
+        verify(messagingTemplate, atLeastOnce())
+                .convertAndSend(eq("/topic/game/" + LOBBY_ID), captor.capture());
+        assertTrue(captor.getAllValues().stream().anyMatch(m -> m.getType() == MessageType.SCORES),
+                "SCORES message must be sent by allowedToPublish");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // publishScores
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Prueft: In einer Zwischen-Runde (nicht letzte) wird SCORES gesendet
+     * mit korrekter Rundennummer und Spieleranzahl, ohne gameTearDown aufzurufen.
+     */
+    @Test
+    void publishScores_success_middleRound() throws Exception {
+        Train train = buildTrain(100L, 100L);
+        Round round = buildRound(1, train);
+        lobby.setCurrentRound(1);
+        lobby.setMaxRounds(2);
+
+        Guess g1 = buildGuess(round, user1, 80, 100f, 100f, 0.5f);
+        Guess g2 = buildGuess(round, user2, 60, 101f, 101f, 1.0f);
+        when(lobbyRepository.findById(LOBBY_ID)).thenReturn(Optional.of(lobby));
+        when(roundRepository.findByLobbyOrderByRoundNumberAsc(lobby)).thenReturn(List.of(round));
+        when(guessRepository.findByRound(round)).thenReturn(List.of(g1, g2));
+
+        gameService.publishScores(lobby);
+
+        ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
+        verify(messagingTemplate).convertAndSend(eq("/topic/game/" + LOBBY_ID), captor.capture());
+        assertEquals(MessageType.SCORES, captor.getValue().getType());
+
+        ResultDTO payload = (ResultDTO) captor.getValue().getPayload();
+        assertEquals(1, payload.getCurrentRound());
+        assertEquals(2, payload.getUserResults().size());
+
+        verify(roundRepository, never()).deleteByLobby(any());
+    }
+
+    /**
+     * Prueft: In der letzten Runde wird nach SCORES automatisch gameTearDown
+     * aufgerufen — Lobby wird auf FINISHED gesetzt und Daten werden bereinigt.
+     * Faengt Bug: Ohne den Vergleich maxRounds == currentRound wuerde das Spiel
+     * nie enden oder immer sofort enden.
+     */
+    @Test
+    void publishScores_triggersTearDown_lastRound() throws Exception {
+        Train train = buildTrain(100L, 100L);
+        Round round = buildRound(1, train);
+        lobby.setCurrentRound(1);
+        lobby.setMaxRounds(1);
+
+        Guess g1 = buildGuess(round, user1, 80, 100f, 100f, 0.5f);
+        Guess g2 = buildGuess(round, user2, 60, 101f, 101f, 1.0f);
+        when(lobbyRepository.findById(LOBBY_ID)).thenReturn(Optional.of(lobby));
+        when(roundRepository.findByLobbyOrderByRoundNumberAsc(any())).thenReturn(List.of(round));
+        when(guessRepository.findByRound(round)).thenReturn(List.of(g1, g2));
+        when(roundHistoryRepository.findByUserUserId(anyLong())).thenReturn(Collections.emptyList());
+
+        gameService.publishScores(lobby);
+
+        verify(messagingTemplate).convertAndSend(eq("/topic/game/" + LOBBY_ID), any(Message.class));
+        assertEquals(LobbyState.FINISHED, lobby.getLobbyState());
+        verify(roundRepository).deleteByLobby(any(Lobby.class));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // calculateScore
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Prueft: Ein perfekter Guess (Distanz = 0) ergibt 1000 Punkte.
+     */
+    @Test
+    void calculateScore_perfectGuess_returns1000() {
+        Train train = buildTrain(100L, 100L);
+        train.setLineOrigin(new Station("Start", 0L, 0L, 0L, 0L));
+        train.setLineDestination(new Station("End", 100L, 0L, 10L, 10L));
+
+        int score = gameService.calculateScore(train, 0.0);
+
+        assertEquals(1000, score, "A perfect guess must give 1000 points");
+    }
+
+    /**
+     * Prueft: Ein schlechter Guess (Distanz = volle Linienlaenge) ergibt
+     * fast keine Punkte (>0 und <=10).
+     */
+    @Test
+    void calculateScore_badGuess_returnsLowPoints() {
+        Train train = buildTrain(0L, 0L);
+        train.setLineOrigin(new Station("Start", 0L, 0L, 0L, 0L));
+        train.setLineDestination(new Station("End", 100L, 0L, 10L, 10L));
+
+        int score = gameService.calculateScore(train, 100.0);
+
+        assertTrue(score > 0 && score <= 10,
+                "A guess equal to the full line length should give near-zero points, got: " + score);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // calculateGuessDistance
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Prueft: Der pythagoraische 3-4-5 Dreieck ergibt Distanz 5.
+     */
+    @Test
+    void calculateGuessDistance_simpleRightTriangle() {
+        Train train = buildTrain(0L, 0L);
+
+        double distance = gameService.calculateGuessDistance(train, 3L, 4L);
+
+        assertEquals(5.0, distance, 0.001);
+    }
+
+    /**
+     * Prueft: Gleiche Koordinaten wie der Zug ergeben Distanz 0.
+     */
+    @Test
+    void calculateGuessDistance_zeroDistance() {
+        Train train = buildTrain(100L, 200L);
+
+        double distance = gameService.calculateGuessDistance(train, 100L, 200L);
+
+        assertEquals(0.0, distance, 0.001);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // gameTearDown
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Prueft: gameTearDown speichert RoundHistory, aktualisiert UserScoreboard,
+     * evaluiert Achievements, setzt Lobby auf FINISHED und bereinigt DB-Eintraege.
+     * Faengt Bug: Fehlende RoundHistory-Saves wuerden Profil-Statistiken fuer
+     * immer falsch zurueckliefern; fehlende deleteByLobby waere ein Memory-Leak.
+     */
+    @Test
+    void gameTearDown_success() throws Exception {
+        Train train = buildTrain(100L, 100L);
+        Round round = buildRound(1, train);
+
+        Guess g1 = buildGuess(round, user1, 80, 100f, 100f, 0.5f);
+        Guess g2 = buildGuess(round, user2, 60, 101f, 101f, 1.0f);
+        when(roundRepository.findByLobbyOrderByRoundNumberAsc(lobby)).thenReturn(List.of(round));
+        when(guessRepository.findByRound(round)).thenReturn(List.of(g1, g2));
+        when(roundHistoryRepository.findByUserUserId(anyLong())).thenReturn(Collections.emptyList());
+
+        gameService.gameTearDown(lobby);
+
+        verify(roundHistoryRepository, times(2)).save(any(RoundHistory.class));
+        verify(userRepository, times(2)).save(any(User.class));
+        verify(achievementService).evaluateAchievementsForLobby(lobby);
+        assertEquals(LobbyState.FINISHED, lobby.getLobbyState());
+        verify(guessRepository).deleteByRound(round);
+        verify(roundRepository).deleteByLobby(lobby);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Helpers
+    // ═══════════════════════════════════════════════════════════════════
+
+    private User buildUser(Long id, String username, String email) {
+        User user = new User();
+        user.setUserId(id);
+        UserProfile profile = new UserProfile();
+        profile.setUsername(username);
+        profile.setEmail(email);
+        profile.setPassword("pw");
+        user.setUserProfile(profile);
+        UserScoreboard scoreboard = new UserScoreboard();
+        scoreboard.setPlayedGames(0L);
+        scoreboard.setPlayedRounds(0L);
+        scoreboard.setTotalPoints(0L);
+        scoreboard.setBestRoundPoints(0L);
+        scoreboard.setGuessingPrecision(0f);
+        user.setUserScoreboard(scoreboard);
+        user.setIsOnline(false);
+        user.setIsGuest(false);
+        return user;
+    }
+
+    private Train buildTrain(long x, long y) {
+        Train train = new Train();
+        train.setCurrentX(x);
+        train.setCurrentY(y);
+        train.setLineOrigin(new Station("Start", 0L, 0L, 0L, 0L));
+        train.setLineDestination(new Station("End", 200L, 0L, 10L, 10L));
+        return train;
+    }
+
+    private Round buildRound(int roundNumber, Train train) throws Exception {
+        Round round = new Round();
+        round.setLobby(lobby);
+        round.setRoundNumber(roundNumber);
+        round.setTrainData(objectMapper.writeValueAsString(train));
+        return round;
+    }
+
+    private Guess buildGuess(Round round, User user, Integer points,
+                              Float lat, Float lon, Float distance) {
+        Guess guess = new Guess();
+        guess.setRound(round);
+        guess.setUser(user);
+        guess.setPoints(points);
+        guess.setLat(lat);
+        guess.setLon(lon);
+        guess.setDistanceToTrain(distance);
+        guess.setHasGuessed(points != null);
+        return guess;
+    }
+}

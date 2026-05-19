@@ -17,5 +17,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u WHERE u.isGuest = true")
     List<User> findAllGuests();
+
+    List<User> findByUserProfile_UsernameContainingIgnoreCase(String username);
+
 }
 
