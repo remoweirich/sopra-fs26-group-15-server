@@ -1,3 +1,21 @@
+# [1.7.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.6.0...v1.7.0) (2026-05-19)
+
+
+### Bug Fixes
+
+* **Achievements:** add proprietary icons ([db73fa5](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/db73fa5dd3693777950b50481a09fcc49105cabe))
+* add a rest endpoint that resends the latest websockets message if a player resfreshed their browser [#78](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/78) ([60ac8ca](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/60ac8ca89ecb5d9f070be973f2629eb0a8e287a4))
+* **GameService:** Timer added to inbetween rounds closes [#115](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/115) ([3faac7f](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/3faac7fc305dda7b6f43ef240fa11ffd852926b1))
+
+
+### Features
+
+* **Friendship:** endpoint & service function added to reject friendrequest closes [#104](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/104) ([f2c7328](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/f2c7328c335b3d1bebedef2a50da4b979e606662))
+* **gameservice:** Timer during ready screen. Buggy :( ([95cd032](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/95cd032f0c3710530914d7c99bb6cdd9729a1425))
+* **lobbyRestController:** join via lobby code now possible [#83](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/83) ([445f3ef](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/445f3efe100887d9b8893a67e945ef9339f876db))
+* test refactoring for gameservice, lobbyservice, lobbyserviceintegration, userservice, userserviceintegration, dtomapper, trainpositionfetcher; new tests for gamerestcontroller, all new repository components [#116](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/116) ([27c48a0](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/27c48a02faf55cc12049463659e6a5af634000e5))
+* **userService/controller:** new endpoint for searching users by username as well as service function and db query [#104](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/104) ([1d88b99](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/1d88b99a6b35db02d6ac0e6384265b19b9506b31))
+
 # [1.6.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.5.0...v1.6.0) (2026-05-13)
 
 
