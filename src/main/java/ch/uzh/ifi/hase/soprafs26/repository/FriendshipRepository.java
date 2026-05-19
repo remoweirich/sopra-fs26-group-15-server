@@ -32,4 +32,6 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
             "AND (f.pendingInvitationReceivedBy != :user)" +
             "AND (f.pendingInvitationReceivedBy IS NOT NULL)")
     List<Friendship> findAllPendingSentByUser(@Param("user") User user);
+
+    void deleteByFriendshipId(Long friendshipId);
 }

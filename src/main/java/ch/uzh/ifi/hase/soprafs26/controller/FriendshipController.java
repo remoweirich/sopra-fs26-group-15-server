@@ -71,6 +71,26 @@ public class FriendshipController {
 
     }
 
+    @PostMapping("/friends/reject/{requestingUserId}")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public void rejectFriendRequest(
+            @PathVariable("requestingUserId") Long requestingUserId,
+            @RequestHeader("userId") Long rejectingUserId,
+            @RequestHeader("token") String token) {
+
+        AuthHeader authHeader = new AuthHeader(rejectingUserId, token);
+        boolean isvalid = authService.authUser(authHeader);
+
+        if (!isvalid) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong credentials.");
+        }
+
+        friendshipService.rejectFriendRequest(rejectingUserId, requestingUserId);
+
+    }
+
+
     @GetMapping("/friends/{userId}")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public List<UserDTO> getFriends(@PathVariable("userId") Long userId,
@@ -128,4 +148,20 @@ public class FriendshipController {
 
         return  sanitizedUsers;
     }
+
+    @DeleteMapping("friends/remove/{userIdToDelete}")
+    @ResponseStatus(HttpStatus.OK)
+    public void removeFriendship(
+            @PathVariable("userIdToDelete") Long userIdToDelete,
+            @RequestHeader("userId") Long userId,
+            @RequestHeader("token") String token){
+        AuthHeader authHeader = new AuthHeader(userId, token);
+        boolean isAuthenticated = authService.authUser(authHeader);
+        if (!isAuthenticated) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Please log in");
+        }
+
+        friendshipService.removeFriendship(userId,userIdToDelete);
+    }
+
 }
