@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -446,18 +447,31 @@ public class GameService {
             }
         }
 
+        // Winner bestimmen
+        User winner = currentLobby.getPlayers().stream()
+                .max(Comparator.comparingLong(p ->
+                        roundHistoryRepository.findByUserUserId(p.getUserId()).stream()
+                                .filter(rh -> rh.getLobby().getLobbyId().equals(lobbyId))
+                                .mapToInt(RoundHistory::getPoints)
+                                .sum()
+                ))
+                .orElse(null);
+        currentLobby.setWinner(winner);
+        lobbyRepository.save(currentLobby);
+
         for (User player : currentLobby.getPlayers()) {
             Long userId = player.getUserId();
             List<RoundHistory> playerHistory = roundHistoryRepository.findByUserUserId(userId);
-
-            UserScoreboard scoreboard = player.getUserScoreboard();
-            scoreboard.setPlayedGames(scoreboard.getPlayedGames() + 1);
-            scoreboard.setPlayedRounds(scoreboard.getPlayedRounds() + rounds.size());
-            scoreboard.setTotalPoints(playerHistory.stream().mapToLong(r -> r.getPoints()).sum());
-            scoreboard.setBestRoundPoints(playerHistory.stream().mapToLong(r -> r.getPoints()).max().orElse(0));
-            scoreboard.setGuessingPrecision((float) playerHistory.stream().mapToDouble(r -> r.getDistanceToTrain()).average().orElse(0));
-            player.setUserScoreboard(scoreboard);
-            userRepository.save(player);
+            updateUserScoreboard(player, playerHistory);
+//
+//            UserScoreboard scoreboard = player.getUserScoreboard();
+//            scoreboard.setPlayedGames(scoreboard.getPlayedGames() + 1);
+//            scoreboard.setPlayedRounds(scoreboard.getPlayedRounds() + rounds.size());
+//            scoreboard.setTotalPoints(playerHistory.stream().mapToLong(r -> r.getPoints()).sum());
+//            scoreboard.setBestRoundPoints(playerHistory.stream().mapToLong(r -> r.getPoints()).max().orElse(0));
+//            scoreboard.setGuessingPrecision((float) playerHistory.stream().mapToDouble(r -> r.getDistanceToTrain()).average().orElse(0));
+//            player.setUserScoreboard(scoreboard);
+//            userRepository.save(player);
         }
         achievementService.evaluateAchievementsForLobby(currentLobby);
         System.out.println("[gameTearDown] Achievements evaluated for lobby " + lobbyId);
@@ -492,5 +506,61 @@ public class GameService {
         });
         readyTimers.clear();
 
+    }
+
+    private void updateUserScoreboard(User player, List<RoundHistory> playerHistory) {
+        UserScoreboard scoreboard = player.getUserScoreboard();
+
+        scoreboard.setPlayedGames(calculatePlayedGames(playerHistory));
+        scoreboard.setPlayedRounds(calculatePlayedRounds(playerHistory));
+        scoreboard.setTotalPoints(calculateTotalPoints(playerHistory));
+        scoreboard.setBestRoundPoints(calculateBestRoundPoints(playerHistory));
+        scoreboard.setGuessingPrecision(calculateGuessingPrecision(playerHistory));
+        scoreboard.setGamesWon(calculateGamesWon(player.getUserId()));
+
+        player.setUserScoreboard(scoreboard);
+        userRepository.save(player);
+    }
+
+    private long calculatePlayedGames(List<RoundHistory> playerHistory) {
+        return playerHistory.stream()
+                .map(rh -> rh.getLobby().getLobbyId())
+                .distinct()
+                .count();
+    }
+
+    private long calculatePlayedRounds(List<RoundHistory> playerHistory) {
+        return playerHistory.size();
+    }
+
+    private long calculateTotalPoints(List<RoundHistory> playerHistory) {
+        double avgPoints = playerHistory.stream()
+                .mapToInt(RoundHistory::getPoints)
+                .average()
+                .orElse(0);
+
+        int totalRounds = playerHistory.size();
+        double y = 1000.0 * Math.log(1 + totalRounds) / Math.log(1 + 1000);
+
+        return Math.round(avgPoints * y);
+    }
+
+    private long calculateBestRoundPoints(List<RoundHistory> playerHistory) {
+        return playerHistory.stream()
+                .mapToLong(RoundHistory::getPoints)
+                .max()
+                .orElse(0);
+    }
+
+    private float calculateGuessingPrecision(List<RoundHistory> playerHistory) {
+        double avg = playerHistory.stream()
+                .mapToInt(RoundHistory::getPoints)
+                .average()
+                .orElse(0);
+        return (float) (avg / 1000.0 * 100.0);
+    }
+
+    private long calculateGamesWon(Long userId) {
+        return lobbyRepository.countByWinnerUserId(userId);
     }
 }

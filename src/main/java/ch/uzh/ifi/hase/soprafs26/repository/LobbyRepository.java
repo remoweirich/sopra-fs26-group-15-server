@@ -12,4 +12,6 @@ public interface LobbyRepository extends JpaRepository<Lobby, Long> {
     Optional<Lobby> findByLobbyCode(String lobbyCode);
 
     boolean existsByLobbyCode(String lobbyCode);
+
+    long countByWinnerUserId(Long userId);
 }
