@@ -1,3 +1,10 @@
+## [1.7.2](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.7.1...v1.7.2) (2026-05-19)
+
+
+### Bug Fixes
+
+* **main.yml, build.gradle:** add sonarqube dependencies ([50921c2](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/50921c28cc82b212ec55bf31b3728393f61ae731))
+
 ## [1.7.1](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.7.0...v1.7.1) (2026-05-19)
 
 
