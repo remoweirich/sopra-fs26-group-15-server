@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.7.0...v1.7.1) (2026-05-19)
+
+
+### Bug Fixes
+
+* **main.yml:** add gradlew executable ([c14fd22](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/c14fd228580e9db67fe43b143acb748a45f3fe79))
+
 # [1.7.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.6.0...v1.7.0) (2026-05-19)
 
 
