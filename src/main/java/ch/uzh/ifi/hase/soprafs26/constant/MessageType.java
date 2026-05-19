@@ -14,5 +14,6 @@ public enum MessageType {
     SCORES,
     FRIEND_REQUEST,
     FRIEND_ACCEPT,
-    FRIEND_REJECT
+    FRIEND_REJECT,
+    ACHIEVEMENT,
 }

@@ -58,7 +58,7 @@ public class FriendshipService {
         friendRequestDTO.setFriendShipId(friendship.getFriendshipId());
 
         Message message = new Message(MessageType.FRIEND_REQUEST, friendRequestDTO);
-        simpMessagingTemplate.convertAndSend("/topic/" + receivingUserId + "/friends", message);
+        simpMessagingTemplate.convertAndSend("/topic/" + receivingUserId + "/notifications", message);
     }
 
     public void acceptFriendship(long acceptingUserId, long requestingUserId) {
@@ -91,7 +91,7 @@ public class FriendshipService {
         friendRequestDTO.setFriendShipId(friendship.getFriendshipId());
 
         Message message = new Message(MessageType.FRIEND_ACCEPT, friendRequestDTO);
-        simpMessagingTemplate.convertAndSend("/topic/" + requestingUser.getUserId() + "/friends", message);
+        simpMessagingTemplate.convertAndSend("/topic/" + requestingUser.getUserId() + "/notifications", message);
     }
 
     public List<User> getFriends(Long userId) {
@@ -171,7 +171,7 @@ public class FriendshipService {
         friendRequestDTO.setFriendShipId(friendship.getFriendshipId());
 
         Message message = new Message(MessageType.FRIEND_REJECT, friendRequestDTO);
-        simpMessagingTemplate.convertAndSend("/topic/" + requestingUser.getUserId() + "/friends", message);
+        simpMessagingTemplate.convertAndSend("/topic/" + requestingUser.getUserId() + "/notifications", message);
 
 
     }
