@@ -8,6 +8,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.CreateLobbyPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameResultDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.LobbyAccessDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.LobbyCodePostDTO;
+import ch.uzh.ifi.hase.soprafs26.repository.LobbyRepository;
 import ch.uzh.ifi.hase.soprafs26.security.AuthService;
 import ch.uzh.ifi.hase.soprafs26.service.LobbyService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,6 +43,9 @@ public class LobbyRESTControllerTest {
 
     @MockitoBean
     private AuthService authService;
+
+    @MockitoBean
+    private LobbyRepository lobbyRepository;
 
 
     // =========================================================
