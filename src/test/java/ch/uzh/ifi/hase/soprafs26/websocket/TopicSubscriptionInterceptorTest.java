@@ -1,3 +1,4 @@
+// Reintegrated as WebSocketAuthInterceptorTest.java (class was renamed, isUserInLobby removed)
 //package ch.uzh.ifi.hase.soprafs26.websocket;
 //
 //import ch.uzh.ifi.hase.soprafs26.security.AuthHeader;

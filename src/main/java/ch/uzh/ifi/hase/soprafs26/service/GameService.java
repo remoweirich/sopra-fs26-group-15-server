@@ -14,6 +14,7 @@ import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GuessMessageDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.ResultDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoundStartDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.ResyncDTO;
 import ch.uzh.ifi.hase.soprafs26.trains.TrainPositionFetcher;
 import ch.uzh.ifi.hase.soprafs26.websocket.Message;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,6 +38,7 @@ public class GameService {
     private final LobbyRepository lobbyRepository;
     private final UserRepository userRepository;
     private final Map<Long, ScheduledFuture<?>> activeTimers = new ConcurrentHashMap<>();
+    private final Map<Long, ScheduledFuture<?>> readyTimers = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
     private final SimpMessagingTemplate messagingTemplate;
     private final Map<Long, Boolean> scoresPublished = new ConcurrentHashMap<>();
@@ -143,6 +145,9 @@ public class GameService {
         System.out.println("allAreReady: " + allAreReady);
         if (allAreReady) {
             System.out.println("All ready! Starting round...");
+            ScheduledFuture<?> old = readyTimers.get(currentLobby.getLobbyId());
+            if (old != null) {old.cancel(true);}
+            readyTimers.remove(currentLobby.getLobbyId());
             roundStart(currentLobby);
         }
     }
@@ -177,6 +182,10 @@ public class GameService {
         Long lobbyId = currentLobby.getLobbyId();
         System.out.println("[roundStart] Called for lobby " + lobbyId);
 
+        ScheduledFuture<?> oldTimer = readyTimers.get(lobbyId);
+        if (oldTimer != null) {oldTimer.cancel(false);}
+        readyTimers.remove(lobbyId);
+
         List<Round> rounds = roundRepository.findByLobbyOrderByRoundNumberAsc(currentLobby);
         System.out.println("[roundStart] Found " + rounds.size() + " rounds");
 
@@ -206,11 +215,11 @@ public class GameService {
 
         ScheduledFuture<?> timer = scheduler.schedule(
                 () -> roundEnd(lobbyId),
-                45,
+                49,
                 TimeUnit.SECONDS
         );
         activeTimers.put(lobbyId, timer);
-        System.out.println("[roundStart] Timer scheduled for 45 seconds");
+        System.out.println("[roundStart] Timer scheduled for 49 seconds");
     }
 
     public void roundEnd(Long lobbyId) {
@@ -241,7 +250,14 @@ public class GameService {
         Long lobbyId = freshLobby.getLobbyId();
         System.out.println("[publishScores] Called for lobby " + lobbyId);
 
-        activeTimers.remove(lobbyId);
+        if (!freshLobby.getCurrentRound().equals(freshLobby.getMaxRounds())) {
+            ScheduledFuture<?> old = readyTimers.get(lobbyId);
+            if (old != null) {
+                old.cancel(false);
+            }
+            readyTimers.remove(lobbyId);
+        }
+
         scoresPublished.put(lobbyId, true);
 
         List<Round> rounds = roundRepository.findByLobbyOrderByRoundNumberAsc(freshLobby);
@@ -292,9 +308,94 @@ public class GameService {
         messagingTemplate.convertAndSend("/topic/game/" + lobbyId, message);
         System.out.println("[publishScores] SCORES sent!");
 
+
+        if (!freshLobby.getCurrentRound().equals(freshLobby.getMaxRounds())) {
+            ScheduledFuture<?> readyTimer = scheduler.schedule(
+                    () -> {
+                        Lobby fresh = lobbyRepository.findById(lobbyId)
+                                .orElseThrow(() -> new RuntimeException("Lobby not found"));
+                        roundStart(fresh);
+                    },
+                    20, TimeUnit.SECONDS
+            );
+            readyTimers.put(lobbyId, readyTimer);
+        }
+
         if (freshLobby.getMaxRounds() == currentRoundNumber) {
             gameTearDown(freshLobby);
         }
+    }
+
+
+    public ResyncDTO resync(Lobby currentLobby) {
+        Boolean published = scoresPublished.get(currentLobby.getLobbyId());
+
+        if (published != null && published) {
+            ResultDTO results = convertToResultDTO(currentLobby);
+            return new ResyncDTO(MessageType.SCORES, results, 0, currentLobby.getMaxRounds());
+        }
+        else{
+            List<Round> rounds = roundRepository.findByLobbyOrderByRoundNumberAsc(currentLobby);
+            int currentRoundNumber = currentLobby.getCurrentRound();
+
+            Round currentRound = rounds.get(currentRoundNumber - 1);
+
+            Train trainWithoutCoordinates;
+            try {
+                trainWithoutCoordinates = objectMapper.readValue(currentRound.getTrainData(), Train.class);
+                trainWithoutCoordinates.setCurrentX(0);
+                trainWithoutCoordinates.setCurrentY(0);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to deserialize train data", e);
+            }
+            //get remaining time for current round
+            ScheduledFuture<?> timer = activeTimers.get(currentLobby.getLobbyId());
+            long remainingTime = 0;
+            if (timer != null) {
+                remainingTime = timer.getDelay(TimeUnit.SECONDS);
+            }
+            RoundStartDTO roundStartDTO = new RoundStartDTO(currentRoundNumber, currentLobby.getMaxRounds(), trainWithoutCoordinates);
+            return new ResyncDTO(MessageType.ROUND_START, roundStartDTO, remainingTime, currentLobby.getMaxRounds());}
+    }
+
+    private ResultDTO convertToResultDTO(Lobby currentLobby) {
+        Lobby freshLobby = lobbyRepository.findById(currentLobby.getLobbyId())
+                .orElseThrow(() -> new RuntimeException("Lobby not found"));
+
+        Long lobbyId = freshLobby.getLobbyId();
+        List<Round> rounds = roundRepository.findByLobbyOrderByRoundNumberAsc(freshLobby);
+        int currentRoundNumber = freshLobby.getCurrentRound();
+        Round currentRound = rounds.get(currentRoundNumber - 1);
+
+        List<Guess> guesses = guessRepository.findByRound(currentRound);
+        Train train;
+        try {
+            train = objectMapper.readValue(currentRound.getTrainData(), Train.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to deserialize train data", e);
+        }
+        List<UserResult> userResults = new ArrayList<>();
+
+        for (Guess guess : guesses) {
+            Long userId = guess.getUser().getUserId();
+            int totalPoints = roundRepository.findByLobbyOrderByRoundNumberAsc(freshLobby)
+                    .stream()
+                    .flatMap(r -> guessRepository.findByRound(r).stream())
+                    .filter(g -> g.getUser().getUserId().equals(userId))
+                    .mapToInt(g -> g.getPoints() != null ? g.getPoints() : 0)
+                    .sum();
+            int roundPoints = guess.getPoints() != null ? guess.getPoints() : 0;
+            long xCoordinate = guess.getLat() != null ? guess.getLat().longValue() : 0;
+            long yCoordinate = guess.getLon() != null ? guess.getLon().longValue() : 0;
+            double distance = guess.getDistanceToTrain() != null ? guess.getDistanceToTrain() : Double.MAX_VALUE;
+            userResults.add(new UserResult(userId, totalPoints, roundPoints, xCoordinate, yCoordinate, distance));
+            System.out.println("[publishScores] UserResult: userId=" + userId + " roundPoints=" + roundPoints + " totalPoints=" + totalPoints);
+        }
+
+        ResultDTO resultDTO = new ResultDTO(currentRoundNumber, userResults, train);
+
+        return resultDTO;
+
     }
 
     public int calculateScore(Train train, double guessDistance) {
@@ -368,7 +469,11 @@ public class GameService {
         }
         roundRepository.deleteByLobby(currentLobby);
 
-        activeTimers.remove(lobbyId);
+        ScheduledFuture<?> t1 = activeTimers.remove(lobbyId);
+        if (t1 != null) t1.cancel(false);
+        ScheduledFuture<?> t2 = readyTimers.remove(lobbyId);
+        if (t2 != null) t2.cancel(false);
+
         scoresPublished.remove(lobbyId);
     }
 
@@ -379,5 +484,13 @@ public class GameService {
             }
         });
         activeTimers.clear();
+
+        readyTimers.forEach((gameId, timer) -> {
+            if (timer != null) {
+                timer.cancel(false);
+            }
+        });
+        readyTimers.clear();
+
     }
 }

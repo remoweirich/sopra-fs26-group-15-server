@@ -1,209 +1,247 @@
-//package ch.uzh.ifi.hase.soprafs26.service;
-//
-//import ch.uzh.ifi.hase.soprafs26.constant.LobbyState;
-//import ch.uzh.ifi.hase.soprafs26.constant.LobbyVisibility;
-//import ch.uzh.ifi.hase.soprafs26.entity.User;
-//import ch.uzh.ifi.hase.soprafs26.objects.Lobby;
-//import ch.uzh.ifi.hase.soprafs26.repository.GameRepository;
-//import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
-//import ch.uzh.ifi.hase.soprafs26.rest.dto.CreateLobbyPostDTO;
-//import ch.uzh.ifi.hase.soprafs26.rest.dto.LobbyAccessDTO;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.boot.test.context.SpringBootTest;
-//import org.springframework.test.context.web.WebAppConfiguration;
-//
-//import static org.junit.jupiter.api.Assertions.*;
-//
-///**
-// * Integration tests for LobbyService.
-// *
-// * Caveat: LobbyService keeps active lobbies in an in-memory list
-// * (activeLobbies), NOT in the database. Only the associated GameResult
-// * is persisted. These integration tests therefore focus on:
-// * - The interaction between LobbyService and UserService (which IS
-// * backed by a real DB).
-// * - The persistence of GameResult rows when lobbies are created.
-// * - Guest user creation, which writes to the DB via UserService.
-// *
-// * For the full lobby lifecycle (join/leave/start), the unit tests in
-// * LobbyServiceTest cover the business logic with mocks.
-// */
-//@WebAppConfiguration
-//@SpringBootTest
-//public class LobbyServiceIntegrationTest {
-//
-//    // Constants for the default registered admin used across tests
-//    private static final String ADMIN_USERNAME = "lobbyAdmin";
-//    private static final String ADMIN_EMAIL = "admin@uzh.ch";
-//    private static final String ADMIN_PASSWORD = "adminPw";
-//
-//    @Autowired
-//    private LobbyService lobbyService;
-//
-//    @Autowired
-//    private UserService userService;
-//
-//    @Autowired
-//    private UserRepository userRepository;
-//
-//    @Autowired
-//    private GameRepository gameRepository;
-//
-//    private User registeredAdmin;
-//
-//    @BeforeEach
-//    public void setup() {
-//        // Clean slate — users and games are persisted and must be cleared
-//        // between tests. Leftover in-memory lobbies from previous tests are
-//        // tolerated: all assertions below work with relative counts
-//        // (countBefore + 1) rather than absolute values, and the only lobby
-//        // each test cares about is the one it creates itself.
-//        userRepository.deleteAll();
-//        gameRepository.deleteAll();
-//
-//        // Register a real admin user for subsequent tests
-//        User admin = new User();
-//        admin.setUsername(ADMIN_USERNAME);
-//        admin.setEmail(ADMIN_EMAIL);
-//        admin.setPassword(ADMIN_PASSWORD);
-//        registeredAdmin = userService.registerUser(admin);
-//    }
-//
-//    /**
-//     * Szenario: Ein registrierter User erstellt eine Lobby ueber den echten
-//     * LobbyService. Dabei wird intern ein GameResult in der echten DB
-//     * gespeichert.
-//     * Prueft: Nach createLobby() existiert GENAU ein neues GameResult in der DB
-//     * (countBefore + 1), die Lobby hat den Zustand WAITING, und der Admin ist
-//     * korrekt gesetzt.
-//     * Faengt Bug: Im Gegensatz zum Unit-Test pruefen wir hier die echte
-//     * JPA-Auto-Generierung der GameResult-ID. Ein fehlendes @GeneratedValue
-//     * oder fehlendes gameRepository.save() wuerde sofort auffallen. Auch ein
-//     * Bug, der zwei GameResult-Rows pro createLobby schreibt, wuerde hier
-//     * gefangen (countAfter waere countBefore+2).
-//     */
-//    @Test
-//    public void createLobby_validInput_persistsExactlyOneGameResultAndReturnsWaitingLobby() {
-//        long gameCountBefore = gameRepository.count();
-//
-//        CreateLobbyPostDTO dto = new CreateLobbyPostDTO();
-//        dto.setLobbyName("IntegrationLobby");
-//        dto.setSize(4);
-//        dto.setMaxRounds(5);
-//        dto.setVisibility(LobbyVisibility.PUBLIC);
-//
-//        LobbyAccessDTO accessDTO = lobbyService.createLobby(
-//                dto, false, registeredAdmin.getUserId(), registeredAdmin.getToken());
-//
-//        // GENAU ein neues GameResult wurde persistiert
-//        assertEquals(gameCountBefore + 1, gameRepository.count(),
-//                "createLobby must persist exactly one new GameResult — not zero, not two");
-//
-//        // Die Lobby existiert und ist im WAITING-Zustand
-//        Lobby lobby = lobbyService.getLobbyById(accessDTO.getLobbyId());
-//        assertEquals(LobbyState.WAITING, lobby.getLobbyState());
-//        assertEquals(registeredAdmin.getUserId(), lobby.getAdmin().getUserId());
-//    }
-//
-//    /**
-//     * Szenario: Ein anonymer Besucher erstellt eine Lobby als Gast.
-//     * Prueft: Der Guest-User wird in der DB persistiert mit einem Token und
-//     * einem Username, der mit "guest_" beginnt.
-//     *
-//     * BEKANNTER BUG (dokumentiert, noch nicht gefixt):
-//     * Der isGuest-Flag wird von UserService.registerUser() auf false
-//     * ueberschrieben, obwohl createGuestUser() ihn vorher auf true setzt.
-//     * Konsequenz: Guest-User sind in der DB nicht als solche erkennbar.
-//     * Das hier ist genau der Typ Bug, den Unit-Tests mit Mocks NICHT fangen
-//     * koennen — weil der gemockte registerUser() den Flag nicht ueberschreibt.
-//     * Der Unit-Test (createGuestUser_setsGuestFlagAndDelegatesToUserService)
-//     * prueft korrekt, dass der Service den Flag setzt, bevor er registerUser
-//     * aufruft. Erst dieser Integration-Test offenbart, dass der Flag danach
-//     * wieder verloren geht.
-//     *
-//     * TODO: UserService.registerUser() muss den isGuest-Flag respektieren,
-//     * wenn der Caller ihn bereits gesetzt hat. Sobald das gefixt ist, muss
-//     * assertFalse unten auf assertTrue geaendert werden, und der Testname
-//     * sollte von "...ButLosesIsGuestFlag_knownBug" zurueck auf
-//     * "...WithIsGuestFlag" gekuerzt werden.
-//     */
-//    @Test
-//    public void createLobbyAsGuest_persistsGuestButLosesIsGuestFlag_knownBug() {
-//        CreateLobbyPostDTO dto = new CreateLobbyPostDTO();
-//        dto.setLobbyName("GuestLobby");
-//        dto.setSize(4);
-//        dto.setMaxRounds(5);
-//        dto.setVisibility(LobbyVisibility.PUBLIC);
-//
-//        LobbyAccessDTO accessDTO = lobbyService.createLobby(dto, true, null, null);
-//
-//        User guest = userRepository.findById(accessDTO.getUserId()).orElseThrow(
-//                () -> new AssertionError("Guest user was not persisted to the database"));
-//
-//        // Diese Assertions greifen den Soll-Zustand ab, den registerUser korrekt
-//        // liefert:
-//        assertTrue(guest.getUsername().startsWith("guest_"),
-//                "Guest username must start with 'guest_' prefix");
-//        assertNotNull(guest.getToken(),
-//                "Guest must have a token (loginUser is called internally)");
-//
-//        // KNOWN BUG: isGuest wird aktuell von registerUser() auf false ueberschrieben.
-//        // Der Test dokumentiert den Ist-Zustand statt den Soll-Zustand.
-//        // Sobald UserService.registerUser() gefixt ist, diese Assertion umdrehen.
-//        assertFalse(guest.getIsGuest(),
-//                "BUG: isGuest should be true, but UserService.registerUser() overrides it. " +
-//                        "Flip this assertion to assertTrue once the bug is fixed.");
-//    }
-//
-//    /**
-//     * Szenario: Ein zweiter, echter (registrierter) User tritt einer bestehenden
-//     * Lobby bei — via korrektem Lobby-Code.
-//     * Prueft: Nach dem Join ist der User in der Lobby (existsUser == true), das
-//     * LobbyAccessDTO enthaelt die richtigen IDs, und die Lobby-Groesse ist um 1
-//     * gestiegen.
-//     * Faengt Bug: Testet das Zusammenspiel mit der echten
-//     * UserService-Implementation
-//     * (getUserById laedt aus H2). Wenn dort etwas kaputt ist — z. B. falscher
-//     * Qualifier oder Transactional-Problem — wuerde es hier auffallen. Der
-//     * Unit-Test mit gemocktem UserService wuerde diese Klasse Bug nicht fangen.
-//     */
-//    @Test
-//    public void joinLobby_withSecondRegisteredUser_addsUserToLobby() {
-//        // Admin erstellt Lobby
-//        CreateLobbyPostDTO createDTO = new CreateLobbyPostDTO();
-//        createDTO.setLobbyName("JoinIntegrationLobby");
-//        createDTO.setSize(4);
-//        createDTO.setMaxRounds(5);
-//        createDTO.setVisibility(LobbyVisibility.PUBLIC);
-//        LobbyAccessDTO adminAccess = lobbyService.createLobby(
-//                createDTO, false, registeredAdmin.getUserId(), registeredAdmin.getToken());
-//
-//        // Zweiter registrierter User
-//        User second = new User();
-//        second.setUsername("joinIntegration");
-//        second.setEmail("join@uzh.ch");
-//        second.setPassword("joinPw");
-//        User registeredSecond = userService.registerUser(second);
-//
-//        Lobby lobbyBefore = lobbyService.getLobbyById(adminAccess.getLobbyId());
-//        int sizeBefore = lobbyBefore.getUsers().size();
-//
-//        // Join
-//        LobbyAccessDTO joinAccess = lobbyService.joinLobby(
-//                registeredSecond.getUserId(),
-//                registeredSecond.getToken(),
-//                adminAccess.getLobbyId(),
-//                lobbyBefore.getLobbyCode(),
-//                false);
-//
-//        Lobby lobbyAfter = lobbyService.getLobbyById(adminAccess.getLobbyId());
-//        assertEquals(sizeBefore + 1, lobbyAfter.getUsers().size(),
-//                "Lobby size must increase by exactly one after a successful join");
-//        assertTrue(lobbyAfter.existsUser(registeredSecond.getUserId()),
-//                "Newly joined user must be present in the lobby");
-//        assertEquals(registeredSecond.getUserId(), joinAccess.getUserId(),
-//                "LobbyAccessDTO must return the userId of the user who joined");
-//    }
-//}
+package ch.uzh.ifi.hase.soprafs26.service;
+
+import ch.uzh.ifi.hase.soprafs26.constant.LobbyState;
+import ch.uzh.ifi.hase.soprafs26.constant.LobbyVisibility;
+import ch.uzh.ifi.hase.soprafs26.entity.Lobby;
+import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.entity.UserProfile;
+import ch.uzh.ifi.hase.soprafs26.repository.LobbyRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.CreateLobbyPostDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.LobbyAccessDTO;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.web.server.ResponseStatusException;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Integration tests for LobbyService.
+ *
+ * Lobby is now a JPA entity backed by LobbyRepository and H2 (no more
+ * in-memory activeLobbies list). Tests therefore exercise the full
+ * LobbyService → LobbyRepository → H2 stack.
+ *
+ * Removed tests (concept gone from the new design):
+ * - onGameEnded: GameEndedEvent and the event-listener method no longer exist.
+ * - GameResult persistence: GameResult entity and GameRepository are gone.
+ *
+ * The createLobbyCode() uniqueness loop and JPA @GeneratedValue for Lobby.lobbyId
+ * are verified here against the real DB, which unit tests cannot cover.
+ */
+@WebAppConfiguration
+@SpringBootTest
+public class LobbyServiceIntegrationTest {
+
+    private static final String ADMIN_USERNAME = "lobbyAdmin";
+    private static final String ADMIN_EMAIL = "admin@uzh.ch";
+    private static final String ADMIN_PASSWORD = "adminPw";
+
+    @Autowired
+    private LobbyService lobbyService;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private LobbyRepository lobbyRepository;
+
+    private User registeredAdmin;
+
+    @BeforeEach
+    public void setup() {
+        lobbyRepository.deleteAll();
+        userRepository.deleteAll();
+
+        registeredAdmin = userService.registerUser(
+                buildUser(ADMIN_USERNAME, ADMIN_EMAIL, ADMIN_PASSWORD));
+    }
+
+    /**
+     * Szenario: Ein registrierter User erstellt eine Lobby ueber den echten Service.
+     * Prueft: Die Lobby ist in der DB persistiert (findById liefert sie),
+     * State ist WAITING, Admin ist korrekt gesetzt, Lobby-Code ist 4 Zeichen.
+     * Faengt Bug: Im Gegensatz zum Unit-Test prueft die echte JPA-Auto-Generierung
+     * der lobbyId. Fehlendes @GeneratedValue oder fehlendes lobbyRepository.save()
+     * wuerden sofort auffallen.
+     */
+    @Test
+    public void createLobby_validInput_persistsLobbyInWaitingState() {
+        long countBefore = lobbyRepository.count();
+
+        LobbyAccessDTO accessDTO = lobbyService.createLobby(
+                buildCreateDTO("IntegrationLobby", 4, 5),
+                false, registeredAdmin.getUserId(), registeredAdmin.getToken());
+
+        assertEquals(countBefore + 1, lobbyRepository.count(),
+                "createLobby must persist exactly one Lobby row");
+
+        Lobby lobby = lobbyRepository.findById(accessDTO.getLobbyId()).orElseThrow(
+                () -> new AssertionError("Lobby was not persisted"));
+        assertEquals(LobbyState.WAITING, lobby.getLobbyState());
+        assertEquals(registeredAdmin.getUserId(), lobby.getAdmin().getUserId());
+        assertEquals(4, lobby.getLobbyCode().length(),
+                "Lobby code must be exactly 4 characters");
+    }
+
+    /**
+     * Szenario: Zwei Lobbies werden erstellt; danach wird getAllLobbies() aufgerufen.
+     * Prueft: Beide Lobbies werden zurueckgegeben (beide sind WAITING, kein Filter).
+     * Faengt Bug: Wenn lobbyRepository.findAll() nur eine Lobby zurueckgibt,
+     * oder ein Filter versehentlich WAITING-Lobbies ausblendet.
+     */
+    @Test
+    public void getAllLobbies_afterCreatingTwo_returnsBoth() {
+        // Pre-register a second admin for the second lobby
+        User secondAdmin = userService.registerUser(
+                buildUser("secondAdmin", "second@uzh.ch", "pw2"));
+
+        lobbyService.createLobby(buildCreateDTO("Lobby1", 4, 3),
+                false, registeredAdmin.getUserId(), registeredAdmin.getToken());
+        lobbyService.createLobby(buildCreateDTO("Lobby2", 4, 3),
+                false, secondAdmin.getUserId(), secondAdmin.getToken());
+
+        assertEquals(2, lobbyService.getAllLobbies().size());
+    }
+
+    /**
+     * Szenario: Ein zweiter registrierter User tritt einer bestehenden Lobby bei.
+     * Prueft: Nach dem Join ist der User in der players-Liste, die Liste hat
+     * genau einen Eintrag mehr, das LobbyAccessDTO enthaelt die richtige userId.
+     * Faengt Bug: Testet das Zusammenspiel mit der echten UserService-Impl
+     * (getUserById laedt aus H2). Moegliche Bugs: falscher Qualifier, Transactional-
+     * Problem, oder die players-Liste wird nach dem save() nicht neu geladen.
+     */
+    @Test
+    public void joinLobby_withSecondRegisteredUser_addsUserToPlayers() {
+        LobbyAccessDTO adminAccess = lobbyService.createLobby(
+                buildCreateDTO("JoinLobby", 4, 5),
+                false, registeredAdmin.getUserId(), registeredAdmin.getToken());
+
+        User second = userService.registerUser(
+                buildUser("joinUser", "join@uzh.ch", "joinPw"));
+
+        Lobby lobbyBefore = lobbyRepository.findById(adminAccess.getLobbyId()).orElseThrow();
+        int sizeBefore = lobbyBefore.getPlayers().size();
+
+        LobbyAccessDTO joinAccess = lobbyService.joinLobby(
+                second.getUserId(),
+                second.getToken(),
+                adminAccess.getLobbyId(),
+                lobbyBefore.getLobbyCode(),
+                false);
+
+        Lobby lobbyAfter = lobbyRepository.findById(adminAccess.getLobbyId()).orElseThrow();
+        assertEquals(sizeBefore + 1, lobbyAfter.getPlayers().size(),
+                "Players list must grow by exactly one after a successful join");
+        assertTrue(lobbyAfter.getPlayers().stream()
+                        .anyMatch(p -> p.getUserId().equals(second.getUserId())),
+                "Newly joined user must be present in the players list");
+        assertEquals(second.getUserId(), joinAccess.getUserId(),
+                "LobbyAccessDTO must return the userId of the joining user");
+    }
+
+    /**
+     * Szenario: Ein User versucht einer Lobby mit falschem Code beizutreten.
+     * Prueft: 403 FORBIDDEN, und die players-Liste blieb unveraendert.
+     */
+    @Test
+    public void joinLobby_wrongCode_throwsForbiddenAndDoesNotAddUser() {
+        LobbyAccessDTO adminAccess = lobbyService.createLobby(
+                buildCreateDTO("WrongCodeLobby", 4, 5),
+                false, registeredAdmin.getUserId(), registeredAdmin.getToken());
+
+        User second = userService.registerUser(
+                buildUser("wrongCodeUser", "wrong@uzh.ch", "wPw"));
+        Lobby lobbyBefore = lobbyRepository.findById(adminAccess.getLobbyId()).orElseThrow();
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> lobbyService.joinLobby(
+                        second.getUserId(), second.getToken(),
+                        adminAccess.getLobbyId(), "XXXX", false));
+
+        assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+        Lobby lobbyAfter = lobbyRepository.findById(adminAccess.getLobbyId()).orElseThrow();
+        assertEquals(lobbyBefore.getPlayers().size(), lobbyAfter.getPlayers().size(),
+                "Players list must not grow after a rejected join");
+    }
+
+    /**
+     * Szenario: Der letzte User verlaesst die Lobby.
+     * Prueft: Die Lobby wird aus der DB geloescht (findById liefert empty).
+     * Faengt Bug: Fehlendes delete() wuerde leere Lobbies akkumulieren — in
+     * getAllLobbies() wuerden sie als WAITING erscheinen.
+     */
+    @Test
+    public void leaveLobby_lastUserLeaves_deletesLobbyFromDB() {
+        LobbyAccessDTO adminAccess = lobbyService.createLobby(
+                buildCreateDTO("LeaveLobby", 4, 5),
+                false, registeredAdmin.getUserId(), registeredAdmin.getToken());
+        Long lobbyId = adminAccess.getLobbyId();
+
+        // Admin joins first so leaveLobby can find them in the players list
+        Lobby lobby = lobbyRepository.findById(lobbyId).orElseThrow();
+        lobbyService.joinLobby(
+                registeredAdmin.getUserId(), registeredAdmin.getToken(),
+                lobbyId, lobby.getLobbyCode(), false);
+
+        lobbyService.leaveLobby(lobbyId, registeredAdmin.getUserId());
+
+        assertTrue(lobbyRepository.findById(lobbyId).isEmpty(),
+                "Lobby must be deleted from DB when the last user leaves");
+    }
+
+    /**
+     * Szenario: Ein anonymer Besucher erstellt eine Lobby als Gast.
+     * Prueft: Der Guest-User wird in der DB persistiert mit Token und
+     * "guest_"-Prefix-Username.
+     * Dokumentiert bekannten Bug: isGuest wird von registerUser() auf false
+     * ueberschrieben (selbes Verhalten wie in UserServiceIntegrationTest).
+     */
+    @Test
+    public void createLobbyAsGuest_persistsGuestUserInDB() {
+        LobbyAccessDTO accessDTO = lobbyService.createLobby(
+                buildCreateDTO("GuestLobby", 4, 5), true, null, null);
+
+        User guest = userRepository.findById(accessDTO.getUserId()).orElseThrow(
+                () -> new AssertionError("Guest user was not persisted to the database"));
+
+        assertTrue(guest.getUserProfile().getUsername().startsWith("guest_"),
+                "Guest username must start with 'guest_' prefix");
+        assertNotNull(guest.getToken(), "Guest must have a token");
+
+        // KNOWN BUG: isGuest is overridden to false by registerUser().
+        assertFalse(guest.getIsGuest(),
+                "BUG: isGuest should be true — flip to assertTrue once registerUser() is fixed.");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Helpers
+    // ═══════════════════════════════════════════════════════════════════
+
+    private User buildUser(String username, String email, String password) {
+        User user = new User();
+        UserProfile profile = new UserProfile();
+        profile.setUsername(username);
+        profile.setEmail(email);
+        profile.setPassword(password);
+        user.setUserProfile(profile);
+        return user;
+    }
+
+    private CreateLobbyPostDTO buildCreateDTO(String name, int maxPlayers, int maxRounds) {
+        CreateLobbyPostDTO dto = new CreateLobbyPostDTO();
+        dto.setLobbyName(name);
+        dto.setMaxPlayers(maxPlayers);
+        dto.setMaxRounds(maxRounds);
+        dto.setVisibility(LobbyVisibility.PUBLIC);
+        return dto;
+    }
+}

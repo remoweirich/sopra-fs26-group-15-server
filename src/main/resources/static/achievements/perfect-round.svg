@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <polygon points="50,10 54,38 82,38 60,55 68,83 50,66 32,83 40,55 18,38 46,38" fill="#FFC107" stroke="#F57F17" stroke-width="1.5" stroke-linejoin="round"/>
+  <polygon points="50,22 53,40 70,40 57,50 62,68 50,58 38,68 43,50 30,40 47,40" fill="#FFD54F"/>
+  <circle cx="50" cy="47" r="10" fill="#F57F17"/>
+  <text x="50" y="51" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#FFF">✓</text>
+</svg>

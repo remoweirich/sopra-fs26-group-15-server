@@ -3,6 +3,7 @@ package ch.uzh.ifi.hase.soprafs26.controller;
 import ch.uzh.ifi.hase.soprafs26.constant.*;
 import ch.uzh.ifi.hase.soprafs26.constant.LobbyVisibility;
 import ch.uzh.ifi.hase.soprafs26.entity.Lobby;
+import ch.uzh.ifi.hase.soprafs26.repository.LobbyRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.*;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
@@ -21,10 +22,12 @@ public class LobbyRESTController {
 
     public final LobbyService lobbyService;
     public final AuthService authService;
+    public final LobbyRepository lobbyRepository;
 
-    public LobbyRESTController(LobbyService lobbyService, AuthService authService) {
+    public LobbyRESTController(LobbyService lobbyService, AuthService authService, LobbyRepository lobbyRepository) {
         this.lobbyService = lobbyService;
         this.authService = authService;
+        this.lobbyRepository = lobbyRepository;
     }
 
     @PostMapping("/lobbies")
@@ -142,5 +145,39 @@ public class LobbyRESTController {
         }
 
         return lobbyService.getGameResult(gameId);
+    }
+
+    @PostMapping("/lobbies/join/{lobbyCode}")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public LobbyAccessDTO joinLobbyByCode(
+            @PathVariable String lobbyCode,
+            @RequestHeader(value = "token", required = false) String token,
+            @RequestHeader(value = "userId", required = false) Long userId,
+            @RequestBody LobbyCodePostDTO lobbyCodePostDTO) {
+
+        Long lobbyId = lobbyRepository.findByLobbyCode(lobbyCode)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lobby not found"))
+                .getLobbyId();
+        boolean isGuest;
+        LobbyAccessDTO lobbyAccessDTO;
+
+        AuthHeader authHeader = new AuthHeader(userId, token);
+        try {
+            boolean isAuthenticated = authService.authUser(authHeader);
+            if (!isAuthenticated) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+            }
+            isGuest = false;
+            lobbyAccessDTO = lobbyService.joinLobby(userId, token, lobbyId, lobbyCode, isGuest);
+        } catch (ResponseStatusException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                isGuest = true;
+                lobbyAccessDTO = lobbyService.joinLobby(null, null, lobbyId, lobbyCode, isGuest);
+            } else {
+                throw e;
+            }
+        }
+        return lobbyAccessDTO;
     }
 }
