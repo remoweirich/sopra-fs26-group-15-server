@@ -20,7 +20,7 @@ public class CleanupService {
         this.lobbyRepository = lobbyRepository;
     }
 
-    @Scheduled(fixedRate = 10_000)
+    @Scheduled(fixedRate = 300_000)
     public void deleteOrphanedGuestUsers() {
         List<User> allGuests = userRepository.findAllGuests();
 
