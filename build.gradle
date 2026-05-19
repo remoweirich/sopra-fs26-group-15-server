@@ -75,10 +75,12 @@ sonar {
         property 'sonar.projectKey', 'remoweirich_sopra-fs26-group-15-server'
         property 'sonar.organization', 'remoweirich'
         property 'sonar.host.url', 'https://sonarcloud.io'
+        property 'sonar.coverage.jacoco.xmlReportPaths', 'build/reports/jacoco/test/jacocoTestReport.xml'  // NEU
     }
 }
 
 jacocoTestReport {
+    dependsOn test  // NEU
     reports {
         xml.required = true
     }
@@ -88,6 +90,7 @@ test {
     useJUnitPlatform()
     testLogging.showStandardStreams = true
     maxParallelForks = 1
+    finalizedBy jacocoTestReport  // NEU
 }
 
 File secretPropsFile = file('./local.properties')
