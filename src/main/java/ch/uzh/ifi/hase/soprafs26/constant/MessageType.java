@@ -13,5 +13,6 @@ public enum MessageType {
     ROUND_END,
     SCORES,
     FRIEND_REQUEST,
-    FRIEND_ACCEPT
+    FRIEND_ACCEPT,
+    FRIEND_REJECT
 }
