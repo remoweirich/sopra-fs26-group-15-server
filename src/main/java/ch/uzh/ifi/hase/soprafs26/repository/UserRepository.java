@@ -18,7 +18,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.isGuest = true")
     List<User> findAllGuests();
 
-    List<User> findByUserProfile_UsernameContainingIgnoreCase(String username);
+    @Query("SELECT u FROM User u WHERE LOWER(u.userProfile.username) LIKE LOWER(CONCAT('%', :username, '%')) AND u.isGuest=false")
+    List<User> findByUserProfile_UsernameContainingIgnoreCase(@Param("username")String username);
 
 }
 
