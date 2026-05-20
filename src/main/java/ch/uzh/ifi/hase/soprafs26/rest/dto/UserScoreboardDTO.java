@@ -11,5 +11,6 @@ public class UserScoreboardDTO {
     private Long bestRoundPoints;
     private Float guessingPrecision;
     private Long gamesWon;
+    private Long leaderboardPoints;
 
 }

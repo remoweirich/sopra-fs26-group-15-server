@@ -517,6 +517,7 @@ public class GameService {
         scoreboard.setBestRoundPoints(calculateBestRoundPoints(playerHistory));
         scoreboard.setGuessingPrecision(calculateGuessingPrecision(playerHistory));
         scoreboard.setGamesWon(calculateGamesWon(player.getUserId()));
+        scoreboard.setLeaderboardPoints(calculateLeaderboardPoints(playerHistory));
 
         player.setUserScoreboard(scoreboard);
         userRepository.save(player);
@@ -533,7 +534,7 @@ public class GameService {
         return playerHistory.size();
     }
 
-    private long calculateTotalPoints(List<RoundHistory> playerHistory) {
+    private long calculateLeaderboardPoints(List<RoundHistory> playerHistory) {
         double avgPoints = playerHistory.stream()
                 .mapToInt(RoundHistory::getPoints)
                 .average()
@@ -562,5 +563,11 @@ public class GameService {
 
     private long calculateGamesWon(Long userId) {
         return lobbyRepository.countByWinnerUserId(userId);
+    }
+
+    private long calculateTotalPoints(List<RoundHistory> playerHistory) {
+        return playerHistory.stream()
+                .mapToLong(RoundHistory::getPoints)
+                .sum();
     }
 }
