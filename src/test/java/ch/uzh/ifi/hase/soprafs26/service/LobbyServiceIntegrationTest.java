@@ -217,9 +217,7 @@ public class LobbyServiceIntegrationTest {
                 "Guest username must start with 'guest_' prefix");
         assertNotNull(guest.getToken(), "Guest must have a token");
 
-        // KNOWN BUG: isGuest is overridden to false by registerUser().
-        assertFalse(guest.getIsGuest(),
-                "BUG: isGuest should be true — flip to assertTrue once registerUser() is fixed.");
+        assertTrue(guest.getIsGuest(), "Guest user must have isGuest set to true");
     }
 
     // ═══════════════════════════════════════════════════════════════════

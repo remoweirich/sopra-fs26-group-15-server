@@ -41,7 +41,7 @@ public class GuessRepositoryTest {
         Guess found = guessRepository.findByRoundAndUserUserId(round, user.getUserId());
 
         assertNotNull(found);
-        assertEquals(guess.getId(), found.getId());
+        assertEquals(guess.getGuessId(), found.getGuessId());
         assertEquals(47.0f, found.getLat(), 0.001f);
         assertEquals(8.0f,  found.getLon(), 0.001f);
     }
