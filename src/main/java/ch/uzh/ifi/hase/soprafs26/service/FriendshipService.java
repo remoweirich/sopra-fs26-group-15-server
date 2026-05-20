@@ -59,6 +59,9 @@ public class FriendshipService {
 
         Message message = new Message(MessageType.FRIEND_REQUEST, friendRequestDTO);
         simpMessagingTemplate.convertAndSend("/topic/" + receivingUserId + "/notifications", message);
+
+        Message feedbackMessage = new Message(MessageType.FEEDBACK, friendRequestDTO);
+        simpMessagingTemplate.convertAndSend("/topic/" + sendingUserId + "/notifications", feedbackMessage);
     }
 
     public void acceptFriendship(long acceptingUserId, long requestingUserId) {

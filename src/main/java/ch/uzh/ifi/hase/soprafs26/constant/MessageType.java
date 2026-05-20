@@ -15,5 +15,6 @@ public enum MessageType {
     FRIEND_REQUEST,
     FRIEND_ACCEPT,
     FRIEND_REJECT,
+    FEEDBACK,
     ACHIEVEMENT,
 }
