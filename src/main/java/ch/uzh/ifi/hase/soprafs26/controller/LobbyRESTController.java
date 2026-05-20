@@ -20,9 +20,9 @@ import java.util.List;
 @RestController
 public class LobbyRESTController {
 
-    public final LobbyService lobbyService;
-    public final AuthService authService;
-    public final LobbyRepository lobbyRepository;
+    private final LobbyService lobbyService;
+    private final AuthService authService;
+    private final LobbyRepository lobbyRepository;
 
     public LobbyRESTController(LobbyService lobbyService, AuthService authService, LobbyRepository lobbyRepository) {
         this.lobbyService = lobbyService;
