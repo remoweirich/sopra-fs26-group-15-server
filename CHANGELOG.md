@@ -1,3 +1,18 @@
+# [1.9.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.8.1...v1.9.0) (2026-05-20)
+
+
+### Bug Fixes
+
+* adapt tests to new implementation ([a2e5b9a](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/a2e5b9a69a9ffda20e372d8d23760cbb9576fbfd))
+* change cleanup duration ([f0ca850](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/f0ca850377d929b0d4457d403553604d9ca996d3))
+* change scope of dependencies and add gamesWon to Mapping ([62c9d70](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/62c9d70d7119f09b33b41d512175c4f2f1027d1f))
+
+
+### Features
+
+* **scoreboard:** implement game result tracking and user scoreboard calculations ([dba1103](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/dba11037084dd602c49fab6c96e3417083937f9d))
+* **users:** add guest cleanup, friend removal, and user deletion ([384ee0d](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/384ee0d6554677ec5d7572d398f3a921cab32f8d)), closes [#108](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/108)
+
 ## [1.8.1](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.8.0...v1.8.1) (2026-05-19)
 
 
