@@ -5,6 +5,7 @@ import ch.uzh.ifi.hase.soprafs26.constant.LobbyVisibility;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +36,14 @@ public class Lobby {
 
     @Column(nullable = false)
     private Integer maxPlayers;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime creationDate;
+
+    @PrePersist
+    protected void onCreate() {
+        this.creationDate = LocalDateTime.now();
+    }
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)

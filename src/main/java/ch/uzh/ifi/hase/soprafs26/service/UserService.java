@@ -48,6 +48,7 @@ public class UserService {
         userScoreboard.setBestRoundPoints(0L);
         userScoreboard.setGuessingPrecision(0f);
         userScoreboard.setGamesWon(0L);
+        userScoreboard.setLeaderboardPoints(0L);
         newUser.setUserScoreboard(userScoreboard);
 
         // Status setzen
