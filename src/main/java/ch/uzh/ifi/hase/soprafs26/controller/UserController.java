@@ -74,10 +74,6 @@ public class UserController {
             myUserDTO.setUserAchievementDTOList(userService.getUserAchievements(user));
             return myUserDTO;
 		} else {
-            User requester = userService.getUserByToken(token);
-            if (userId.equals(0L)) {
-                achievementService.KingBabaBui(requester);
-            }
 			UserDTO userDTO = DTOMapper.INSTANCE.convertUserToUserDTO(user);
             userDTO.setUserAchievementDTOList(userService.getUserAchievements(user));
             return userDTO;
@@ -128,6 +124,17 @@ public class UserController {
             sanitizedUsers.add(DTOMapper.INSTANCE.convertUserToUserDTO(user));
         }
         return sanitizedUsers;
+    }
+
+    @PostMapping("/award/kingbababui")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void awardKingBabaBui(
+            @RequestHeader("userId") Long sendingUserId,
+            @RequestHeader("token") String token) {
+        AuthHeader authHeader = new AuthHeader(sendingUserId, token);
+        if (!token.isEmpty() && authService.authUser(authHeader)) {
+            achievementService.KingBabaBui(userService.getUserById(sendingUserId));
+        }
     }
 }
 

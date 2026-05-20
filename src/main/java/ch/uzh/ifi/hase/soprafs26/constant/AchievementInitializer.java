@@ -80,10 +80,10 @@ public class AchievementInitializer {
             achievementRepository.save(achievement10);
 
             Achievement achievement11 = new Achievement();
-            achievement10.setName("King BabaBui");
-            achievement10.setDescription("All hail the king");
-            achievement10.setIconUrl("/achievements/king-bababui.svg");
-            achievementRepository.save(achievement10);
+            achievement11.setName("King BabaBui");
+            achievement11.setDescription("All hail the king");
+            achievement11.setIconUrl("/achievements/king-bababui.svg");
+            achievementRepository.save(achievement11);
         }
     }
 }
