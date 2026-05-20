@@ -29,6 +29,10 @@ public class Lobby {
     @JoinColumn(name = "admin", nullable = false)
     private User admin;
 
+    @ManyToOne
+    @JoinColumn(name = "winner", nullable = true)
+    private User winner;
+
     @Column(nullable = false)
     private Integer maxPlayers;
 
@@ -53,4 +57,5 @@ public class Lobby {
             inverseJoinColumns = @JoinColumn(name = "idUser")
     )
     private List<User> players = new ArrayList<>();
+
 }
