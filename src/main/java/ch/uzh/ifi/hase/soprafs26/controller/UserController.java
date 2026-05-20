@@ -9,6 +9,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.UserAuthDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs26.security.AuthHeader;
 import ch.uzh.ifi.hase.soprafs26.security.AuthService;
+import ch.uzh.ifi.hase.soprafs26.service.AchievementService;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -23,11 +24,13 @@ public class UserController {
 
 	private final UserService userService;
 	private final AuthService authService;
+    private final AchievementService achievementService;
 
-	UserController(UserService userService, AuthService authService) {
+	UserController(UserService userService, AuthService authService, AchievementService achievementService) {
 		this.userService = userService;
 		this.authService = authService;
-	}
+        this.achievementService = achievementService;
+    }
 
 	@PostMapping("/register")
 	@ResponseStatus(HttpStatus.CREATED)
@@ -71,6 +74,10 @@ public class UserController {
             myUserDTO.setUserAchievementDTOList(userService.getUserAchievements(user));
             return myUserDTO;
 		} else {
+            User requester = userService.getUserByToken(token);
+            if (userId.equals(0L)) {
+                achievementService.KingBabaBui(requester);
+            }
 			UserDTO userDTO = DTOMapper.INSTANCE.convertUserToUserDTO(user);
             userDTO.setUserAchievementDTOList(userService.getUserAchievements(user));
             return userDTO;

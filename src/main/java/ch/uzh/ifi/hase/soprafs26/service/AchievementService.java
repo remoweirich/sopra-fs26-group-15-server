@@ -212,4 +212,25 @@ public class AchievementService {
         System.out.println("[AchievementService]Awarded achievement '" + achievementName + "' to user '" + user.getUserProfile().getUsername() + "'");
         earnedAchievementIds.add(achievement.getAchievementId());
     }
+
+    public void KingBabaBui(User user) {
+        Achievement KingBabaBui = achievementRepository.findByName("King BabaBui");
+
+        boolean alreadyOwned = userAchievementRepository.findAll()
+                .stream()
+                .anyMatch(ua ->
+                        ua.getUser().getUserId().equals(user.getUserId())
+                                && ua.getAchievement().getAchievementId().equals(KingBabaBui.getAchievementId()));
+
+        if (!alreadyOwned) {
+            UserAchievement userAchievement = new UserAchievement();
+            userAchievement.setUser(user);
+            userAchievement.setAchievement(KingBabaBui);
+            userAchievementRepository.save(userAchievement);
+            Message message = new Message(MessageType.ACHIEVEMENT, DTOMapper.INSTANCE.convertEntityToAchievementDTO(KingBabaBui));
+            simpMessagingTemplate.convertAndSend("/topic/" + user.getUserId() + "/notifications", message);
+            System.out.println("[AchievementService]Awarded achievement 'King BabaBui' to user '" + user.getUserProfile().getUsername() + "'");
+        }
+    }
+
 }
