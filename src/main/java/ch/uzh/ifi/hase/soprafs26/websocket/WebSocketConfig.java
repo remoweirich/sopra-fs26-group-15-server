@@ -48,7 +48,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setSystemLogin(brokerUser)
                 .setSystemPasscode(brokerPass)
                 .setVirtualHost("/");
-        //registry.enableSimpleBroker("/topic");
+//        registry.enableSimpleBroker("/topic");
         registry.setApplicationDestinationPrefixes("/app");
     }
 

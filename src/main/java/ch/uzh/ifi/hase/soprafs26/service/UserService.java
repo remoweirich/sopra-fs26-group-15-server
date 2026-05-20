@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.LobbyRepository;
+
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 
 import java.util.List;
@@ -27,10 +29,12 @@ public class UserService {
 
 	private final UserRepository userRepository;
     private final UserAchievementRepository userAchievementRepository;
+    private final LobbyRepository lobbyRepository;
 
-	public UserService(UserRepository userRepository, UserAchievementRepository userAchievementRepository) {
+	public UserService(UserRepository userRepository, UserAchievementRepository userAchievementRepository, LobbyRepository lobbyRepository) {
 		this.userRepository = userRepository;
         this.userAchievementRepository = userAchievementRepository;
+        this.lobbyRepository = lobbyRepository;
     }
 
 
@@ -43,6 +47,7 @@ public class UserService {
         userScoreboard.setPlayedRounds(0L);
         userScoreboard.setBestRoundPoints(0L);
         userScoreboard.setGuessingPrecision(0f);
+        userScoreboard.setGamesWon(0L);
         newUser.setUserScoreboard(userScoreboard);
 
         // Status setzen
@@ -161,6 +166,15 @@ public class UserService {
 
     public void deleteUser(Long userId) {
         User user = getUserById(userId);
+
+        boolean isInLobby = lobbyRepository.findAll().stream()
+                .flatMap(l -> l.getPlayers().stream())
+                .anyMatch(p -> p.getUserId().equals(userId));
+
+        if (isInLobby) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User is still in an active lobby");
+        }
+
         userRepository.delete(user);
     }
 

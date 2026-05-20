@@ -214,9 +214,7 @@ public class UserServiceIntegrationTest {
                 "Guest username must start with 'guest_' prefix");
         assertNotNull(loaded.getToken(), "Guest must have a token");
 
-        // KNOWN BUG: registerUser() overrides isGuest to false even when caller sets true.
-        assertFalse(loaded.getIsGuest(),
-                "BUG: isGuest should be true — flip to assertTrue once registerUser() is fixed.");
+        assertTrue(guest.getIsGuest(), "Guest user must have isGuest set to true");
     }
 
     // ═══════════════════════════════════════════════════════════════════

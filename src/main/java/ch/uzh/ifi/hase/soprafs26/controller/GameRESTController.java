@@ -18,9 +18,9 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 public class GameRESTController {
 
-    public final LobbyService lobbyService;
-    public final AuthService authService;
-    public final GameService gameService;
+    private final LobbyService lobbyService;
+    private final AuthService authService;
+    private final GameService gameService;
 
     public GameRESTController(LobbyService lobbyService, AuthService authService, GameService gameService) {
         this.lobbyService = lobbyService;

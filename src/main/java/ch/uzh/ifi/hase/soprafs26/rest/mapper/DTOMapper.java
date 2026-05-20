@@ -33,6 +33,7 @@ public interface DTOMapper {
 
     @Mapping(source = "userProfile.username", target = "username")
     @Mapping(source = "userProfile.userBio", target = "userBio")
+    @Mapping(source = "userScoreboard.gamesWon", target = "userScoreboard.gamesWon")
     UserDTO convertUserToUserDTO(User user);
 
     @Mapping(source = "userProfile.username", target = "username")
@@ -43,6 +44,7 @@ public interface DTOMapper {
     @Mapping(source = "userScoreboard.playedRounds", target = "userScoreboard.playedRounds")
     @Mapping(source = "userScoreboard.bestRoundPoints", target = "userScoreboard.bestRoundPoints")
     @Mapping(source = "userScoreboard.guessingPrecision", target = "userScoreboard.guessingPrecision")
+    @Mapping(source = "userScoreboard.gamesWon", target = "userScoreboard.gamesWon")
     @Mapping(target = "friends", ignore = true)
     MyUserDTO convertUserToMyUserDTO(User user);
 

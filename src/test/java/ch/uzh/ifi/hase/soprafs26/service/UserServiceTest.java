@@ -366,11 +366,7 @@ class UserServiceTest {
         assertTrue(result.getUserProfile().getUsername().startsWith("guest_"),
                 "Guest username must start with 'guest_' prefix");
 
-        // KNOWN BUG: registerUser() always sets isGuest=false, overriding the true
-        // value set inside createGuestUser(). Remove this assertion once fixed.
-        assertFalse(result.getIsGuest(),
-                "BUG: isGuest should be true, but registerUser() overrides it to false.");
-    } 
+        assertTrue(result.getIsGuest(), "Guest user must have isGuest set to true");    }
 
     // ═══════════════════════════════════════════════════════════════════
     // Helpers
