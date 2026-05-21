@@ -197,4 +197,13 @@ class TrainPositionFetcherTest {
         assertEquals(100, train.getCurrentX());
         assertEquals(100, train.getCurrentY());
     }
+
+    @Test
+    void fetchTrainsMock_trainsHaveOriginAndDestination() throws Exception {
+        List<Train> trains = trainPositionFetcher.fetchTrainsMock(2);
+        for (Train train : trains) {
+            assertNotNull(train.getLineOrigin());
+            assertNotNull(train.getLineDestination());
+        }
+    }
 }
