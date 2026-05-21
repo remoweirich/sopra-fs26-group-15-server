@@ -247,4 +247,7 @@ public class LobbyServiceIntegrationTest {
         dto.setVisibility(LobbyVisibility.PUBLIC);
         return dto;
     }
+
+
+
 }

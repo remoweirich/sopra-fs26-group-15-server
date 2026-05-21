@@ -26,6 +26,9 @@ public class Lobby {
     @Column(nullable = false, length = 255)
     private String lobbyCode;
 
+    @Column(nullable = false)
+    private Boolean cleanupPending = false;
+
     @ManyToOne
     @JoinColumn(name = "admin", nullable = false)
     private User admin;

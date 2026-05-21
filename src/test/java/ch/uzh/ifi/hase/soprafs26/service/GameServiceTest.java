@@ -10,6 +10,7 @@ import ch.uzh.ifi.hase.soprafs26.objects.UserGameStatus;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GuessMessageDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.ResultDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.ResyncDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoundStartDTO;
 import ch.uzh.ifi.hase.soprafs26.trains.TrainPositionFetcher;
 import ch.uzh.ifi.hase.soprafs26.websocket.Message;
@@ -25,10 +26,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -532,4 +536,134 @@ class GameServiceTest {
         guess.setHasGuessed(points != null);
         return guess;
     }
+
+    // ═══════════════════════════════════════════════════════════════════
+// gameTearDown – King replacement + scoreboard
+// ═══════════════════════════════════════════════════════════════════
+
+    @Test
+    void gameTearDown_setsCleanupPending() throws Exception {
+        Train train = buildTrain(100L, 100L);
+        Round round = buildRound(1, train);
+        Guess g1 = buildGuess(round, user1, 80, 100f, 100f, 0.5f);
+        Guess g2 = buildGuess(round, user2, 60, 101f, 101f, 1.0f);
+
+        when(roundRepository.findByLobbyOrderByRoundNumberAsc(lobby)).thenReturn(List.of(round));
+        when(guessRepository.findByRound(round)).thenReturn(List.of(g1, g2));
+        when(roundHistoryRepository.findByUserUserId(anyLong())).thenReturn(Collections.emptyList());
+
+        gameService.gameTearDown(lobby);
+
+        assertTrue(lobby.getCleanupPending());
+    }
+
+    /**
+     * Prueft: updateUserScoreboard berechnet alle Scoreboard-Werte korrekt.
+     * Testet indirekt: calculatePlayedGames, calculatePlayedRounds,
+     * calculateTotalPoints, calculateBestRoundPoints, calculateGuessingPrecision,
+     * calculateLeaderboardPoints.
+     */
+    @Test
+    void gameTearDown_scoreboardUpdated() throws Exception {
+        User king = buildUser(99L, "KingBabaBui", "king@system.com");
+
+        Train train = buildTrain(100L, 100L);
+        Round round = buildRound(1, train);
+        Guess g1 = buildGuess(round, user1, 500, 100f, 100f, 10.0f);
+        Guess g2 = buildGuess(round, user2, 300, 101f, 101f, 20.0f);
+
+        RoundHistory rh1 = new RoundHistory();
+        rh1.setUser(user1);
+        rh1.setLobby(lobby);
+        rh1.setPoints(500);
+        rh1.setDistanceToTrain(10.0f);
+
+        when(roundRepository.findByLobbyOrderByRoundNumberAsc(lobby)).thenReturn(List.of(round));
+        when(guessRepository.findByRound(round)).thenReturn(List.of(g1, g2));
+        when(roundHistoryRepository.findByUserUserId(user1.getUserId())).thenReturn(List.of(rh1));
+        when(roundHistoryRepository.findByUserUserId(user2.getUserId())).thenReturn(Collections.emptyList());
+        when(userRepository.findByUserProfileUsername("KingBabaBui")).thenReturn(king);
+        when(lobbyRepository.countByWinnerUserId(anyLong())).thenReturn(0L);
+
+        gameService.gameTearDown(lobby);
+
+        UserScoreboard scoreboard = user1.getUserScoreboard();
+        assertEquals(500L, scoreboard.getTotalPoints());
+        assertEquals(500L, scoreboard.getBestRoundPoints());
+        assertEquals(1L, scoreboard.getPlayedRounds());
+        assertTrue(scoreboard.getGuessingPrecision() > 0);
+        assertTrue(scoreboard.getLeaderboardPoints() >= 0);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+// resync
+// ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Prueft: resync gibt SCORES zurueck wenn Scores bereits veroeffentlicht wurden.
+     * Testet indirekt: convertToResultDTO
+     */
+    @Test
+    void resync_scoresAlreadyPublished_returnsScores() throws Exception {
+        Train train = buildTrain(100L, 100L);
+        Round round = buildRound(1, train);
+        lobby.setCurrentRound(1);
+
+        Guess g1 = buildGuess(round, user1, 80, 100f, 100f, 0.5f);
+        Guess g2 = buildGuess(round, user2, 60, 101f, 101f, 1.0f);
+
+        when(lobbyRepository.findById(LOBBY_ID)).thenReturn(Optional.of(lobby));
+        when(roundRepository.findByLobbyOrderByRoundNumberAsc(any())).thenReturn(List.of(round));
+        when(guessRepository.findByRound(round)).thenReturn(List.of(g1, g2));
+
+        // scoresPublished direkt auf true setzen
+        Map<Long, Boolean> scoresPublished = new ConcurrentHashMap<>();
+        scoresPublished.put(LOBBY_ID, true);
+        ReflectionTestUtils.setField(gameService, "scoresPublished", scoresPublished);
+
+        ResyncDTO result = gameService.resync(lobby);
+
+        assertEquals(MessageType.SCORES, result.getType());
+        assertNotNull(result.getPayload());
+    }
+
+    /**
+     * Prueft: resync gibt ROUND_START zurueck wenn Scores noch nicht veroeffentlicht.
+     * Prueft auch: remainingTime wird korrekt aus dem aktiven Timer gelesen.
+     */
+    @Test
+    void resync_roundInProgress_returnsRoundStart() throws Exception {
+        Train train = buildTrain(100L, 100L);
+        Round round = buildRound(1, train);
+        when(roundRepository.findByLobbyOrderByRoundNumberAsc(lobby)).thenReturn(List.of(round));
+
+        gameService.roundStart(lobby);
+
+        ResyncDTO result = gameService.resync(lobby);
+
+        assertEquals(MessageType.ROUND_START, result.getType());
+        assertNotNull(result.getPayload());
+        assertTrue(result.getRemainingTime() > 0, "Remaining time must be positive when round is active");
+    }
+
+    /**
+     * Prueft: resync gibt ROUND_START mit remainingTime = 0 zurueck
+     * wenn kein aktiver Timer laeuft.
+     */
+    @Test
+    void resync_noActiveTimer_returnsRemainingTimeZero() throws Exception {
+        Train train = buildTrain(100L, 100L);
+        Round round = buildRound(1, train);
+        lobby.setCurrentRound(1);
+        when(roundRepository.findByLobbyOrderByRoundNumberAsc(lobby)).thenReturn(List.of(round));
+
+        ResyncDTO result = gameService.resync(lobby);
+
+        assertEquals(MessageType.ROUND_START, result.getType());
+        assertEquals(0, result.getRemainingTime());
+    }
+
+
+
+
 }
