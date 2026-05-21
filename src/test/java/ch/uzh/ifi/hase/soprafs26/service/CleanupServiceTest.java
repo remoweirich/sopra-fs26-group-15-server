@@ -5,6 +5,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.Lobby;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.entity.UserProfile;
 import ch.uzh.ifi.hase.soprafs26.repository.LobbyRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.RoundHistoryRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -24,6 +27,9 @@ public class CleanupServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private RoundHistoryRepository roundHistoryRepository;
 
     @Mock
     private LobbyRepository lobbyRepository;
@@ -145,5 +151,68 @@ public class CleanupServiceTest {
         cleanupService.deleteOrphanedLobbies();
 
         verify(lobbyRepository, never()).delete(lobby);
+    }
+
+    @Test
+    void cleanupFinishedLobbies_guestAdmin_replacedByKing() {
+        ReflectionTestUtils.setField(cleanupService, "finishedCutoffMinutes", 0L);
+
+        User king = buildGuest("KingBabaBui", LocalDateTime.now().minusMinutes(5));
+        User guestAdmin = buildGuest("guest_admin", LocalDateTime.now().minusMinutes(5));
+
+        Lobby lobby = buildLobby(LobbyState.FINISHED, LocalDateTime.now().minusMinutes(5));
+        lobby.setCleanupPending(true);
+        lobby.setAdmin(guestAdmin);
+
+        when(lobbyRepository.findAll()).thenReturn(List.of(lobby));
+        when(userRepository.findByUserProfileUsername("KingBabaBui")).thenReturn(king);
+
+        cleanupService.cleanupFinishedLobbies();
+
+        assertEquals(king.getUserId(), lobby.getAdmin().getUserId());
+        verify(lobbyRepository).save(lobby);
+    }
+
+    @Test
+    void cleanupFinishedLobbies_guestWinner_replacedByKing() {
+        ReflectionTestUtils.setField(cleanupService, "finishedCutoffMinutes", 0L);
+
+        User king = buildGuest("KingBabaBui", LocalDateTime.now().minusMinutes(5));
+        User guestWinner = buildGuest("guest_winner", LocalDateTime.now().minusMinutes(5));
+        User admin = buildGuest("guest_admin", LocalDateTime.now().minusMinutes(5));
+        admin.setIsGuest(false);
+
+        Lobby lobby = buildLobby(LobbyState.FINISHED, LocalDateTime.now().minusMinutes(5));
+        lobby.setCleanupPending(true);
+        lobby.setAdmin(admin);
+        lobby.setWinner(guestWinner);
+
+        when(lobbyRepository.findAll()).thenReturn(List.of(lobby));
+        when(userRepository.findByUserProfileUsername("KingBabaBui")).thenReturn(king);
+
+        cleanupService.cleanupFinishedLobbies();
+
+        assertEquals(king.getUserId(), lobby.getWinner().getUserId());
+    }
+
+    @Test
+    void cleanupFinishedLobbies_setsCleanupPendingFalse() {
+        ReflectionTestUtils.setField(cleanupService, "finishedCutoffMinutes", 0L);
+
+        User admin = buildGuest("regular_admin", LocalDateTime.now().minusMinutes(5));
+        admin.setIsGuest(false);
+        User king = buildGuest("KingBabaBui", LocalDateTime.now().minusMinutes(5));
+
+        Lobby lobby = buildLobby(LobbyState.FINISHED, LocalDateTime.now().minusMinutes(5));
+        lobby.setCleanupPending(true);
+        lobby.setAdmin(admin);
+
+        when(lobbyRepository.findAll()).thenReturn(List.of(lobby));
+        when(userRepository.findByUserProfileUsername("KingBabaBui")).thenReturn(king);
+
+        cleanupService.cleanupFinishedLobbies();
+
+        assertFalse(lobby.getCleanupPending());
+        verify(lobbyRepository).save(lobby);
     }
 }

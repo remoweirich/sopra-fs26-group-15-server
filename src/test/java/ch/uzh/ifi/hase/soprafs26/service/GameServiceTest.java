@@ -541,15 +541,8 @@ class GameServiceTest {
 // gameTearDown – King replacement + scoreboard
 // ═══════════════════════════════════════════════════════════════════
 
-    /**
-     * Prueft: Wenn der Admin ein Guest ist, wird er durch KingBabaBui ersetzt.
-     */
     @Test
-    void gameTearDown_guestAdmin_replacedByKing() throws Exception {
-        User king = buildUser(99L, "KingBabaBui", "king@system.com");
-        user1.setIsGuest(true);
-        lobby.setAdmin(user1);
-
+    void gameTearDown_setsCleanupPending() throws Exception {
         Train train = buildTrain(100L, 100L);
         Round round = buildRound(1, train);
         Guess g1 = buildGuess(round, user1, 80, 100f, 100f, 0.5f);
@@ -558,64 +551,10 @@ class GameServiceTest {
         when(roundRepository.findByLobbyOrderByRoundNumberAsc(lobby)).thenReturn(List.of(round));
         when(guessRepository.findByRound(round)).thenReturn(List.of(g1, g2));
         when(roundHistoryRepository.findByUserUserId(anyLong())).thenReturn(Collections.emptyList());
-        when(userRepository.findByUserProfileUsername("KingBabaBui")).thenReturn(king);
 
         gameService.gameTearDown(lobby);
 
-        assertEquals(king, lobby.getAdmin());
-    }
-
-    /**
-     * Prueft: Wenn der Winner ein Guest ist, wird er durch KingBabaBui ersetzt.
-     */
-    @Test
-    void gameTearDown_guestWinner_replacedByKing() throws Exception {
-        User king = buildUser(99L, "KingBabaBui", "king@system.com");
-        user1.setIsGuest(true);
-
-        Train train = buildTrain(100L, 100L);
-        Round round = buildRound(1, train);
-        Guess g1 = buildGuess(round, user1, 800, 100f, 100f, 0.5f);
-        Guess g2 = buildGuess(round, user2, 60, 101f, 101f, 1.0f);
-
-        RoundHistory rh1 = new RoundHistory();
-        rh1.setUser(user1);
-        rh1.setLobby(lobby);
-        rh1.setPoints(800);
-
-        when(roundRepository.findByLobbyOrderByRoundNumberAsc(lobby)).thenReturn(List.of(round));
-        when(guessRepository.findByRound(round)).thenReturn(List.of(g1, g2));
-        when(roundHistoryRepository.findByUserUserId(user1.getUserId())).thenReturn(List.of(rh1));
-        when(roundHistoryRepository.findByUserUserId(user2.getUserId())).thenReturn(Collections.emptyList());
-        when(userRepository.findByUserProfileUsername("KingBabaBui")).thenReturn(king);
-
-        gameService.gameTearDown(lobby);
-
-        assertEquals(king, lobby.getWinner());
-    }
-
-    /**
-     * Prueft: Guests werden aus der players-Liste entfernt (ausser KingBabaBui).
-     */
-    @Test
-    void gameTearDown_guestsRemovedFromPlayers() throws Exception {
-        User king = buildUser(99L, "KingBabaBui", "king@system.com");
-        user1.setIsGuest(true);
-
-        Train train = buildTrain(100L, 100L);
-        Round round = buildRound(1, train);
-        Guess g1 = buildGuess(round, user1, 80, 100f, 100f, 0.5f);
-        Guess g2 = buildGuess(round, user2, 60, 101f, 101f, 1.0f);
-
-        when(roundRepository.findByLobbyOrderByRoundNumberAsc(lobby)).thenReturn(List.of(round));
-        when(guessRepository.findByRound(round)).thenReturn(List.of(g1, g2));
-        when(roundHistoryRepository.findByUserUserId(anyLong())).thenReturn(Collections.emptyList());
-        when(userRepository.findByUserProfileUsername("KingBabaBui")).thenReturn(king);
-
-        gameService.gameTearDown(lobby);
-
-        assertFalse(lobby.getPlayers().contains(user1), "Guest must be removed from players list");
-        assertTrue(lobby.getPlayers().contains(user2), "Non-guest must remain in players list");
+        assertTrue(lobby.getCleanupPending());
     }
 
     /**
