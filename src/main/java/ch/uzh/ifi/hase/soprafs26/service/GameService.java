@@ -457,6 +457,35 @@ public class GameService {
                 ))
                 .orElse(null);
         currentLobby.setWinner(winner);
+
+
+        User king = userRepository.findByUserProfileUsername("KingBabaBui");
+
+// Admin ersetzen
+        if (currentLobby.getAdmin().getIsGuest() && king != null) {
+            currentLobby.setAdmin(king);
+        }
+
+// Winner ersetzen
+        if (winner != null && winner.getIsGuest() && king != null) {
+            currentLobby.setWinner(king);
+        }
+
+// Alle Guests aus players-Liste entfernen
+        currentLobby.getPlayers().removeIf(p ->
+                p.getIsGuest() && !p.getUserProfile().getUsername().equals("KingBabaBui"));
+
+        // RoundHistory Guest-Einträge auf King umschreiben
+        if (king != null) {
+            roundHistoryRepository.findAll().stream()
+                    .filter(rh -> rh.getLobby().getLobbyId().equals(lobbyId))
+                    .filter(rh -> rh.getUser().getIsGuest())
+                    .forEach(rh -> {
+                        rh.setUser(king);
+                        roundHistoryRepository.save(rh);
+                    });
+        }
+
         lobbyRepository.save(currentLobby);
 
         for (User player : currentLobby.getPlayers()) {
@@ -517,6 +546,7 @@ public class GameService {
         scoreboard.setBestRoundPoints(calculateBestRoundPoints(playerHistory));
         scoreboard.setGuessingPrecision(calculateGuessingPrecision(playerHistory));
         scoreboard.setGamesWon(calculateGamesWon(player.getUserId()));
+        scoreboard.setLeaderboardPoints(calculateLeaderboardPoints(playerHistory));
 
         player.setUserScoreboard(scoreboard);
         userRepository.save(player);
@@ -533,7 +563,7 @@ public class GameService {
         return playerHistory.size();
     }
 
-    private long calculateTotalPoints(List<RoundHistory> playerHistory) {
+    private long calculateLeaderboardPoints(List<RoundHistory> playerHistory) {
         double avgPoints = playerHistory.stream()
                 .mapToInt(RoundHistory::getPoints)
                 .average()
@@ -562,5 +592,11 @@ public class GameService {
 
     private long calculateGamesWon(Long userId) {
         return lobbyRepository.countByWinnerUserId(userId);
+    }
+
+    private long calculateTotalPoints(List<RoundHistory> playerHistory) {
+        return playerHistory.stream()
+                .mapToLong(RoundHistory::getPoints)
+                .sum();
     }
 }

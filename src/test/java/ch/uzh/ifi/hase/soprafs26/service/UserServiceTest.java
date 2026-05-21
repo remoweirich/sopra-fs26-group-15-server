@@ -2,9 +2,13 @@ package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.entity.UserProfile;
+import ch.uzh.ifi.hase.soprafs26.entity.Lobby;
+import ch.uzh.ifi.hase.soprafs26.entity.UserAchievement;
 import ch.uzh.ifi.hase.soprafs26.repository.UserAchievementRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.LobbyRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UpdateUserPutDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserAchievementDTO;
 import ch.uzh.ifi.hase.soprafs26.security.AuthHeader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +19,9 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -41,6 +48,9 @@ class UserServiceTest {
 
     @Mock
     private UserAchievementRepository userAchievementRepository;
+
+    @Mock
+    private LobbyRepository lobbyRepository;
 
     @InjectMocks
     private UserService userService;
@@ -200,6 +210,26 @@ class UserServiceTest {
         assertNull(testUser.getToken());
     }
 
+    /**
+     * Szenario: Der zufällig generierte Token kollidiert mit einem bestehenden Token in der DB.
+     * Prüft: Die do-while Schleife läuft weiter und generiert so lange neue Tokens, bis ein freier gefunden wird.
+     * Fängt Bug: Absturz oder ungewollte Token-Duplikate im System bei UUID-Kollisionen.
+     */
+    @Test
+    void loginUser_tokenCollision_generatesNewTokenUntilUnique() {
+        Mockito.when(userRepository.findByUserProfileUsername(USERNAME)).thenReturn(testUser);
+
+        // Erster Aufruf gibt einen existierenden User zurück (Kollision), zweiter Aufruf gibt null zurück (Frei)
+        Mockito.when(userRepository.findByToken(Mockito.anyString()))
+                .thenReturn(new User())
+                .thenReturn(null);
+
+        User logged = userService.loginUser(USERNAME, PASSWORD);
+
+        assertNotNull(logged.getToken());
+        Mockito.verify(userRepository, Mockito.times(2)).findByToken(Mockito.anyString());
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // getUserById
     // ═══════════════════════════════════════════════════════════════════
@@ -334,25 +364,19 @@ class UserServiceTest {
      * registerUser() intern aufruft und kein zweites setIsGuest(true) danach
      * stattfindet, ist isGuest am Ende false.
      * TODO: registerUser() sollte isGuest respektieren wenn es bereits true ist.
-     *       Sobald gefixt: assertFalse unten auf assertTrue aendern.
+     * Sobald gefixt: assertFalse unten auf assertTrue aendern.
      */
     @Test
     void createGuestUser_returnsUserWithGuestPrefixAndTokenAndDocumentsBug() {
-        // createGuestUser() calls registerUser() then loginUser() internally.
-        // findByUserProfileUsername is invoked twice:
-        //   1st call (checkIfUserExists inside registerUser) → must return null (no conflict)
-        //   2nd call (inside loginUser) → must return the saved user so password check passes
-        // We capture the saved user in savedGuest so both calls can share the same object.
         AtomicReference<User> savedGuest = new AtomicReference<>();
 
         Mockito.when(userRepository.findByUserProfileUsername(Mockito.anyString()))
-                .thenReturn(null)                          // 1st call: uniqueness check → no conflict
-                .thenAnswer(inv -> savedGuest.get());      // 2nd call: login lookup → saved user
+                .thenReturn(null)
+                .thenAnswer(inv -> savedGuest.get());
 
         Mockito.when(userRepository.findByUserProfileEmail(Mockito.anyString())).thenReturn(null);
         Mockito.when(userRepository.findByToken(Mockito.anyString())).thenReturn(null);
 
-        // Capture the saved user so loginUser can look it up (and compare the real password)
         Mockito.when(userRepository.save(Mockito.any(User.class))).thenAnswer(inv -> {
             User u = inv.getArgument(0);
             u.setUserId(42L);
@@ -366,7 +390,86 @@ class UserServiceTest {
         assertTrue(result.getUserProfile().getUsername().startsWith("guest_"),
                 "Guest username must start with 'guest_' prefix");
 
-        assertTrue(result.getIsGuest(), "Guest user must have isGuest set to true");    }
+        assertTrue(result.getIsGuest(), "Guest user must have isGuest set to true");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // getUserAchievements
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Szenario: Erfolgreiches Abfragen der Achievements eines Users.
+     * Prüft: Das Repository wird mit dem exakten User-Objekt aufgerufen.
+     */
+    @Test
+    void getUserAchievements_validUser_returnsConvertedList() {
+        List<UserAchievement> mockAchievements = new ArrayList<>();
+        Mockito.when(userAchievementRepository.findByUser(testUser)).thenReturn(mockAchievements);
+
+        List<UserAchievementDTO> result = userService.getUserAchievements(testUser);
+
+        assertNotNull(result);
+        Mockito.verify(userAchievementRepository, Mockito.times(1)).findByUser(testUser);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // deleteUser
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Szenario: User existiert und befindet sich in keiner aktiven Lobby.
+     * Prüft: Der User wird fehlerfrei aus der DB entfernt.
+     */
+    @Test
+    void deleteUser_userNotInLobby_deletesSuccessfully() {
+        Mockito.when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+        Mockito.when(lobbyRepository.findAll()).thenReturn(Collections.emptyList());
+
+        assertDoesNotThrow(() -> userService.deleteUser(USER_ID));
+
+        Mockito.verify(userRepository, Mockito.times(1)).delete(testUser);
+    }
+
+    /**
+     * Szenario: User existiert noch, ist aber Teil einer aktiven Spielerliste einer Lobby.
+     * Prüft: 409 CONFLICT wird geworfen und der Löschvorgang abgebrochen.
+     * Fängt Bug: Verhindert Verletzungen der referenziellen Integrität (Lobby verweist auf toten User).
+     */
+    @Test
+    void deleteUser_userStillInActiveLobby_throwsConflict() {
+        Mockito.when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+
+        Lobby activeLobby = Mockito.mock(Lobby.class);
+        Mockito.when(activeLobby.getPlayers()).thenReturn(Collections.singletonList(testUser));
+        Mockito.when(lobbyRepository.findAll()).thenReturn(Collections.singletonList(activeLobby));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> userService.deleteUser(USER_ID));
+
+        assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+        assertEquals("User is still in an active lobby", ex.getReason());
+        Mockito.verify(userRepository, Mockito.never()).delete(Mockito.any());
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // searchUsers
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Szenario: Suche nach einem Teilstring des Usernamens.
+     * Prüft: Ruft das korrekte, case-insensitive Query-Verfahren auf dem Repository auf.
+     */
+    @Test
+    void searchUsers_validQuery_returnsMatches() {
+        String query = "est";
+        Mockito.when(userRepository.findByUserProfile_UsernameContainingIgnoreCase(query))
+                .thenReturn(Collections.singletonList(testUser));
+
+        List<User> result = userService.searchUsers(query);
+
+        assertEquals(1, result.size());
+        assertEquals(USERNAME, result.get(0).getUserProfile().getUsername());
+    }
 
     // ═══════════════════════════════════════════════════════════════════
     // Helpers

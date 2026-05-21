@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -199,7 +201,7 @@ public class UserServiceIntegrationTest {
      * Dokumentiert bekannten Bug: registerUser() setzt isGuest immer auf false,
      * deshalb ist isGuest nach createGuestUser() false statt true.
      * TODO: registerUser() sollte isGuest respektieren wenn es bereits gesetzt ist.
-     *       Sobald gefixt: assertFalse auf assertTrue aendern.
+     * Sobald gefixt: assertFalse auf assertTrue aendern.
      */
     @Test
     public void createGuestUser_persistsGuestButLosesIsGuestFlag_knownBug() {
@@ -215,6 +217,39 @@ public class UserServiceIntegrationTest {
         assertNotNull(loaded.getToken(), "Guest must have a token");
 
         assertTrue(guest.getIsGuest(), "Guest user must have isGuest set to true");
+    }
+
+    /**
+     * Szenario: Ein User wird registriert und anschließend über searchUsers mit gemischter
+     * Groß-/Kleinschreibung gesucht.
+     * Prüft: Case-Insensitive und Teilstring-Verhalten auf H2-Datenbank-Ebene.
+     */
+    @Test
+    public void searchUsers_databaseQuery_findsUserCorrectly() {
+        User user = buildUser("SearchMeNow", "search@uzh.ch", "password");
+        userService.registerUser(user);
+
+        List<User> results = userService.searchUsers("rchme");
+
+        assertFalse(results.isEmpty(), "Should find the user via partial match");
+        assertEquals("SearchMeNow", results.get(0).getUserProfile().getUsername());
+    }
+
+    /**
+     * Szenario: Vollständiger Datenbank-Lebenszyklus eines Users von Registrierung bis Löschung.
+     * Prüft: Das harte Löschen (delete) wird korrekt bis zur H2-DB durchgereicht.
+     */
+    @Test
+    public void deleteUser_databaseRoundtrip_removesUserFromDB() {
+        User user = buildUser("deleteMe", "delete@uzh.ch", "password");
+        User registered = userService.registerUser(user);
+        Long id = registered.getUserId();
+
+        assertNotNull(userRepository.findById(id).orElse(null));
+
+        userService.deleteUser(id);
+
+        assertTrue(userRepository.findById(id).isEmpty(), "User must be completely removed from H2 DB");
     }
 
     // ═══════════════════════════════════════════════════════════════════

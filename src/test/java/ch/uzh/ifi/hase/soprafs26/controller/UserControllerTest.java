@@ -19,6 +19,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Arrays;
+import java.util.List;
+
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
@@ -276,6 +280,71 @@ public class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(updateUserPutDTO)))
                 .andExpect(status().isNotFound());
+    }
+
+    // =========================================================
+    // DELETE /users/{userId}
+    // =========================================================
+
+    @Test
+    public void deleteUser_validToken_returnsNoContent() throws Exception {
+        given(authService.authUser(Mockito.any())).willReturn(true);
+        doNothing().when(userService).deleteUser(Mockito.any());
+
+        mockMvc.perform(delete("/users/1")
+                        .header("token", "valid-token"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void deleteUser_invalidToken_returnsUnauthorized() throws Exception {
+        given(authService.authUser(Mockito.any())).willReturn(false);
+
+        mockMvc.perform(delete("/users/1")
+                        .header("token", "wrong-token"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    // =========================================================
+    // GET /users/search
+    // =========================================================
+
+    @Test
+    public void searchUsers_validUsername_returnsUserList() throws Exception {
+        User user1 = new User();
+        user1.setUserId(1L);
+        UserProfile profile1 = new UserProfile();
+        profile1.setUsername("searchUser1");
+        user1.setUserProfile(profile1);
+        user1.setUserScoreboard(new UserScoreboard());
+
+        User user2 = new User();
+        user2.setUserId(2L);
+        UserProfile profile2 = new UserProfile();
+        profile2.setUsername("searchUser2");
+        user2.setUserProfile(profile2);
+        user2.setUserScoreboard(new UserScoreboard());
+
+        List<User> users = Arrays.asList(user1, user2);
+
+        given(userService.searchUsers("search")).willReturn(users);
+
+        mockMvc.perform(get("/users/search")
+                        .param("username", "search"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].username", is("searchUser1")))
+                .andExpect(jsonPath("$[1].username", is("searchUser2")));
+    }
+
+    @Test
+    public void searchUsers_noResults_returnsEmptyList() throws Exception {
+        given(userService.searchUsers("unknown")).willReturn(Arrays.asList());
+
+        mockMvc.perform(get("/users/search")
+                        .param("username", "unknown"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
     }
 
     // =========================================================
