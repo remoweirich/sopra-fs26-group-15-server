@@ -13,6 +13,9 @@ public class UserScoreboard {
     private Long totalPoints;
 
     @Column
+    private Long leaderboardPoints;
+
+    @Column
     private Long playedGames;
 
     @Column
