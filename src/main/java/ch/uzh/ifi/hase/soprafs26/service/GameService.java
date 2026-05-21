@@ -470,6 +470,8 @@ public class GameService {
         if (winner != null && winner.getIsGuest() && king != null) {
             currentLobby.setWinner(king);
         }
+        achievementService.evaluateAchievementsForLobby(currentLobby);
+        System.out.println("[gameTearDown] Achievements evaluated for lobby " + lobbyId);
 
 // Alle Guests aus players-Liste entfernen
         currentLobby.getPlayers().removeIf(p ->
@@ -502,8 +504,7 @@ public class GameService {
 //            player.setUserScoreboard(scoreboard);
 //            userRepository.save(player);
         }
-        achievementService.evaluateAchievementsForLobby(currentLobby);
-        System.out.println("[gameTearDown] Achievements evaluated for lobby " + lobbyId);
+
         currentLobby.setLobbyState(LobbyState.FINISHED);
         lobbyRepository.save(currentLobby);
 

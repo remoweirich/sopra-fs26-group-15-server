@@ -163,23 +163,11 @@ public class AchievementService {
     }
 
     private boolean isMultiplayerWin(User user, Lobby lobby) {
-        // Adapt this to your actual lobby/player-winner logic if you already have one.
-        // This fallback assumes "winning" means highest totalPoints in the lobby.
-        long userPoints = user.getUserScoreboard() != null && user.getUserScoreboard().getTotalPoints() != null
-                ? user.getUserScoreboard().getTotalPoints()
-                : 0L;
-
-        long maxPoints = 0L;
-        for (User player : lobby.getPlayers()) {
-            UserScoreboard scoreboard = player.getUserScoreboard();
-            long points = scoreboard != null && scoreboard.getTotalPoints() != null
-                    ? scoreboard.getTotalPoints()
-                    : 0L;
-            maxPoints = Math.max(maxPoints, points);
+        User winner = lobby.getWinner();
+        if(lobby.getPlayers().size() <= 1) {
+            return false; // No multiplayer game
         }
-
-        boolean isWinner = userPoints == maxPoints;
-        return lobby.getPlayers() != null && lobby.getPlayers().size() > 1 && isWinner;
+        return winner == user;
     }
 
     private void awardIfMissing(User user, String achievementName, Set<Long> earnedAchievementIds) {
