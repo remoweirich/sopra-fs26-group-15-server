@@ -1,3 +1,17 @@
+# [1.11.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.10.0...v1.11.0) (2026-05-21)
+
+
+### Bug Fixes
+
+* **Achievements:** KingBabaBui ([6486680](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/64866806409e08e5a78252197ca2687e5f70616c))
+* **Achievements:** Multiplayer win achievement now awarded correctly. tests refactored for new logic ([8a3e4e3](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/8a3e4e3a7c575b34da6043c2ddd7d0de36382cf8))
+* **GameService:** Moved filling of UserScoreboard up ([c9e6bdb](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/c9e6bdbed692287a74bc162ab9f3ee229a8e2c76))
+
+
+### Features
+
+* **Achievements:** add KingBabaBui Achievement ([0bfb3f5](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/0bfb3f5623c28223e62792bc8d020a5c0dbec617))
+
 # [1.10.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.9.0...v1.10.0) (2026-05-21)
 
 
