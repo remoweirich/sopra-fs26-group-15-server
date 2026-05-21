@@ -470,6 +470,22 @@ public class GameService {
         if (winner != null && winner.getIsGuest() && king != null) {
             currentLobby.setWinner(king);
         }
+
+        for (User player : currentLobby.getPlayers()) {
+            Long userId = player.getUserId();
+            List<RoundHistory> playerHistory = roundHistoryRepository.findByUserUserId(userId);
+            updateUserScoreboard(player, playerHistory);
+//
+//            UserScoreboard scoreboard = player.getUserScoreboard();
+//            scoreboard.setPlayedGames(scoreboard.getPlayedGames() + 1);
+//            scoreboard.setPlayedRounds(scoreboard.getPlayedRounds() + rounds.size());
+//            scoreboard.setTotalPoints(playerHistory.stream().mapToLong(r -> r.getPoints()).sum());
+//            scoreboard.setBestRoundPoints(playerHistory.stream().mapToLong(r -> r.getPoints()).max().orElse(0));
+//            scoreboard.setGuessingPrecision((float) playerHistory.stream().mapToDouble(r -> r.getDistanceToTrain()).average().orElse(0));
+//            player.setUserScoreboard(scoreboard);
+//            userRepository.save(player);
+        }
+
         achievementService.evaluateAchievementsForLobby(currentLobby);
         System.out.println("[gameTearDown] Achievements evaluated for lobby " + lobbyId);
 
@@ -490,20 +506,6 @@ public class GameService {
 
         lobbyRepository.save(currentLobby);
 
-        for (User player : currentLobby.getPlayers()) {
-            Long userId = player.getUserId();
-            List<RoundHistory> playerHistory = roundHistoryRepository.findByUserUserId(userId);
-            updateUserScoreboard(player, playerHistory);
-//
-//            UserScoreboard scoreboard = player.getUserScoreboard();
-//            scoreboard.setPlayedGames(scoreboard.getPlayedGames() + 1);
-//            scoreboard.setPlayedRounds(scoreboard.getPlayedRounds() + rounds.size());
-//            scoreboard.setTotalPoints(playerHistory.stream().mapToLong(r -> r.getPoints()).sum());
-//            scoreboard.setBestRoundPoints(playerHistory.stream().mapToLong(r -> r.getPoints()).max().orElse(0));
-//            scoreboard.setGuessingPrecision((float) playerHistory.stream().mapToDouble(r -> r.getDistanceToTrain()).average().orElse(0));
-//            player.setUserScoreboard(scoreboard);
-//            userRepository.save(player);
-        }
 
         currentLobby.setLobbyState(LobbyState.FINISHED);
         lobbyRepository.save(currentLobby);
