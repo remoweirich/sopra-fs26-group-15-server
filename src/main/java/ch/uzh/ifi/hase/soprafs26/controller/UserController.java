@@ -92,7 +92,7 @@ public class UserController {
 		userService.logoutUser(authHeader);
 	}
 
-    @PutMapping("users/{userId}")
+    @PutMapping("/users/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateUser(@RequestHeader("token") String token, @PathVariable("userId") Long userId, @RequestBody UpdateUserPutDTO updateUserPutDTO){
         AuthHeader authHeader = new AuthHeader(userId, token);
