@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -52,6 +54,9 @@ public class LobbyServiceIntegrationTest {
 
     @Autowired
     private LobbyRepository lobbyRepository;
+
+    @MockitoBean
+    private SimpMessagingTemplate messagingTemplate;
 
     private User registeredAdmin;
 
