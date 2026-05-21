@@ -1,3 +1,16 @@
+# [1.12.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.11.0...v1.12.0) (2026-05-21)
+
+
+### Bug Fixes
+
+* adapt test to changed teadown logic ([222a5f2](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/222a5f2033a7b47ab8aa4ec55797216d8beea0c2))
+* prepare for deployment ([e8ebb9c](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/e8ebb9cd816f667f77f4d721e93a634940d7145c))
+
+
+### Features
+
+* defer guest cleanup to scheduled task using cleanupPending flag ([53e1647](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/53e1647355914d32bf32aadd986b93cc831b3a4f))
+
 # [1.11.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.10.0...v1.11.0) (2026-05-21)
 
 
