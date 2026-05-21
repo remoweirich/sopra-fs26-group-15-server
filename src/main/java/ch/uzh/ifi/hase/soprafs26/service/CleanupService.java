@@ -22,14 +22,17 @@ public class CleanupService {
         this.lobbyRepository = lobbyRepository;
     }
 
+
     @Scheduled(fixedRate = 30_000)
     public void deleteOrphanedGuestUsers() {
-        List<User> allGuests = userRepository.findAllGuests();
+
         List<Long> occupiedUserIds = lobbyRepository.findAll().stream()
                 .filter(l -> l.getLobbyState() != LobbyState.FINISHED)
                 .flatMap(l -> l.getPlayers().stream())
                 .map(User::getUserId)
                 .collect(Collectors.toList());
+
+        List<User> allGuests = userRepository.findAllGuests();
         List<User> guestsToDelete = allGuests.stream()
                 .filter(g -> !occupiedUserIds.contains(g.getUserId()))
                 .filter(g -> !g.getUserProfile().getUsername().equals("KingBabaBui"))
@@ -38,7 +41,7 @@ public class CleanupService {
         guestsToDelete.forEach(userRepository::delete);
     }
 
-    @Scheduled(fixedRate = 60_000)
+    @Scheduled(fixedRate = 30_000)
     public void deleteOrphanedLobbies() {
         LocalDateTime cutoff = LocalDateTime.now().minusMinutes(1);
         List<Lobby> oldLobbies = lobbyRepository.findAll().stream()
