@@ -1,3 +1,23 @@
+# [1.10.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.9.0...v1.10.0) (2026-05-21)
+
+
+### Bug Fixes
+
+* adapt some tests to production environment ([b98db24](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/b98db24ef2c382a867b3d79fb96ec590668cef18))
+* add total points to entity ([314cdfe](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/314cdfe024b4a77d1cefec94335891967f9fcb35))
+* auto delete user and lobbies with newly inventet KingBabaBui Guest User ([3045845](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/3045845b7eeb3016ba2e1db77f57183163124b08))
+* change to broker and no mock data ([e000779](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/e00077902ba0984b548cb3722ca3e08c1a1edd83))
+* cleanupservice ([06f3bc6](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/06f3bc69e806d0b0c3a1e9a146a76786799359a2))
+* cleanupservice time moved to application properties ([c2b9bf7](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/c2b9bf7540dfc24ac00f4e7a16cbe34e8f63e42b))
+* **UserRepository:** Repository query changed such that guestUsers are not found when searching in leaderboard [#73](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/73) ([91c7374](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/91c737424cf7cd612d3409ecb60ec905dc07a59f))
+
+
+### Features
+
+* **FriendshipService:** Feedback message is sent to client when sending friend request [#104](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/104) ([06c0fdd](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/06c0fdd80cd9a4d9c2f40a236af75fe32dd97b50))
+* **FriendshipTests:** Added FriendshipControllerTest & FriendshipServiceTest closes [#125](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/125) ([3bb6349](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/3bb6349397a19f42a186f9582a3dcf191025b224))
+* **UserTests:** Extended UserController/Service/ServiceIntegration tests closes [#125](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/125) ([2618164](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/2618164d99c395bac6020dc24299840c0085002e))
+
 # [1.9.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.8.1...v1.9.0) (2026-05-20)
 
 
