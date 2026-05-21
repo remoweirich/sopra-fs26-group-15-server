@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <!-- Background Shield -->
+  <circle cx="256" cy="256" r="220" fill="#1E293B" />
+  <circle cx="256" cy="256" r="200" fill="none" stroke="#F59E0B" stroke-width="6" />
+
+  <!-- MINIMAL CROWN -->
+  <path d="M 160 180 L 352 180 L 380 90 L 300 130 L 256 60 L 212 130 L 132 90 Z" fill="#F59E0B" />
+  
+  <!-- Crown Jewels (Simplified Dots) -->
+  <circle cx="256" cy="60" r="8" fill="#FFF" />
+  <circle cx="132" cy="90" r="6" fill="#EF4444" />
+  <circle cx="380" cy="90" r="6" fill="#EF4444" />
+
+  <!-- CONDUCTOR UNIFORM COLLAR -->
+  <path d="M 140 430 Q 256 360 372 430 Z" fill="#EF4444" />
+  <polygon points="220,385 256,415 235,460 190,410" fill="#F8FAFC" />
+  <polygon points="292,385 256,415 277,460 322,410" fill="#F8FAFC" />
+  
+  <!-- Tie (Minimal Train Track Motif) -->
+  <polygon points="246,415 266,415 272,480 240,480" fill="#F59E0B" />
+  <line x1="244" y1="435" x2="268" y2="435" stroke="#1E293B" stroke-width="4" stroke-linecap="round" />
+  <line x1="242" y1="455" x2="270" y2="455" stroke="#1E293B" stroke-width="4" stroke-linecap="round" />
+
+  <!-- CONDUCTOR CAP -->
+  <!-- Main Cap Dome -->
+  <path d="M 140 250 C 130 160, 382 160, 372 250 Z" fill="#334155" />
+  
+  <!-- Flat Gold Band -->
+  <path d="M 142 245 Q 256 265 370 245 L 366 275 Q 256 295 146 275 Z" fill="#F59E0B" />
+  
+  <!-- Clean Glossy Visor -->
+  <path d="M 155 273 Q 256 325 357 273 C 365 305, 325 330, 256 330 C 187 330, 147 305, 155 273 Z" fill="#0F172A" />
+
+  <!-- SIMPLIFIED TRAIN EMBLEM -->
+  <!-- Winged Backdrop -->
+  <path d="M 210 215 Q 256 230 302 215 Q 256 245 210 215 Z" fill="#F59E0B" />
+  <!-- Locomotive Front Shape -->
+  <path d="M 242 205 L 270 205 L 266 228 L 246 228 Z" fill="#F8FAFC" />
+  <!-- Minimal Cowcatcher/Grille -->
+  <polygon points="238,232 274,232 278,240 234,240" fill="#EF4444" />
+  <!-- Headlight -->
+  <circle cx="256" cy="212" r="4" fill="#F59E0B" />
+</svg>

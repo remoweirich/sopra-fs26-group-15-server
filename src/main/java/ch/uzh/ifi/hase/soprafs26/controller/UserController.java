@@ -9,6 +9,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.UserAuthDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs26.security.AuthHeader;
 import ch.uzh.ifi.hase.soprafs26.security.AuthService;
+import ch.uzh.ifi.hase.soprafs26.service.AchievementService;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -23,11 +24,13 @@ public class UserController {
 
 	private final UserService userService;
 	private final AuthService authService;
+    private final AchievementService achievementService;
 
-	UserController(UserService userService, AuthService authService) {
+	UserController(UserService userService, AuthService authService, AchievementService achievementService) {
 		this.userService = userService;
 		this.authService = authService;
-	}
+        this.achievementService = achievementService;
+    }
 
 	@PostMapping("/register")
 	@ResponseStatus(HttpStatus.CREATED)
@@ -89,7 +92,7 @@ public class UserController {
 		userService.logoutUser(authHeader);
 	}
 
-    @PutMapping("users/{userId}")
+    @PutMapping("/users/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateUser(@RequestHeader("token") String token, @PathVariable("userId") Long userId, @RequestBody UpdateUserPutDTO updateUserPutDTO){
         AuthHeader authHeader = new AuthHeader(userId, token);
@@ -121,6 +124,17 @@ public class UserController {
             sanitizedUsers.add(DTOMapper.INSTANCE.convertUserToUserDTO(user));
         }
         return sanitizedUsers;
+    }
+
+    @PostMapping("/award/kingbababui")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void awardKingBabaBui(
+            @RequestHeader("userId") Long sendingUserId,
+            @RequestHeader("token") String token) {
+        AuthHeader authHeader = new AuthHeader(sendingUserId, token);
+        if (!token.isEmpty() && authService.authUser(authHeader)) {
+            achievementService.KingBabaBui(userService.getUserById(sendingUserId));
+        }
     }
 }
 

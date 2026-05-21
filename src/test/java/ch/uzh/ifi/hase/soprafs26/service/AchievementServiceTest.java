@@ -220,26 +220,31 @@ class AchievementServiceTest {
     @Test
     void evaluateAchievementsForUser_awardsConductorWhenUserWinsMultiplayerGame() {
         scoreboard.setTotalPoints(500L);
+        user.setUserScoreboard(scoreboard);
 
+        // Setup another user
         User otherUser = new User();
         otherUser.setUserId(2L);
-        UserScoreboard otherBoard = new UserScoreboard();
-        otherBoard.setTotalPoints(300L);
-        otherUser.setUserScoreboard(otherBoard);
 
+        // Configure the lobby to explicitly set the winner
         lobby.setPlayers(List.of(user, otherUser));
+        lobby.setWinner(user); // This is now required by isMultiplayerWin(user, lobby)
+
         stubAchievementNotOwned("Conductor");
 
+        // Execute
         achievementService.evaluateAchievementsForUser(user, lobby, Collections.emptyList());
 
+        // Verify
         verify(userAchievementRepository).save(any(UserAchievement.class));
     }
-
     @Test
     void evaluateAchievementsForUser_doesNotAwardConductorInSinglePlayerLobby() {
-        // Single player → isMultiplayerWin() returns false → condition never true → no stub needed
+        // Even with high points, it's not a multiplayer win
         scoreboard.setTotalPoints(999L);
         lobby.setPlayers(List.of(user));
+        // Winner is null or someone else; specifically not the user
+        lobby.setWinner(null);
 
         achievementService.evaluateAchievementsForUser(user, lobby, Collections.emptyList());
 
@@ -248,22 +253,17 @@ class AchievementServiceTest {
 
     @Test
     void evaluateAchievementsForUser_doesNotAwardConductorWhenUserLoses() {
-        // User has fewer points → isMultiplayerWin() returns false → no stub needed
-        scoreboard.setTotalPoints(100L);
-
         User winner = new User();
         winner.setUserId(2L);
-        UserScoreboard winnerBoard = new UserScoreboard();
-        winnerBoard.setTotalPoints(999L);
-        winner.setUserScoreboard(winnerBoard);
 
         lobby.setPlayers(List.of(user, winner));
+        // Explicitly set another user as the winner
+        lobby.setWinner(winner);
 
         achievementService.evaluateAchievementsForUser(user, lobby, Collections.emptyList());
 
         verify(userAchievementRepository, never()).save(any());
     }
-
     // ── Close Call ────────────────────────────────────────────────────────────
 
     @Test

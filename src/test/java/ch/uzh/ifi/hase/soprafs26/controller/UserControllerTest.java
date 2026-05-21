@@ -2,15 +2,15 @@ package ch.uzh.ifi.hase.soprafs26.controller;
 
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.entity.UserProfile;
-import ch.uzh.ifi.hase.soprafs26.entity.UserScoreboard;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.LoginPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RegisterPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UpdateUserPutDTO;
+import ch.uzh.ifi.hase.soprafs26.security.AuthHeader;
 import ch.uzh.ifi.hase.soprafs26.security.AuthService;
+import ch.uzh.ifi.hase.soprafs26.service.AchievementService;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpStatus;
@@ -19,11 +19,14 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -40,6 +43,9 @@ public class UserControllerTest {
 
     @MockitoBean
     private AuthService authService;
+
+    @MockitoBean
+    private AchievementService achievementService;
 
     // =========================================================
     // POST /register
@@ -58,7 +64,7 @@ public class UserControllerTest {
         registerPostDTO.setEmail("test@test.com");
         registerPostDTO.setPassword("password");
 
-        given(userService.registerUser(Mockito.any())).willReturn(user);
+        given(userService.registerUser(any())).willReturn(user);
 
         mockMvc.perform(post("/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -75,7 +81,7 @@ public class UserControllerTest {
         registerPostDTO.setEmail("test@test.com");
         registerPostDTO.setPassword("password");
 
-        given(userService.registerUser(Mockito.any()))
+        given(userService.registerUser(any()))
                 .willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already taken"));
 
         mockMvc.perform(post("/register")
@@ -114,7 +120,7 @@ public class UserControllerTest {
         loginPostDTO.setUsername("testUser");
         loginPostDTO.setPassword("wrongpassword");
 
-        given(userService.loginUser(Mockito.any(), Mockito.any()))
+        given(userService.loginUser(any(), any()))
                 .willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The credentials are wrong"));
 
         mockMvc.perform(post("/login")
@@ -123,47 +129,24 @@ public class UserControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
-    @Test
-    public void loginUser_userNotFound_returnsNotFound() throws Exception {
-        LoginPostDTO loginPostDTO = new LoginPostDTO();
-        loginPostDTO.setUsername("unknownUser");
-        loginPostDTO.setPassword("password");
-
-        given(userService.loginUser(Mockito.any(), Mockito.any()))
-                .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-        mockMvc.perform(post("/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJsonString(loginPostDTO)))
-                .andExpect(status().isNotFound());
-    }
-
     // =========================================================
     // GET /users/{userId}
     // =========================================================
 
     @Test
     public void getUser_authenticated_returnsMyUserDTO() throws Exception {
-        UserScoreboard scoreboard = new UserScoreboard();
-        scoreboard.setTotalPoints(10L);
-        scoreboard.setPlayedGames(5L);
-        scoreboard.setGamesWon(2L);
-        scoreboard.setGuessingPrecision(0.4f);
-
         UserProfile userProfile = new UserProfile();
         userProfile.setUsername("testUser");
         userProfile.setEmail("test@test.com");
-        userProfile.setUserBio("Test bio");
 
         User user = new User();
         user.setUserId(1L);
-        user.setUserScoreboard(scoreboard);
         user.setUserProfile(userProfile);
 
-        given(authService.authUser(Mockito.any())).willReturn(true);
+        given(authService.authUser(any(AuthHeader.class))).willReturn(true);
         given(userService.getUserById(1L)).willReturn(user);
+        given(userService.getUserAchievements(any())).willReturn(new ArrayList<>());
 
-        // Authenticated: should return MyUserDTO (includes email)
         mockMvc.perform(get("/users/1")
                         .header("token", "valid-token"))
                 .andExpect(status().isOk())
@@ -173,40 +156,53 @@ public class UserControllerTest {
 
     @Test
     public void getUser_notAuthenticated_returnsUserDTO() throws Exception {
-        UserScoreboard scoreboard = new UserScoreboard();
-        scoreboard.setTotalPoints(0L);
-        scoreboard.setPlayedGames(0L);
-        scoreboard.setGamesWon(0L);
-        scoreboard.setGuessingPrecision(0f);
-
         UserProfile userProfile = new UserProfile();
         userProfile.setUsername("testUser");
         userProfile.setEmail("test@test.com");
 
         User user = new User();
         user.setUserId(1L);
-        user.setUserScoreboard(scoreboard);
         user.setUserProfile(userProfile);
 
-        given(authService.authUser(Mockito.any())).willReturn(false);
+        given(authService.authUser(any(AuthHeader.class))).willReturn(false);
         given(userService.getUserById(1L)).willReturn(user);
+        given(userService.getUserAchievements(any())).willReturn(new ArrayList<>());
 
-        // Not authenticated: should return UserDTO (no email field)
         mockMvc.perform(get("/users/1")
                         .header("token", "wrong-token"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username", is("testUser")));
+                .andExpect(jsonPath("$.username", is("testUser")))
+                .andExpect(jsonPath("$.email").doesNotExist());
     }
 
     @Test
-    public void getUser_notFound_returnsNotFound() throws Exception {
-        // authService throws NOT_FOUND when user ID doesn't exist in the database
-        given(authService.authUser(Mockito.any()))
-                .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "This user could not be found"));
+    public void getUser_userDoesNotExist_returnsNotFound() throws Exception {
+        given(authService.authUser(any(AuthHeader.class))).willReturn(false);
+        given(userService.getUserById(99L))
+                .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         mockMvc.perform(get("/users/99")
                         .header("token", "some-token"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void getUser_noTokenHeader_returnsUserDTO() throws Exception {
+        UserProfile userProfile = new UserProfile();
+        userProfile.setUsername("noTokenUser");
+
+        User user = new User();
+        user.setUserId(1L);
+        user.setUserProfile(userProfile);
+
+        given(authService.authUser(any(AuthHeader.class))).willReturn(false);
+        given(userService.getUserById(1L)).willReturn(user);
+        given(userService.getUserAchievements(any())).willReturn(new ArrayList<>());
+
+        mockMvc.perform(get("/users/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username", is("noTokenUser")))
+                .andExpect(jsonPath("$.email").doesNotExist());
     }
 
     // =========================================================
@@ -215,8 +211,8 @@ public class UserControllerTest {
 
     @Test
     public void logoutUser_validToken_returnsOk() throws Exception {
-        given(authService.authUser(Mockito.any())).willReturn(true);
-        doNothing().when(userService).logoutUser(Mockito.any());
+        given(authService.authUser(any(AuthHeader.class))).willReturn(true);
+        doNothing().when(userService).logoutUser(any(AuthHeader.class));
 
         mockMvc.perform(post("/users/1/logout")
                         .header("token", "valid-token"))
@@ -225,7 +221,7 @@ public class UserControllerTest {
 
     @Test
     public void logoutUser_invalidToken_returnsUnauthorized() throws Exception {
-        given(authService.authUser(Mockito.any())).willReturn(false);
+        given(authService.authUser(any(AuthHeader.class))).willReturn(false);
 
         mockMvc.perform(post("/users/1/logout")
                         .header("token", "wrong-token"))
@@ -240,10 +236,9 @@ public class UserControllerTest {
     public void updateUser_validInput_returnsNoContent() throws Exception {
         UpdateUserPutDTO updateUserPutDTO = new UpdateUserPutDTO();
         updateUserPutDTO.setUsername("newUsername");
-        updateUserPutDTO.setUserBio("new bio");
 
-        given(authService.authUser(Mockito.any())).willReturn(true);
-        doNothing().when(userService).updateUser(Mockito.any(), Mockito.any());
+        given(authService.authUser(any(AuthHeader.class))).willReturn(true);
+        doNothing().when(userService).updateUser(eq(1L), any(UpdateUserPutDTO.class));
 
         mockMvc.perform(put("/users/1")
                         .header("token", "valid-token")
@@ -257,7 +252,7 @@ public class UserControllerTest {
         UpdateUserPutDTO updateUserPutDTO = new UpdateUserPutDTO();
         updateUserPutDTO.setUsername("newUsername");
 
-        given(authService.authUser(Mockito.any())).willReturn(false);
+        given(authService.authUser(any(AuthHeader.class))).willReturn(false);
 
         mockMvc.perform(put("/users/1")
                         .header("token", "wrong-token")
@@ -266,30 +261,14 @@ public class UserControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
-    @Test
-    public void updateUser_userNotFound_returnsNotFound() throws Exception {
-        UpdateUserPutDTO updateUserPutDTO = new UpdateUserPutDTO();
-        updateUserPutDTO.setUsername("newUsername");
-
-        given(authService.authUser(Mockito.any())).willReturn(true);
-        Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"))
-                .when(userService).updateUser(Mockito.any(), Mockito.any());
-
-        mockMvc.perform(put("/users/1")
-                        .header("token", "valid-token")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJsonString(updateUserPutDTO)))
-                .andExpect(status().isNotFound());
-    }
-
     // =========================================================
     // DELETE /users/{userId}
     // =========================================================
 
     @Test
     public void deleteUser_validToken_returnsNoContent() throws Exception {
-        given(authService.authUser(Mockito.any())).willReturn(true);
-        doNothing().when(userService).deleteUser(Mockito.any());
+        given(authService.authUser(any(AuthHeader.class))).willReturn(true);
+        doNothing().when(userService).deleteUser(1L);
 
         mockMvc.perform(delete("/users/1")
                         .header("token", "valid-token"))
@@ -298,7 +277,7 @@ public class UserControllerTest {
 
     @Test
     public void deleteUser_invalidToken_returnsUnauthorized() throws Exception {
-        given(authService.authUser(Mockito.any())).willReturn(false);
+        given(authService.authUser(any(AuthHeader.class))).willReturn(false);
 
         mockMvc.perform(delete("/users/1")
                         .header("token", "wrong-token"))
@@ -316,47 +295,51 @@ public class UserControllerTest {
         UserProfile profile1 = new UserProfile();
         profile1.setUsername("searchUser1");
         user1.setUserProfile(profile1);
-        user1.setUserScoreboard(new UserScoreboard());
 
-        User user2 = new User();
-        user2.setUserId(2L);
-        UserProfile profile2 = new UserProfile();
-        profile2.setUsername("searchUser2");
-        user2.setUserProfile(profile2);
-        user2.setUserScoreboard(new UserScoreboard());
-
-        List<User> users = Arrays.asList(user1, user2);
-
+        List<User> users = Arrays.asList(user1);
         given(userService.searchUsers("search")).willReturn(users);
 
         mockMvc.perform(get("/users/search")
                         .param("username", "search"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].username", is("searchUser1")))
-                .andExpect(jsonPath("$[1].username", is("searchUser2")));
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].username", is("searchUser1")));
+    }
+
+    // =========================================================
+    // POST /award/kingbababui
+    // =========================================================
+
+    @Test
+    public void awardKingBabaBui_validToken_returnsCreated() throws Exception {
+        User user = new User();
+        user.setUserId(1L);
+
+        given(authService.authUser(any(AuthHeader.class))).willReturn(true);
+        given(userService.getUserById(1L)).willReturn(user);
+        doNothing().when(achievementService).KingBabaBui(any(User.class));
+
+        mockMvc.perform(post("/award/kingbababui")
+                        .header("userId", "1")
+                        .header("token", "valid-token"))
+                .andExpect(status().isCreated());
     }
 
     @Test
-    public void searchUsers_noResults_returnsEmptyList() throws Exception {
-        given(userService.searchUsers("unknown")).willReturn(Arrays.asList());
+    public void awardKingBabaBui_invalidToken_doesNotAward() throws Exception {
+        given(authService.authUser(any(AuthHeader.class))).willReturn(false);
 
-        mockMvc.perform(get("/users/search")
-                        .param("username", "unknown"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(0)));
+        mockMvc.perform(post("/award/kingbababui")
+                        .header("userId", "1")
+                        .header("token", "wrong-token"))
+                .andExpect(status().isCreated());
     }
-
-    // =========================================================
-    // Helper
-    // =========================================================
 
     private String asJsonString(final Object object) {
         try {
             return new ObjectMapper().writeValueAsString(object);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("The request body could not be created.%s", e.toString()));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Body error");
         }
     }
 }

@@ -78,6 +78,12 @@ public class AchievementInitializer {
             achievement10.setDescription("Guess more than 100 km away from the actual train.");
             achievement10.setIconUrl("/achievements/wrong-train.svg");
             achievementRepository.save(achievement10);
+
+            Achievement achievement11 = new Achievement();
+            achievement11.setName("King BabaBui");
+            achievement11.setDescription("All hail the king");
+            achievement11.setIconUrl("/achievements/king-bababui.svg");
+            achievementRepository.save(achievement11);
         }
     }
 }
