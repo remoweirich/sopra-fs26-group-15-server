@@ -147,6 +147,10 @@ public class UserService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This user could not be found"));
     }
 
+    public User getUserByToken(String token) {
+        return userRepository.findByToken(token);
+    }
+
     public User createGuestUser() {
         User guestUser = new User();
         UserProfile profile = new UserProfile();
