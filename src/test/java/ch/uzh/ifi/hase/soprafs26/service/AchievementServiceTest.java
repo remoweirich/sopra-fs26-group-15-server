@@ -26,6 +26,8 @@ class AchievementServiceTest {
     @Mock private RoundRepository roundRepository;
     @Mock private GuessRepository guessRepository;
     @Mock private SimpMessagingTemplate simpMessagingTemplate;
+    @Mock private RoundHistoryRepository roundHistoryRepository;
+    @Mock private UserRepository userRepository;
 
     @InjectMocks
     private AchievementService achievementService;
