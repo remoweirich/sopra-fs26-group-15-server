@@ -1,3 +1,10 @@
+## [1.12.6](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.12.5...v1.12.6) (2026-05-22)
+
+
+### Bug Fixes
+
+* **Achievements:** adjust logic and tests for new Achievement names ([72b9208](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/72b9208168773dc13946865dbdbc2336dec40f69))
+
 ## [1.12.5](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.12.4...v1.12.5) (2026-05-22)
 
 
