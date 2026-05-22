@@ -327,6 +327,107 @@ public class LobbyRESTControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
+// =========================================================
+// POST /lobbies/join/{lobbyCode}
+// =========================================================
+
+    @Test
+    public void joinLobbyByCode_authenticatedUser_returnsOk() throws Exception {
+        Lobby lobby = new Lobby();
+        lobby.setLobbyId(1L);
+
+        LobbyAccessDTO lobbyAccessDTO = new LobbyAccessDTO();
+        lobbyAccessDTO.setLobbyId(1L);
+        lobbyAccessDTO.setLobbyCode("ABCD");
+        lobbyAccessDTO.setUserId(1L);
+        lobbyAccessDTO.setToken("valid-token");
+
+        LobbyCodePostDTO lobbyCodeDTO = new LobbyCodePostDTO();
+        lobbyCodeDTO.setLobbyCode("ABCD");
+
+        given(lobbyRepository.findByLobbyCode("ABCD")).willReturn(java.util.Optional.of(lobby));
+        given(authService.authUser(Mockito.any())).willReturn(true);
+        given(lobbyService.joinLobby(
+                Mockito.eq(1L), Mockito.eq("valid-token"),
+                Mockito.eq(1L), Mockito.eq("ABCD"), Mockito.eq(false)))
+                .willReturn(lobbyAccessDTO);
+
+        mockMvc.perform(post("/lobbies/join/ABCD")
+                        .header("token", "valid-token")
+                        .header("userId", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(lobbyCodeDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.lobbyId", is(1)))
+                .andExpect(jsonPath("$.lobbyCode", is("ABCD")));
+    }
+
+    @Test
+    public void joinLobbyByCode_invalidToken_returnsUnauthorized() throws Exception {
+        Lobby lobby = new Lobby();
+        lobby.setLobbyId(1L);
+
+        LobbyCodePostDTO lobbyCodeDTO = new LobbyCodePostDTO();
+        lobbyCodeDTO.setLobbyCode("ABCD");
+
+        given(lobbyRepository.findByLobbyCode("ABCD")).willReturn(java.util.Optional.of(lobby));
+        given(authService.authUser(Mockito.any())).willReturn(false);
+
+        mockMvc.perform(post("/lobbies/join/ABCD")
+                        .header("token", "invalid-token")
+                        .header("userId", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(lobbyCodeDTO)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void joinLobbyByCode_guestUser_returnsOk() throws Exception {
+        Lobby lobby = new Lobby();
+        lobby.setLobbyId(1L);
+
+        LobbyAccessDTO lobbyAccessDTO = new LobbyAccessDTO();
+        lobbyAccessDTO.setLobbyId(1L);
+        lobbyAccessDTO.setLobbyCode("ABCD");
+        lobbyAccessDTO.setUserId(99L);
+        lobbyAccessDTO.setToken("guest-token");
+
+        LobbyCodePostDTO lobbyCodeDTO = new LobbyCodePostDTO();
+        lobbyCodeDTO.setLobbyCode("ABCD");
+
+        given(lobbyRepository.findByLobbyCode("ABCD")).willReturn(java.util.Optional.of(lobby));
+        given(authService.authUser(Mockito.any()))
+                .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        given(lobbyService.joinLobby(
+                Mockito.isNull(), Mockito.isNull(),
+                Mockito.eq(1L), Mockito.eq("ABCD"), Mockito.eq(true)))
+                .willReturn(lobbyAccessDTO);
+
+        mockMvc.perform(post("/lobbies/join/ABCD")
+                        .header("token", "guest-token")
+                        .header("userId", 999L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(lobbyCodeDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.lobbyId", is(1)))
+                .andExpect(jsonPath("$.lobbyCode", is("ABCD")));
+    }
+
+    @Test
+    public void joinLobbyByCode_lobbyNotFound_returnsNotFound() throws Exception {
+        LobbyCodePostDTO lobbyCodeDTO = new LobbyCodePostDTO();
+        lobbyCodeDTO.setLobbyCode("NOPE");
+
+        given(lobbyRepository.findByLobbyCode("NOPE")).willReturn(java.util.Optional.empty());
+
+        mockMvc.perform(post("/lobbies/join/NOPE")
+                        .header("token", "valid-token")
+                        .header("userId", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(lobbyCodeDTO)))
+                .andExpect(status().isNotFound());
+    }
+
     // =========================================================
     // Helpers
     // =========================================================
