@@ -212,4 +212,119 @@ public class FriendshipServiceTest {
         verify(friendshipRepository, times(1)).deleteByFriendshipId(friendship.getFriendshipId());
         verify(simpMessagingTemplate, times(1)).convertAndSend(eq("/topic/1/notifications"), any(Message.class));
     }
+
+
+
+    @Test
+    public void getPendingRequestsSent_userIsFriend1_returnsList() {
+        friendship.setPendingInvitationReceivedBy(user2);
+        List<Friendship> friendships = new ArrayList<>();
+        friendships.add(friendship);
+
+        when(userService.getUserById(1L)).thenReturn(user1);
+        when(friendshipRepository.findAllPendingSentByUser(user1)).thenReturn(friendships);
+
+        List<User> pending = friendshipService.getPendingRequestsSent(1L);
+
+        assertEquals(1, pending.size());
+        assertEquals(user2, pending.get(0));
+    }
+
+    @Test
+    public void getPendingRequestsSent_userIsFriend2_returnsList() {
+        // user2 hat die Anfrage gesendet, ist aber friend2 in der Friendship
+        Friendship flipped = new Friendship();
+        flipped.setFriendshipId(101L);
+        flipped.setFriend1(user1);
+        flipped.setFriend2(user2);
+        flipped.setPendingInvitationReceivedBy(user1);
+
+        List<Friendship> friendships = new ArrayList<>();
+        friendships.add(flipped);
+
+        when(userService.getUserById(2L)).thenReturn(user2);
+        when(friendshipRepository.findAllPendingSentByUser(user2)).thenReturn(friendships);
+
+        List<User> pending = friendshipService.getPendingRequestsSent(2L);
+
+        assertEquals(1, pending.size());
+        assertEquals(user1, pending.get(0));
+    }
+
+
+
+    @Test
+    public void acceptFriendship_friendshipNotFound_throwsConflict() {
+        when(userService.getUserById(1L)).thenReturn(user1);
+        when(userService.getUserById(2L)).thenReturn(user2);
+        when(friendshipRepository.findByFriend1AndFriend2(user1, user2)).thenReturn(Optional.empty());
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> friendshipService.acceptFriendship(2L, 1L));
+
+        assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
+        assertEquals("Friendship doesn't exists", exception.getReason());
+    }
+
+
+
+    @Test
+    public void rejectFriendRequest_notReceivedByUser_throwsForbidden() {
+        // user1 hat die Anfrage empfangen, aber user2 versucht abzulehnen
+        friendship.setPendingInvitationReceivedBy(user1);
+
+        when(userService.getUserById(1L)).thenReturn(user1);
+        when(userService.getUserById(2L)).thenReturn(user2);
+        when(friendshipRepository.findByFriend1AndFriend2(user1, user2)).thenReturn(Optional.of(friendship));
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> friendshipService.rejectFriendRequest(2L, 1L));
+
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
+        assertEquals("You have not received this request", exception.getReason());
+    }
+
+    @Test
+    public void rejectFriendRequest_friendshipNotFound_throwsConflict() {
+        when(userService.getUserById(1L)).thenReturn(user1);
+        when(userService.getUserById(2L)).thenReturn(user2);
+        when(friendshipRepository.findByFriend1AndFriend2(user1, user2)).thenReturn(Optional.empty());
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> friendshipService.rejectFriendRequest(2L, 1L));
+
+        assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
+    }
+
+
+
+    @Test
+    public void getFriends_userIsFriend2_returnsFriend1() {
+        // user2 fragt seine Freunde ab — er ist friend2 in der Friendship
+        List<Friendship> friendships = new ArrayList<>();
+        friendships.add(friendship); // friend1=user1, friend2=user2
+
+        when(userService.getUserById(2L)).thenReturn(user2);
+        when(friendshipRepository.findAllByUser(user2)).thenReturn(friendships);
+
+        List<User> friends = friendshipService.getFriends(2L);
+
+        assertEquals(1, friends.size());
+        assertEquals(user1, friends.get(0));
+    }
+
+    @Test
+    public void getPendingRequestsReceived_userIsFriend2_returnsFriend1() {
+        friendship.setPendingInvitationReceivedBy(user2);
+        List<Friendship> friendships = new ArrayList<>();
+        friendships.add(friendship);
+
+        when(userService.getUserById(2L)).thenReturn(user2);
+        when(friendshipRepository.findAllPendingReceivedByUser(user2)).thenReturn(friendships);
+
+        List<User> pending = friendshipService.getPendingRequestsReceived(2L);
+
+        assertEquals(1, pending.size());
+        assertEquals(user1, pending.get(0));
+    }
 }
