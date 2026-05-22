@@ -1,119 +1,94 @@
-# SoPra RESTful Service Template FS26 los
-Test Claude
-# Testing SonarQube Server (Automatic analysis off)
-## Getting started with Spring Boot
--   Documentation: https://docs.spring.io/spring-boot/docs/current/reference/html/index.html
--   Guides: http://spring.io/guides
-    -   Building a RESTful Web Service: http://spring.io/guides/gs/rest-service/
-    -   Building REST services with Spring: https://spring.io/guides/tutorials/rest/
+# GuesSBB
 
-## Setup this Template with your IDE of choice
-Download your IDE of choice (e.g., [IntelliJ](https://www.jetbrains.com/idea/download/), [Visual Studio Code](https://code.visualstudio.com/), or [Eclipse](http://www.eclipse.org/downloads/)). Make sure Java 17 is installed on your system (for Windows, please make sure your `JAVA_HOME` environment variable is set to the correct version of Java).
+## Introduction
+This project is the server backend for a Swiss-train based learning/game application whose goal is to improve our — and our users' — knowledge about the Swiss train system. The server implements game logic, lobby and matchmaking, user and achievement management, as well as fetching train/GTFS positions used by the game experience.
 
-### IntelliJ
-If you consider to use IntelliJ as your IDE of choice, you can make use of your free educational license [here](https://www.jetbrains.com/community/education/#students).
-1. File -> Open... -> SoPra server template
-2. Accept to import the project as a `gradle project`
-3. To build right click the `build.gradle` file and choose `Run Build`
+## Technologies used
+- **Java 21** (Gradle toolchain)
+- **Spring Boot** (Web, WebSocket, Data JPA, H2 console)
+- **H2 in-memory database** (default for local development)
+- **Gradle build system** (Spring Boot plugin)
+- **GTFS / reactor-netty** for train position fetching
+- **Dockerfile** for containerized runs
 
-### VS Code
-The following extensions can help you get started more easily:
--   `vmware.vscode-spring-boot`
--   `vscjava.vscode-spring-initializr`
--   `vscjava.vscode-spring-boot-dashboard`
--   `vscjava.vscode-java-pack`
+## High-level components
+1) **Application entrypoint**
+   - [`Application.java`](src/main/java/ch/uzh/ifi/hase/soprafs26/Application.java) Spring Boot main class and application bootstrap.
+2) **REST & WebSocket API**
+   - REST controllers (game/lobby/user): [`GameRESTController.java`](src/main/java/ch/uzh/ifi/hase/soprafs26/controller/GameRESTController.java), [`LobbyRESTController.java`](src/main/java/ch/uzh/ifi/hase/soprafs26/controller/LobbyRESTController.java), [`UserController.java`](src/main/java/ch/uzh/ifi/hase/soprafs26/controller/UserController.java) provide HTTP endpoints for client interactions.
+   - WebSocket controller: [`LobbyWebSocketController.java`](src/main/java/ch/uzh/ifi/hase/soprafs26/controller/LobbyWebSocketController.java) handles real-time game messages.
+3) **Services & Business Logic**
+   - [`GameService.java`](src/main/java/ch/uzh/ifi/hase/soprafs26/service/GameService.java) game lifecycle and scoring.
+   - [`LobbyService.java`](src/main/java/ch/uzh/ifi/hase/soprafs26/service/LobbyService.java) lobby creation/joining and state management.
+   - [`UserService.java`](src/main/java/ch/uzh/ifi/hase/soprafs26/service/UserService.java) user lifecycle and persistence.
+4) **Persistence / Repositories**
+   - JPA entities in [`src/main/java/ch/uzh/ifi/hase/soprafs26/entity/`](src/main/java/ch/uzh/ifi/hase/soprafs26/entity) and Spring Data repositories such as [`LobbyRepository.java`](src/main/java/ch/uzh/ifi/hase/soprafs26/repository/LobbyRepository.java) and [`UserRepository.java`](src/main/java/ch/uzh/ifi/hase/soprafs26/repository/UserRepository.java).
+5) **Train position & external data**
+   - [`TrainPositionFetcher.java`](src/main/java/ch/uzh/ifi/hase/soprafs26/trains/TrainPositionFetcher.java) — code that fetches train/GTFS information (configurable via properties).
 
-**Note:** You'll need to build the project first with Gradle, just click on the `build` command in the _Gradle Tasks_ extension. Then check the _Spring Boot Dashboard_ extension if it already shows `soprafs26` and hit the play button to start the server. If it doesn't show up, restart VS Code and check again.
+How these components relate
+- The `Application` starts the Spring context and exposes HTTP / WebSocket endpoints. Controllers forward requests to Services, which coordinate domain entities and persist via Repositories. The [`TrainPositionFetcher`](src/main/java/ch/uzh/ifi/hase/soprafs26/trains/TrainPositionFetcher.java) is used by the game/lobby services to provide the location and map data needed for rounds. WebSocket messages are configured through [`WebSocketConfig.java`](src/main/java/ch/uzh/ifi/hase/soprafs26/websocket/WebSocketConfig.java) and are meant to be intercepted/secured by [`WebSocketAuthInterceptor.java`](src/main/java/ch/uzh/ifi/hase/soprafs26/websocket/WebSocketAuthInterceptor.java) in a future release.
 
-## Building with Gradle
-You can use the local Gradle Wrapper to build the application.
--   macOS: `./gradlew`
--   Linux: `./gradlew`
--   Windows: `./gradlew.bat`
+## Launch & Deployment
 
-More Information about [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html) and [Gradle](https://gradle.org/docs/).
+### Prerequisites
+- Java 21 (the Gradle toolchain will try to use it, but having it installed locally is recommended)
+- Docker (optional, for container runs)
 
-### Build
+### Environment variables (optional)
+- `GEOPS_API_KEY` (optional) API key for geops service used to fetch maps; if unset the service can run in mock mode (`geops.mock=true`).
+- `BROKER_HOST`, `BROKER_USER`, `BROKER_PASS` RabbitMQ broker settings if you enable our message broker features.
+
+### Run locally (development)
+1) Install dependencies and build (from project root):
 
 ```bash
 ./gradlew build
 ```
 
-### Run
+2) Run the application directly with Gradle (recommended for development):
 
 ```bash
 ./gradlew bootRun
 ```
 
-You can verify that the server is running by visiting `localhost:8080` in your browser.
 
-### Test
+3) The server listens on port 8080 by default. The H2 console is available at http://localhost:8080/h2-console/ (credentials are in `src/main/resources/application.properties`).
+
+### Run tests
 
 ```bash
 ./gradlew test
 ```
 
-### Development Mode
-You can start the backend in development mode, this will automatically trigger a new build and reload the application
-once the content of a file has been changed.
 
-Start two terminal windows and run:
 
-`./gradlew build --continuous`
+### External dependencies
+- By default the project uses an in-memory H2 database (see [`application.properties`](src/main/resources/application.properties)). 
+- RabbitMQ is referenced via broker properties (only needed if you enable broker features).
 
-and in the other one:
+### Releases
+- This repository contains a `package.json` with semantic-release tooling (used by CI) to automatically create releases when configured: `package.json`.
 
-`./gradlew bootRun`
+## Roadmap and future improvements
+1) Persistent production-ready storage
+   - Replace H2 with PostgreSQL and add migration scripts (Flyway/Liquibase). This includes wiring environment-specific properties and CI integration.
+2) Train position caching & offline mode
+   - Improve `TrainPositionFetcher` with better caching, rate-limiting and robust fallback to mock data. This would make the server resilient to external GTFS outages.
+3) Analytics and telemetry
+   - Add basic game analytics and achievements dashboard (extend `AchievementService` and add admin endpoints).
 
-If you want to avoid running all tests with every change, use the following command instead:
+## Authors & Acknowledgments
+This project was created by:
+- **Claude Stark** [@ClaudeStark](https://github.com/ClaudeStark)
+- **Remo Weirich** [@remoweirich](https://www.github.com/remoweirich)
+- **Michael Jankovic** [@T-N-T-O](https://github.com/T-N-T-O)
+- **Dorian Rother** [@dorianrother](https://github.com/dorianrother)
+- **Shadi Vandeventer** [@snowjademusic](https://www.github.com/snowjademusic)
 
-`./gradlew build --continuous -xtest`
+Special thanks geOps for providing unlimited credits for train fetching during our development phase and to the fly on the wall for listening to our ramblings.
 
-## API Endpoint Testing with Postman
-We recommend using [Postman](https://www.getpostman.com) to test your API Endpoints.
-
-## Debugging
-If something is not working and/or you don't know what is going on. We recommend using a debugger and step-through the process step-by-step.
-
-To configure a debugger for SpringBoot's Tomcat servlet (i.e. the process you start with `./gradlew bootRun` command), do the following:
-
-1. Open Tab: **Run**/Edit Configurations
-2. Add a new Remote Configuration and name it properly
-3. Start the Server in Debug mode: `./gradlew bootRun --debug-jvm`
-4. Press `Shift + F9` or the use **Run**/Debug "Name of your task"
-5. Set breakpoints in the application where you need it
-6. Step through the process one step at a time
-
-## Testing
-Have a look here: https://www.baeldung.com/spring-boot-testing
-
-<br>
-<br>
-<br>
-
-## Docker
-
-### Introduction
-This year Docker will be used to ease the process of deployment.\
-Docker is a tool that uses containers as isolated environments, ensuring that the application runs consistently and uniformly across different devices.\
-Everything in this repository is already set up to minimize your effort for deployment.\
-All changes to the main branch will automatically be pushed to dockerhub and optimized for production.
-
-### Setup
-1. **One** member of the team should create an account on [dockerhub](https://hub.docker.com/), _incorporating the group number into the account name_, for example, `SoPra_group_XX`.\
-2. This account then creates a repository on dockerhub with the _same name as the group's Github repository name_.\
-3. Finally, the person's account details need to be added as [secrets](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions#creating-secrets-for-a-repository) to the group's repository:
-    - dockerhub_username (the username of the dockerhub account from step 1, for example, `SoPra_group_XX`)
-    - dockerhub_password (a generated PAT([personal access token](https://docs.docker.com/docker-hub/access-tokens/)) of the account with read and write access)
-    - dockerhub_repo_name (the name of the dockerhub repository from step 2)
-
-### Pull and run
-Once the image is created and has been successfully pushed to dockerhub, the image can be run on any machine.\
-Ensure that [Docker](https://www.docker.com/) is installed on the machine you wish to run the container.\
-First, pull (download) the image with the following command, replacing your username and repository name accordingly.
-
-```docker pull <dockerhub_username>/<dockerhub_repo_name>```
-
-Then, run the image in a container with the following command, again replacing _<dockerhub_username>_ and _<dockerhub_repo_name>_ accordingly.
-
-```docker run -p 3000:3000 <dockerhub_username>/<dockerhub_repo_name>```
+## License
+- This project is licensed under GNU AGPLv3. See [`LICENSE`](LICENSE) for the full text.
+- Commercial licensing information is available in [`COMMERCIAL.md`](COMMERCIAL.md).
+- Contribution terms are described in [`CLA.md`](CLA.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md).
