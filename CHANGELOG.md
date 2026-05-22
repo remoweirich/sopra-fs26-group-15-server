@@ -1,3 +1,157 @@
+## [1.12.4](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.12.3...v1.12.4) (2026-05-22)
+
+
+### Bug Fixes
+
+* still wrong user in feedback message ([6d8653b](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/6d8653bcc035b1fde70fbf2ad760b4538bef5e74))
+
+## [1.12.3](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.12.2...v1.12.3) (2026-05-22)
+
+
+### Bug Fixes
+
+* application properties cleanupService times ([803dfad](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/803dfad32c3ce651508f2df72251950c6ea182ad))
+
+## [1.12.2](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.12.1...v1.12.2) (2026-05-22)
+
+
+### Bug Fixes
+
+* **FriendshipService:** wrong message body in sendFriendRequest ([73fd0f3](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/73fd0f3e6bf764315e2a034c0a86eaa6e6850018))
+
+## [1.12.1](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.12.0...v1.12.1) (2026-05-22)
+
+
+### Bug Fixes
+
+* **LobbyService:** send LOAD_GAME to client, such that all players get loading screen after game start ([309dc27](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/309dc2729a918a8d8c987d63f0204e3af75c8b0f))
+
+# [1.12.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.11.0...v1.12.0) (2026-05-21)
+
+
+### Bug Fixes
+
+* adapt test to changed teadown logic ([222a5f2](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/222a5f2033a7b47ab8aa4ec55797216d8beea0c2))
+* prepare for deployment ([e8ebb9c](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/e8ebb9cd816f667f77f4d721e93a634940d7145c))
+
+
+### Features
+
+* defer guest cleanup to scheduled task using cleanupPending flag ([53e1647](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/53e1647355914d32bf32aadd986b93cc831b3a4f))
+
+# [1.11.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.10.0...v1.11.0) (2026-05-21)
+
+
+### Bug Fixes
+
+* **Achievements:** KingBabaBui ([6486680](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/64866806409e08e5a78252197ca2687e5f70616c))
+* **Achievements:** Multiplayer win achievement now awarded correctly. tests refactored for new logic ([8a3e4e3](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/8a3e4e3a7c575b34da6043c2ddd7d0de36382cf8))
+* **GameService:** Moved filling of UserScoreboard up ([c9e6bdb](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/c9e6bdbed692287a74bc162ab9f3ee229a8e2c76))
+
+
+### Features
+
+* **Achievements:** add KingBabaBui Achievement ([0bfb3f5](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/0bfb3f5623c28223e62792bc8d020a5c0dbec617))
+
+# [1.10.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.9.0...v1.10.0) (2026-05-21)
+
+
+### Bug Fixes
+
+* adapt some tests to production environment ([b98db24](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/b98db24ef2c382a867b3d79fb96ec590668cef18))
+* add total points to entity ([314cdfe](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/314cdfe024b4a77d1cefec94335891967f9fcb35))
+* auto delete user and lobbies with newly inventet KingBabaBui Guest User ([3045845](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/3045845b7eeb3016ba2e1db77f57183163124b08))
+* change to broker and no mock data ([e000779](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/e00077902ba0984b548cb3722ca3e08c1a1edd83))
+* cleanupservice ([06f3bc6](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/06f3bc69e806d0b0c3a1e9a146a76786799359a2))
+* cleanupservice time moved to application properties ([c2b9bf7](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/c2b9bf7540dfc24ac00f4e7a16cbe34e8f63e42b))
+* **UserRepository:** Repository query changed such that guestUsers are not found when searching in leaderboard [#73](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/73) ([91c7374](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/91c737424cf7cd612d3409ecb60ec905dc07a59f))
+
+
+### Features
+
+* **FriendshipService:** Feedback message is sent to client when sending friend request [#104](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/104) ([06c0fdd](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/06c0fdd80cd9a4d9c2f40a236af75fe32dd97b50))
+* **FriendshipTests:** Added FriendshipControllerTest & FriendshipServiceTest closes [#125](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/125) ([3bb6349](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/3bb6349397a19f42a186f9582a3dcf191025b224))
+* **UserTests:** Extended UserController/Service/ServiceIntegration tests closes [#125](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/125) ([2618164](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/2618164d99c395bac6020dc24299840c0085002e))
+
+# [1.9.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.8.1...v1.9.0) (2026-05-20)
+
+
+### Bug Fixes
+
+* adapt tests to new implementation ([a2e5b9a](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/a2e5b9a69a9ffda20e372d8d23760cbb9576fbfd))
+* change cleanup duration ([f0ca850](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/f0ca850377d929b0d4457d403553604d9ca996d3))
+* change scope of dependencies and add gamesWon to Mapping ([62c9d70](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/62c9d70d7119f09b33b41d512175c4f2f1027d1f))
+
+
+### Features
+
+* **scoreboard:** implement game result tracking and user scoreboard calculations ([dba1103](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/dba11037084dd602c49fab6c96e3417083937f9d))
+* **users:** add guest cleanup, friend removal, and user deletion ([384ee0d](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/384ee0d6554677ec5d7572d398f3a921cab32f8d)), closes [#108](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/108)
+
+## [1.8.1](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.8.0...v1.8.1) (2026-05-19)
+
+
+### Bug Fixes
+
+* **LobbyServiceIntegrationTest:** two more fail, possibly because I changed to real broken from simple broker ([c9bd082](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/c9bd082422803ea805d86d5148c7bd2f2c9ef173))
+* **TrainPositionFetcherIntegrationTest:** one test failed, commented so deployment doesn't fail ([4f294d2](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/4f294d2e6b923d5adf0787cc068a14c1a2d193b1))
+
+# [1.8.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.7.2...v1.8.0) (2026-05-19)
+
+
+### Features
+
+* **Achievements:** notify user specific topic about achievments closes [#122](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/122) ([a59f65e](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/a59f65e7dd0193ad62bb3bfe85d0b345454d41e0))
+
+## [1.7.2](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.7.1...v1.7.2) (2026-05-19)
+
+
+### Bug Fixes
+
+* **main.yml, build.gradle:** add sonarqube dependencies ([50921c2](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/50921c28cc82b212ec55bf31b3728393f61ae731))
+
+## [1.7.1](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.7.0...v1.7.1) (2026-05-19)
+
+
+### Bug Fixes
+
+* **main.yml:** add gradlew executable ([c14fd22](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/c14fd228580e9db67fe43b143acb748a45f3fe79))
+
+# [1.7.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.6.0...v1.7.0) (2026-05-19)
+
+
+### Bug Fixes
+
+* **Achievements:** add proprietary icons ([db73fa5](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/db73fa5dd3693777950b50481a09fcc49105cabe))
+* add a rest endpoint that resends the latest websockets message if a player resfreshed their browser [#78](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/78) ([60ac8ca](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/60ac8ca89ecb5d9f070be973f2629eb0a8e287a4))
+* **GameService:** Timer added to inbetween rounds closes [#115](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/115) ([3faac7f](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/3faac7fc305dda7b6f43ef240fa11ffd852926b1))
+
+
+### Features
+
+* **Friendship:** endpoint & service function added to reject friendrequest closes [#104](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/104) ([f2c7328](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/f2c7328c335b3d1bebedef2a50da4b979e606662))
+* **gameservice:** Timer during ready screen. Buggy :( ([95cd032](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/95cd032f0c3710530914d7c99bb6cdd9729a1425))
+* **lobbyRestController:** join via lobby code now possible [#83](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/83) ([445f3ef](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/445f3efe100887d9b8893a67e945ef9339f876db))
+* test refactoring for gameservice, lobbyservice, lobbyserviceintegration, userservice, userserviceintegration, dtomapper, trainpositionfetcher; new tests for gamerestcontroller, all new repository components [#116](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/116) ([27c48a0](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/27c48a02faf55cc12049463659e6a5af634000e5))
+* **userService/controller:** new endpoint for searching users by username as well as service function and db query [#104](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/104) ([1d88b99](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/1d88b99a6b35db02d6ac0e6384265b19b9506b31))
+
+# [1.6.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.5.0...v1.6.0) (2026-05-13)
+
+
+### Bug Fixes
+
+* **Achievements:** List of UserAchievementDTO gets sent at get request to user/id together with UserDTO/MyUserDTO ([9b3690e](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/9b3690e7731cbf7d432789444a8166231627cf11))
+* **distance:** fix faulty rounding when casting float to double ([294851f](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/294851f3a5fb9b98d698f4ba48585070ea4dfd9a))
+* **FriendshipController/Service:** User with false credentials could still make requests. Also changed endpoint for accept to /friends/accept/{requestingUserId} from /././{friendshipId} [#104](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/104) ([b6fdbfd](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/b6fdbfdfb59be1e3eb00846e7b6fd9660295a960))
+
+
+### Features
+
+* **Achievements:** implement and award achievements at end of game ([e8b8611](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/e8b8611355ff1df572e415908c0054672bb4d6a4))
+* **Friends:** added friend-adding logic [#104](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/104) ([722d40e](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/722d40eefe035cf42bc3c49255b016836d0149de))
+* **Tests:** Reintegrated AuthServiceTest [#103](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/103) ([2733767](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/2733767b79ff9aec4f48d415bfc510d7b4b03664))
+* **Tests:** Reintegrated controller tests [#103](https://github.com/remoweirich/sopra-fs26-group-15-server/issues/103) ([50bc20b](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/50bc20bfb6a1670d44933e5675cfbc8c4927e0b3))
+
 # [1.5.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.4.11...v1.5.0) (2026-05-06)
 
 
