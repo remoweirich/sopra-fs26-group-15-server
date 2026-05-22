@@ -128,7 +128,7 @@ class AchievementServiceTest {
     @Test
     void evaluateAchievementsForUser_awardsRookieTravelerWhenPlayedGamesIsOne() {
         scoreboard.setPlayedGames(1L);
-        stubAchievementNotOwned("Rookie Traveler");
+        stubAchievementNotOwned("Streckenbillet");
 
         achievementService.evaluateAchievementsForUser(user, lobby, Collections.emptyList());
 
@@ -154,8 +154,8 @@ class AchievementServiceTest {
 
         // Give each achievement a distinct id so earnedAchievementIds doesn't
         // block the second award when both are evaluated in the same call.
-        stubAchievementNotOwned("Rookie Traveler");
-        stubAchievementNotOwned("Seasoned Traveler");
+        stubAchievementNotOwned("Streckenbillet");
+        stubAchievementNotOwned("Dauerpendler");
 
         achievementService.evaluateAchievementsForUser(user, lobby, Collections.emptyList());
 
@@ -166,7 +166,7 @@ class AchievementServiceTest {
     void evaluateAchievementsForUser_doesNotAwardSeasonedTravelerBelowTen() {
         scoreboard.setPlayedGames(9L);
         // Only Rookie Traveler condition is met; stub only that one.
-        stubAchievementNotOwned("Rookie Traveler");
+        stubAchievementNotOwned("Streckenbillet");
 
         achievementService.evaluateAchievementsForUser(user, lobby, Collections.emptyList());
 
@@ -178,7 +178,7 @@ class AchievementServiceTest {
     @Test
     void evaluateAchievementsForUser_awardsSwissRailExpertAtTenThousandPoints() {
         scoreboard.setTotalPoints(10000L);
-        stubAchievementNotOwned("Swiss Rail Expert");
+        stubAchievementNotOwned("GA-Besitzer");
 
         achievementService.evaluateAchievementsForUser(user, lobby, Collections.emptyList());
 
@@ -200,7 +200,7 @@ class AchievementServiceTest {
     @Test
     void evaluateAchievementsForUser_awardsFrequentFlyerAt50Rounds() {
         scoreboard.setPlayedRounds(50L);
-        stubAchievementNotOwned("Frequent Flyer");
+        stubAchievementNotOwned("Meilen-Millionär");
 
         achievementService.evaluateAchievementsForUser(user, lobby, Collections.emptyList());
 
@@ -232,7 +232,7 @@ class AchievementServiceTest {
         lobby.setPlayers(List.of(user, otherUser));
         lobby.setWinner(user); // This is now required by isMultiplayerWin(user, lobby)
 
-        stubAchievementNotOwned("Conductor");
+        stubAchievementNotOwned("Lokführer");
 
         // Execute
         achievementService.evaluateAchievementsForUser(user, lobby, Collections.emptyList());
@@ -276,7 +276,7 @@ class AchievementServiceTest {
         guess.setPoints(500);
 
         when(guessRepository.findByRoundAndUserUserId(round, 1L)).thenReturn(guess);
-        stubAchievementNotOwned("Close Call");
+        stubAchievementNotOwned("Haarscharf vorbei");
 
         achievementService.evaluateAchievementsForUser(user, lobby, List.of(round));
 
@@ -309,8 +309,8 @@ class AchievementServiceTest {
 
         when(guessRepository.findByRoundAndUserUserId(round, 1L)).thenReturn(guess);
         // Both flags fire; give each a distinct id
-        stubAchievementNotOwned("Close Call");
-        stubAchievementNotOwned("Perfect Round");
+        stubAchievementNotOwned("Haarscharf vorbei");
+        stubAchievementNotOwned("Pünktlicher als die SBB");
 
         achievementService.evaluateAchievementsForUser(user, lobby, List.of(round));
 
@@ -327,8 +327,8 @@ class AchievementServiceTest {
         guess.setPoints(0);
 
         when(guessRepository.findByRoundAndUserUserId(round, 1L)).thenReturn(guess);
-        stubAchievementNotOwned("Emergency Stop");
-        stubAchievementNotOwned("Wrong Train!");
+        stubAchievementNotOwned("Notbremse");
+        stubAchievementNotOwned("Im falschen Film... und Zug!");
 
         achievementService.evaluateAchievementsForUser(user, lobby, List.of(round));
 
@@ -345,8 +345,8 @@ class AchievementServiceTest {
         guess.setPoints(0); // also triggers Emergency Stop
 
         when(guessRepository.findByRoundAndUserUserId(round, 1L)).thenReturn(guess);
-        stubAchievementNotOwned("Wrong Train!");
-        stubAchievementNotOwned("Emergency Stop");
+        stubAchievementNotOwned("Im falschen Film... und Zug!");
+        stubAchievementNotOwned("Notbremse");
 
         achievementService.evaluateAchievementsForUser(user, lobby, List.of(round));
 
@@ -383,7 +383,7 @@ class AchievementServiceTest {
             when(guessRepository.findByRoundAndUserUserId(round, 1L)).thenReturn(guess);
         }
 
-        stubAchievementNotOwned("Train Transfer");
+        stubAchievementNotOwned("Anschlusszug erwischt");
 
         achievementService.evaluateAchievementsForUser(user, lobby, rounds);
 
@@ -426,8 +426,8 @@ class AchievementServiceTest {
 
         Achievement rookieAch = new Achievement();
         rookieAch.setAchievementId(10L);
-        rookieAch.setName("Rookie Traveler");
-        when(achievementRepository.findByName("Rookie Traveler")).thenReturn(rookieAch);
+        rookieAch.setName("Streckenbillet");
+        when(achievementRepository.findByName("Streckenbillet")).thenReturn(rookieAch);
 
         UserAchievement existing = new UserAchievement();
         existing.setUser(user);
@@ -457,7 +457,7 @@ class AchievementServiceTest {
     @Test
     void evaluateAchievementsForUser_sendsWebSocketNotificationOnAward() {
         scoreboard.setPlayedGames(1L);
-        stubAchievementNotOwned("Rookie Traveler");
+        stubAchievementNotOwned("Streckenbillet");
 
         achievementService.evaluateAchievementsForUser(user, lobby, Collections.emptyList());
 

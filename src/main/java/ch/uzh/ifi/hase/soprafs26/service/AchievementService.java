@@ -82,27 +82,27 @@ public class AchievementService {
 
         // 1) Rookie Traveler
         if (playedGames >= 1) {
-            awardIfMissing(user, "Rookie Traveler", earnedAchievementIds);
+            awardIfMissing(user, "Streckenbillet", earnedAchievementIds);
         }
 
         // 2) Seasoned Traveler
         if (playedGames >= 10) {
-            awardIfMissing(user, "Seasoned Traveler", earnedAchievementIds);
+            awardIfMissing(user, "Dauerpendler", earnedAchievementIds);
         }
 
         // 3) Swiss Rail Expert
         if (totalPoints >= 10000) {
-            awardIfMissing(user, "Swiss Rail Expert", earnedAchievementIds);
+            awardIfMissing(user, "GA-Besitzer", earnedAchievementIds);
         }
 
         // 4) Frequent Flyer
         if (playedRounds >= 50) {
-            awardIfMissing(user, "Frequent Flyer", earnedAchievementIds);
+            awardIfMissing(user, "Meilen-Millionär", earnedAchievementIds);
         }
 
         // 5) Conductor
         if (isMultiplayerWin(user, lobby)) {
-            awardIfMissing(user, "Conductor", earnedAchievementIds);
+            awardIfMissing(user, "Lokführer", earnedAchievementIds);
         }
 
         // Round-based checks
@@ -146,19 +146,19 @@ public class AchievementService {
         }
 
         if (hasCloseCall) {
-            awardIfMissing(user, "Close Call", earnedAchievementIds);
+            awardIfMissing(user, "Haarscharf vorbei", earnedAchievementIds);
         }
         if (hasPerfectRound) {
-            awardIfMissing(user, "Perfect Round", earnedAchievementIds);
+            awardIfMissing(user, "Pünktlicher als die SBB", earnedAchievementIds);
         }
         if (trainTransfer) {
-            awardIfMissing(user, "Train Transfer", earnedAchievementIds);
+            awardIfMissing(user, "Anschlusszug erwischt", earnedAchievementIds);
         }
         if (hasEmergencyStop) {
-            awardIfMissing(user, "Emergency Stop", earnedAchievementIds);
+            awardIfMissing(user, "Notbremse", earnedAchievementIds);
         }
         if (hasWrongTrain) {
-            awardIfMissing(user, "Wrong Train!", earnedAchievementIds);
+            awardIfMissing(user, "Im falschen Film... und Zug!", earnedAchievementIds);
         }
     }
 
