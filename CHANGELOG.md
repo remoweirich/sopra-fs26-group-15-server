@@ -1,3 +1,10 @@
+## [1.12.3](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.12.2...v1.12.3) (2026-05-22)
+
+
+### Bug Fixes
+
+* application properties cleanupService times ([803dfad](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/803dfad32c3ce651508f2df72251950c6ea182ad))
+
 ## [1.12.2](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.12.1...v1.12.2) (2026-05-22)
 
 
