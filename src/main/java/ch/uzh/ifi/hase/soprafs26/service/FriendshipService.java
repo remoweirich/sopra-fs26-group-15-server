@@ -60,8 +60,8 @@ public class FriendshipService {
         Message message = new Message(MessageType.FRIEND_REQUEST, friendRequestDTO);
         simpMessagingTemplate.convertAndSend("/topic/" + receivingUserId + "/notifications", message);
 
-        friendRequestDTO.setUserId(sendingUserId);
-        friendRequestDTO.setUsername(sendingUser.getUserProfile().getUsername());
+        friendRequestDTO.setUserId(receivingUserId);
+        friendRequestDTO.setUsername(receivingUser.getUserProfile().getUsername());
 
         Message feedbackMessage = new Message(MessageType.FEEDBACK, friendRequestDTO);
         simpMessagingTemplate.convertAndSend("/topic/" + sendingUserId + "/notifications", feedbackMessage);
