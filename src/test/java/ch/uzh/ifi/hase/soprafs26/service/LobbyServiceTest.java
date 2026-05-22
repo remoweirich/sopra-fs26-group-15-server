@@ -2,6 +2,7 @@ package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.constant.LobbyState;
 import ch.uzh.ifi.hase.soprafs26.constant.LobbyVisibility;
+import ch.uzh.ifi.hase.soprafs26.constant.MessageType;
 import ch.uzh.ifi.hase.soprafs26.entity.Lobby;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.entity.UserProfile;
@@ -293,12 +294,18 @@ class LobbyServiceTest {
 
         lobbyService.startGame(LOBBY_ID);
 
-        ArgumentCaptor<Lobby> captor = ArgumentCaptor.forClass(Lobby.class);
-        Mockito.verify(lobbyRepository).save(captor.capture());
-        assertEquals(LobbyState.IN_GAME, captor.getValue().getLobbyState());
+        ArgumentCaptor<Lobby> lobbyCaptor = ArgumentCaptor.forClass(Lobby.class);
+        Mockito.verify(lobbyRepository).save(lobbyCaptor.capture());
+        assertEquals(LobbyState.IN_GAME, lobbyCaptor.getValue().getLobbyState());
         Mockito.verify(gameService).setupGame(lobby);
-        Mockito.verify(messagingTemplate).convertAndSend(
-                Mockito.eq("/topic/lobby/" + LOBBY_ID), Mockito.any(Message.class));
+
+        ArgumentCaptor<Message> msgCaptor = ArgumentCaptor.forClass(Message.class);
+        Mockito.verify(messagingTemplate, Mockito.times(2)).convertAndSend(
+                Mockito.eq("/topic/lobby/" + LOBBY_ID), msgCaptor.capture());
+
+        List<Message> sent = msgCaptor.getAllValues();
+        assertEquals(MessageType.LOAD_GAME, sent.get(0).getType());
+        assertEquals(MessageType.GAME_START, sent.get(1).getType());
     }
 
     /**
