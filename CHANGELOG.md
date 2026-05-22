@@ -1,3 +1,10 @@
+## [1.12.5](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.12.4...v1.12.5) (2026-05-22)
+
+
+### Bug Fixes
+
+* **Achievements:** german text to stay consistent with front-end ([5c50afa](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/5c50afa077d264dadb05ed0e8be682dae5a24ccd))
+
 ## [1.12.4](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.12.3...v1.12.4) (2026-05-22)
 
 
