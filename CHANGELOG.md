@@ -1,3 +1,10 @@
+## [1.12.2](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.12.1...v1.12.2) (2026-05-22)
+
+
+### Bug Fixes
+
+* **FriendshipService:** wrong message body in sendFriendRequest ([73fd0f3](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/73fd0f3e6bf764315e2a034c0a86eaa6e6850018))
+
 ## [1.12.1](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.12.0...v1.12.1) (2026-05-22)
 
 
