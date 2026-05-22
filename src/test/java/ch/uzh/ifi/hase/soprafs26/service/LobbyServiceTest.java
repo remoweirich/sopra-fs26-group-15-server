@@ -297,7 +297,7 @@ class LobbyServiceTest {
         Mockito.verify(lobbyRepository).save(captor.capture());
         assertEquals(LobbyState.IN_GAME, captor.getValue().getLobbyState());
         Mockito.verify(gameService).setupGame(lobby);
-        Mockito.verify(messagingTemplate).convertAndSend(
+        Mockito.verify(messagingTemplate, Mockito.times(2)).convertAndSend(
                 Mockito.eq("/topic/lobby/" + LOBBY_ID), Mockito.any(Message.class));
     }
 
