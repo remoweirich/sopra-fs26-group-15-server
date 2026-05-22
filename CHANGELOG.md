@@ -1,3 +1,10 @@
+## [1.12.4](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.12.3...v1.12.4) (2026-05-22)
+
+
+### Bug Fixes
+
+* still wrong user in feedback message ([6d8653b](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/6d8653bcc035b1fde70fbf2ad760b4538bef5e74))
+
 ## [1.12.3](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.12.2...v1.12.3) (2026-05-22)
 
 
