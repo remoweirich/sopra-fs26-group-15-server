@@ -181,6 +181,9 @@ public class LobbyService {
     public void startGame(Long lobbyId) {
         Lobby lobby = getLobbyById(lobbyId);
 
+        Message loadingScreenMessage = new Message(MessageType.LOAD_GAME, null);
+        messagingTemplate.convertAndSend("/topic/lobby/" + lobbyId, loadingScreenMessage);
+
         if (lobby.getLobbyState().equals(LobbyState.IN_GAME)) {
             return; // Already started, skip
         }

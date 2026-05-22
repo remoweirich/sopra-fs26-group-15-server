@@ -17,4 +17,5 @@ public enum MessageType {
     FRIEND_REJECT,
     FEEDBACK,
     ACHIEVEMENT,
+    LOAD_GAME
 }
