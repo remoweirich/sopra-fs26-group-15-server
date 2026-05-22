@@ -1,3 +1,10 @@
+## [1.12.1](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.12.0...v1.12.1) (2026-05-22)
+
+
+### Bug Fixes
+
+* **LobbyService:** send LOAD_GAME to client, such that all players get loading screen after game start ([309dc27](https://github.com/remoweirich/sopra-fs26-group-15-server/commit/309dc2729a918a8d8c987d63f0204e3af75c8b0f))
+
 # [1.12.0](https://github.com/remoweirich/sopra-fs26-group-15-server/compare/v1.11.0...v1.12.0) (2026-05-21)
 
 
